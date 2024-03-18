@@ -1,0 +1,523 @@
+    ZXR10-MPLSTE-STATIC-LSP-MIB DEFINITIONS ::= BEGIN
+  
+  
+        IMPORTS
+            MODULE-IDENTITY, OBJECT-TYPE,NOTIFICATION-TYPE,IpAddress, Unsigned32 
+                    FROM SNMPv2-SMI                           
+            DisplayString      
+                    FROM SNMPv2-TC
+            mplsTeStaticLsp 
+                    FROM ZXR10-SMI;    
+                                                
+        
+         
+         mplsTeStaticLspMIB MODULE-IDENTITY
+			    LAST-UPDATED
+				"200507260000Z"  -- Mar 12, 2010
+				ORGANIZATION
+				""
+				CONTACT-INFO
+				" "
+				DESCRIPTION
+				""
+				REVISION
+				"200507260000Z"  -- Mar 12, 2010 
+				DESCRIPTION
+				""
+				::= { mplsTeStaticLsp 1 }
+
+
+         -- tables
+            mplsTeStaticLspNotifications OBJECT IDENTIFIER ::= { mplsTeStaticLspMIB 0 }
+            mplsTeStaticLocalLspObjects  OBJECT IDENTIFIER ::= { mplsTeStaticLspMIB 1 } 
+			mplsTeStaticRemoteLspObjects OBJECT IDENTIFIER ::= { mplsTeStaticLspMIB 2 }
+					                 
+	   
+	   
+	  -- mplsTeStaticLocalLspTable.
+		mplsTeStaticLocalLspTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF MplsTeStaticLocalLspEntry
+			MAX-ACCESS not-accessible
+			STATUS obsolete
+			DESCRIPTION
+				 "Local static tunnel information query table."
+			::= { mplsTeStaticLocalLspObjects 1 }  
+			
+	    mplsTeStaticLocalLspEntry OBJECT-TYPE
+			SYNTAX MplsTeStaticLocalLspEntry
+			MAX-ACCESS not-accessible
+			STATUS obsolete
+			DESCRIPTION	  
+			      "Local static tunnel instance."
+			INDEX {mplsStaticLocalLspTunnelId}
+			::= { mplsTeStaticLocalLspTable 1 }
+			
+			
+			MplsTeStaticLocalLspEntry ::= SEQUENCE {        		
+        		mplsStaticLocalLspTunnelId Unsigned32,
+        		mplsStaticLocalLspTunnelType INTEGER,
+        		mplsStaticLocalLspIngressLSRId  IpAddress,
+        		mplsStaticLocalLspEgressLSRId   IpAddress, 
+        		mplsStaticLocalLspNexthop   IpAddress,        		
+                mplsStaticLocalLsp0utIntf Unsigned32,			
+				mplsStaticLocalLspOutIfName DisplayString,  
+				mplsStaticLocalLspOutLabel  Unsigned32,  
+        		mplsStaticLocalLspBackuplspId Unsigned32,
+        		mplsStaticLocalLspBackupLspstatus INTEGER,
+        		mplsStaticLocalLspBackeuplspProtectMode INTEGER,			
+                mplsStaticLocalLspNodeRole  INTEGER,				
+        		mplsStaticLocalLspBandwidth Unsigned32,
+        		mplsStaticLocalLspTunnelStatus INTEGER,
+        		mplsStaticLocalLspTunnelAdminStatus INTEGER,
+        		mplsStaticLocalLspRvsInIntf Unsigned32,			
+				mplsStaticLocalLspRvsInIfName DisplayString,  
+				mplsStaticLocalLspRvsInLabel  Unsigned32
+        		
+		    }		      
+			     
+
+			        
+			mplsStaticLocalLspTunnelId OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "Uniquely identifies a set of static tunnel instances between a pair of ingress and egress LSRs."
+			::= { mplsTeStaticLocalLspEntry 1 }
+			
+			mplsStaticLocalLspTunnelType OBJECT-TYPE
+			SYNTAX INTEGER { bidirect(1), unidirect(2) }
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Specifies the type of a static tunnel."
+				::= { mplsTeStaticLocalLspEntry 2 }
+				
+			mplsStaticLocalLspIngressLSRId OBJECT-TYPE
+			SYNTAX IpAddress
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Identity of the ingress LSR ."
+			::= { mplsTeStaticLocalLspEntry 3 }
+			
+			mplsStaticLocalLspEgressLSRId OBJECT-TYPE
+			SYNTAX IpAddress
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Identity of the egress LSR ."
+			::= { mplsTeStaticLocalLspEntry 4 }  
+			
+			
+ 	 	    mplsStaticLocalLspNexthop OBJECT-TYPE
+			SYNTAX IpAddress
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"The next hop of this LSR."
+			::= { mplsTeStaticLocalLspEntry 5 }
+			
+			
+ 	 	    mplsStaticLocalLsp0utIntf OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Out interface of local static lsp."
+			::= { mplsTeStaticLocalLspEntry 6 }
+ 	 	 
+			mplsStaticLocalLspOutIfName OBJECT-TYPE
+			SYNTAX DisplayString
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Out interface name of local static lsp."
+			::= { mplsTeStaticLocalLspEntry 7 }  
+			
+			mplsStaticLocalLspOutLabel OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "Out label of local static lsp."
+			::= { mplsTeStaticLocalLspEntry 8 }
+			
+			mplsStaticLocalLspBackuplspId OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "The index of tunnel which protecting the mplsStaticLocalLsp0utIntf."
+			::= { mplsTeStaticLocalLspEntry 9 } 
+			
+			mplsStaticLocalLspBackupLspstatus OBJECT-TYPE
+			SYNTAX  INTEGER{none(0),
+			                ready(1),
+			                active(2)
+			                }			
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "Specifies the state of the protecting tunnel as specified by mplsStaticLocalLspBackuplspId."
+			::= { mplsTeStaticLocalLspEntry 10 }
+            
+            mplsStaticLocalLspBackeuplspProtectMode OBJECT-TYPE
+			SYNTAX  INTEGER{none(0),
+			                one2one(1),
+			                one2n(2)
+			                }			
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "Specifies the protect mode of the protecting tunnel."
+			::= { mplsTeStaticLocalLspEntry 11 }
+			             
+	        mplsStaticLocalLspNodeRole OBJECT-TYPE 
+	        SYNTAX INTEGER {head(1),
+			 				transit(2), 
+							tail(3)
+							}		
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION  
+			     "This value signifies the role that this static tunnel	entry/instance represents."
+			::= { mplsTeStaticLocalLspEntry 12 }
+
+	        
+        	mplsStaticLocalLspBandwidth OBJECT-TYPE 
+	        SYNTAX Unsigned32
+	        MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION  
+			     "This value identifies the bandwidth of this static tunnel."
+			::= { mplsTeStaticLocalLspEntry 13 }
+ 
+     		
+        	mplsStaticLocalLspTunnelStatus OBJECT-TYPE
+			SYNTAX  INTEGER {down(0),
+			                 up(1)
+			                }	
+            MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			     "This value identifies actual operational status of this static tunnel."
+			 ::= { mplsTeStaticLocalLspEntry 14 }
+			 
+			 
+        	mplsStaticLocalLspTunnelAdminStatus OBJECT-TYPE
+			SYNTAX  INTEGER {down(0),
+			                 up(1)
+			                }	
+            MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			     "This value identifies the administrator status of this static tunnel."
+			 ::= { mplsTeStaticLocalLspEntry 15 }  
+			 
+			 mplsStaticLocalLspRvsInIntf OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"In interface of reverse Local static lsp."
+			::= { mplsTeStaticLocalLspEntry 16 }
+ 	 	 
+			mplsStaticLocalLspRvsInIfName OBJECT-TYPE
+			SYNTAX DisplayString
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"In interface name of reverse Local static lsp."
+			::= { mplsTeStaticLocalLspEntry 17 }  
+			
+			mplsStaticLocalLspRvsInLabel OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "In label of reverse Local static lsp."
+			::= { mplsTeStaticLocalLspEntry 18 }
+
+ 
+			 -- End of mplsTeStaticLocalLspTable.
+
+
+	  -- mplsTeStaticRemoteLspTable.
+		mplsTeStaticRemoteLspTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF MplsTeStaticRemoteLspEntry
+			MAX-ACCESS not-accessible
+			STATUS obsolete
+			DESCRIPTION
+				"Remote static tunnel information query table."
+			::= { mplsTeStaticRemoteLspObjects 1 }  
+			
+	    mplsTeStaticRemoteLspEntry OBJECT-TYPE
+			SYNTAX MplsTeStaticRemoteLspEntry
+			MAX-ACCESS not-accessible
+			STATUS obsolete
+			DESCRIPTION	  
+			      "Remote static tunnel instance ."
+			INDEX {mplsStaticRemoteLspTunnelId}
+			::= { mplsTeStaticRemoteLspTable 1 }
+			
+			
+			MplsTeStaticRemoteLspEntry ::= SEQUENCE {        		
+        		mplsStaticRemoteLspTunnelId Unsigned32,
+        		mplsStaticRemoteLspTunnelType INTEGER,
+        		mplsStaticRemoteLspIngressLSRId  IpAddress,
+        		mplsStaticRemoteLspEgressLSRId   IpAddress, 
+        		mplsStaticRemoteLspNexthop   IpAddress,        		
+                mplsStaticRemoteLsp0utIntf Unsigned32,			
+				mplsStaticRemoteLspOutIfName DisplayString,  
+				mplsStaticRemoteLspOutLabel  Unsigned32,   
+				mplsStaticRemoteLspInIntf Unsigned32,			
+				mplsStaticRemoteLspInIfName DisplayString,  
+				mplsStaticRemoteLspInLabel  Unsigned32,	
+                mplsStaticRemoteLspNodeRole  INTEGER,				
+        		mplsStaticRemoteLspBandwidth Unsigned32,
+                mplsStaticRemoteLspTunnelStatus  INTEGER,
+                mplsStaticRemoteLspRvsNexthop   IpAddress,        		
+                mplsStaticRemoteLspRvs0utIntf Unsigned32,			
+				mplsStaticRemoteLspRvsOutIfName DisplayString,  
+				mplsStaticRemoteLspRvsOutLabel  Unsigned32,   
+				mplsStaticRemoteLspRvsInIntf Unsigned32,			
+				mplsStaticRemoteLspRvsInIfName DisplayString,  
+				mplsStaticRemoteLspRvsInLabel  Unsigned32 
+		    }		      
+			     
+
+			        
+			mplsStaticRemoteLspTunnelId OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "Uniquely identifies a set of static tunnel instances between a pair of ingress and egress LSRs."
+			::= { mplsTeStaticRemoteLspEntry 1 }
+			
+			mplsStaticRemoteLspTunnelType OBJECT-TYPE
+			SYNTAX INTEGER { bidirect(1), unidirect(2) }
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Specifies the type of a static tunnel."
+				::= { mplsTeStaticRemoteLspEntry 2 }
+				
+			mplsStaticRemoteLspIngressLSRId OBJECT-TYPE
+			SYNTAX IpAddress
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Identity of the ingress LSR ."
+			::= { mplsTeStaticRemoteLspEntry 3 }
+			
+			mplsStaticRemoteLspEgressLSRId OBJECT-TYPE
+			SYNTAX IpAddress
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Identity of the egress LSR ."
+			::= { mplsTeStaticRemoteLspEntry 4 }  
+			
+			
+ 	 	    mplsStaticRemoteLspNexthop OBJECT-TYPE
+			SYNTAX IpAddress
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"The next hop of this static lsp."
+			::= { mplsTeStaticRemoteLspEntry 5 }
+			
+			
+ 	 	    mplsStaticRemoteLsp0utIntf OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Out interface of Remote static lsp."
+			::= { mplsTeStaticRemoteLspEntry 6 }
+ 	 	 
+			mplsStaticRemoteLspOutIfName OBJECT-TYPE
+			SYNTAX DisplayString
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Out interface name of Remote static lsp."
+			::= { mplsTeStaticRemoteLspEntry 7 }  
+			
+			mplsStaticRemoteLspOutLabel OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "Out label of Remote static lsp."
+			::= { mplsTeStaticRemoteLspEntry 8 }
+
+	 	    mplsStaticRemoteLspInIntf OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"In interface of Remote static lsp."
+			::= { mplsTeStaticRemoteLspEntry 9 }
+ 	 	 
+			mplsStaticRemoteLspInIfName OBJECT-TYPE
+			SYNTAX DisplayString
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"In interface name of Remote static lsp."
+			::= { mplsTeStaticRemoteLspEntry 10 }  
+			
+			mplsStaticRemoteLspInLabel OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "In label of Remote static lsp."
+			::= { mplsTeStaticRemoteLspEntry 11 }
+	
+                       
+	        mplsStaticRemoteLspNodeRole OBJECT-TYPE 
+	        SYNTAX INTEGER {head(1),
+	                        transit(2), 
+							tail(3) 
+							
+							}		
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION  
+			     "This value signifies the role that this static tunnel entry/instance represents."
+			::= { mplsTeStaticRemoteLspEntry 12 }
+
+	        
+        	mplsStaticRemoteLspBandwidth OBJECT-TYPE 
+	        SYNTAX Unsigned32
+	        MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION  
+			     "This value identifies the bandwidth of this static tunnel."
+			::= { mplsTeStaticRemoteLspEntry 13 }
+ 
+	 
+			mplsStaticRemoteLspTunnelStatus OBJECT-TYPE
+			SYNTAX  INTEGER {down(0),
+			                 up(1)
+			                }	
+            MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "This value identifies actual operational status of this static tunnel."
+			 ::= { mplsTeStaticRemoteLspEntry 14 }
+			 
+             mplsStaticRemoteLspRvsNexthop OBJECT-TYPE
+			SYNTAX IpAddress
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"The next hop of reverse static lsp."
+			::= { mplsTeStaticRemoteLspEntry 15 }
+			
+			
+ 	 	    mplsStaticRemoteLspRvs0utIntf OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Out interface of Remote reverse static lsp."
+			::= { mplsTeStaticRemoteLspEntry 16 }
+ 	 	 
+			mplsStaticRemoteLspRvsOutIfName OBJECT-TYPE
+			SYNTAX DisplayString
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"Out interface name of Remote reverse static lsp."
+			::= { mplsTeStaticRemoteLspEntry 17 }  
+			
+			mplsStaticRemoteLspRvsOutLabel OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "Out label of Remote reverse static lsp."
+			::= { mplsTeStaticRemoteLspEntry 18 }
+
+	 	    mplsStaticRemoteLspRvsInIntf OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"In interface of Remote reverse static lsp."
+			::= { mplsTeStaticRemoteLspEntry 19 }
+ 	 	 
+			mplsStaticRemoteLspRvsInIfName OBJECT-TYPE
+			SYNTAX DisplayString
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+				"In interface name of Remote reverse static lsp."
+			::= { mplsTeStaticRemoteLspEntry 20 }  
+			
+			mplsStaticRemoteLspRvsInLabel OBJECT-TYPE
+			SYNTAX Unsigned32
+			MAX-ACCESS read-only
+			STATUS obsolete
+			DESCRIPTION
+			    "In label of Remote reverse static lsp."
+			::= { mplsTeStaticRemoteLspEntry 21 }
+			 
+	-- End of mplsTeStaticRemoteLspTable.
+
+	--trap
+	  
+ 	mplsTeStaticLocalLspUp NOTIFICATION-TYPE
+		     OBJECTS  {mplsStaticLocalLspTunnelStatus}
+		     STATUS      obsolete
+		     DESCRIPTION
+		          "This notification is generated when a
+             mplsStaticLocalLspTunnelStatus object for one of the
+             configured static tunnels is about to leave the down state
+             and transition into up state."
+		     ::= { mplsTeStaticLspNotifications 1 }     
+		     
+ 	mplsTeStaticLocalLspDown NOTIFICATION-TYPE
+		     OBJECTS  {mplsStaticLocalLspTunnelStatus}
+		     STATUS      obsolete
+		     DESCRIPTION
+		          "This notification is generated when a
+             mplsStaticLocalLspTunnelStatus object for one of the
+             configured static tunnels is about to leave the up state
+             and transition into down state."
+		     ::= { mplsTeStaticLspNotifications 2 }     
+
+ 	mplsTeStaticRemoteLspUp NOTIFICATION-TYPE
+		     OBJECTS  {mplsStaticRemoteLspTunnelStatus}
+		     STATUS      obsolete
+		     DESCRIPTION
+		          "This notification is generated when a
+             mplsStaticRemoteLspTunnelStatus object for one of the
+             configured static tunnels is about to leave the down state
+             and transition into up state."
+		     ::= { mplsTeStaticLspNotifications 3 }     
+		     
+ 	mplsTeStaticRemoteLspDown NOTIFICATION-TYPE
+		     OBJECTS  {mplsStaticRemoteLspTunnelStatus}
+		     STATUS      obsolete
+		     DESCRIPTION
+		          "This notification is generated when a
+             mplsStaticRemoteLspTunnelStatus object for one of the
+             configured static tunnels is about to leave the up state
+             and transition into down state."
+		     ::= { mplsTeStaticLspNotifications 4 }     
+     
+     
+     	     
+    END
+
+
+
+
+
+

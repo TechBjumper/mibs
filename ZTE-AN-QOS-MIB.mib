@@ -1,0 +1,1928 @@
+ZTE-AN-QOS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    RowStatus,DisplayString                                FROM SNMPv2-TC
+    MODULE-IDENTITY,OBJECT-TYPE,Integer32,Counter64        FROM SNMPv2-SMI
+    OBJECT-GROUP,MODULE-COMPLIANCE                         FROM SNMPv2-CONF
+    zxAnQos                                                FROM ZTE-AN-SMI
+    ifIndex                                                FROM IF-MIB
+    VlanId                                                 FROM ZTE-AN-TC-MIB
+    zxAnSubIfIndex                                         FROM ZTE-AN-IF-MIB;
+
+zxAnQosMib MODULE-IDENTITY
+    LAST-UPDATED   "201611211530Z"
+    ORGANIZATION   "ZTE Corporation"
+    CONTACT-INFO   "Luo Feima     ZTE Corporation
+                    Mail : luo.feima@zte.com.cn
+                    Tel  : +86-21-68896470."
+    DESCRIPTION    "This MIB defines ZTE Access Node QoS managed objects."
+
+    REVISION       "201611211530Z"
+    DESCRIPTION
+        "1.Supplement of the zxAnQosCosToDropPrecedePrfTable.
+         2.Supplement of the zxAnQosQueueWredIIPrfTable.
+         3.Supplement of the zxAnQosIfQueueStatsTable."
+
+    REVISION       "201303290930Z"
+    DESCRIPTION
+        "Supplement of the queue shaping profile."
+
+    REVISION       "201108181830Z"
+    DESCRIPTION
+        "Modification of the descriptions for this MIB module."
+
+    REVISION       "201108081830Z"
+    DESCRIPTION
+        "Modification of the comments for this MIB module."
+
+    REVISION       "201107051446Z"
+    DESCRIPTION
+        "Conformance supplement for this MIB module."
+
+    REVISION        "201010281326Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { zxAnQos 1 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnQosGlobalObjects
+-- 2. zxAnQosObjects
+-- 2.1 zxAnQosMapObjects
+-- 2.1.1 zxAnQosMapGlobalObjects
+-- 2.1.2 zxAnQosCosToCosPrfTable
+-- 2.1.3 zxAnQosDscpToDscpPrfTable
+-- 2.1.4 zxAnQosDscpToCosPrfTable
+-- 2.1.5 zxAnQosDscpToDropPrecedePrfTable
+-- 2.1.6 zxAnQosMplsTcToCosPrfTable
+-- 2.1.7 zxAnQosCosToMplsTcPrfTable
+-- 2.1.8 zxAnQosCosToDropPrecedePrfTable
+-- 2.1.9 zxAnQosCosToDeiPrfTable
+-- 2.2 zxAnQosQueueObjects
+-- 2.2.1 zxAnQosQueueGlobalObjects
+-- 2.2.2 zxAnQosQueueBlockPrfTable
+-- 2.2.3 zxAnQosQueueMapPrfTable
+-- 2.2.4 zxAnQosQueueShapingPrfTable
+-- 2.2.5 zxAnQosQueueWredPrfTable
+-- 2.2.6 zxAnQosQueueWredIIPrfTable
+-- 2.2.7 zxAnQosQueueConfPrfTable
+-- 2.2.8 zxAnQosQueueWredConfTable
+-- 2.3 zxAnQosIfObjects
+-- 2.3.1 zxAnQosIfConfTable
+-- 2.4 zxAnQosIfStatsObjects
+-- 2.4.1 zxAnQosIfQueueStatsTable
+-- 2.4.2 zxAnQosBrgIfQueueStatsTable
+-- 2.4.3 zxAnQosIfQueueDiscardThreshTable
+-- 2.5 zxAnQosVlanObjects
+-- 2.5.2 zxAnQosVlanCosToDeiPrfConfTable
+-- 2.5.3 zxAnQosVlanEgressDeiTable
+-- 2.5.4 zxAnQosVlanCosToCosPrfConfTable
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1. zxAnQosGlobalObjects
+--------------------------------------------------------------------------------
+    zxAnQosGlobalObjects        OBJECT IDENTIFIER ::= { zxAnQosMib 1 }
+
+     zxAnQosCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            supportPvcToQueue(0),
+            supportPonChIfInQueueStatsTable(1),
+            supportQueueConfBufferSize(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The QoS capabilities.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             bit 0: value 1 means supporting zxAnQosPvcToQueue in
+             zxAnQosQueueMapPrfTable.
+             bit 1: value 1 means supporting PON channel interface in
+             zxAnQosIfQueueStatsTable.
+             bit 2: value 1 means supporting zxAnQosQueueConfBufferSize in
+             zxAnQosQueueConfPrfTable.
+
+             NOTE: No recommended to display it in NMS."
+      ::=  { zxAnQosGlobalObjects  100 }
+
+--------------------------------------------------------------------------------
+-- 2. zxAnQosObjects
+--------------------------------------------------------------------------------
+    zxAnQosObjects        OBJECT IDENTIFIER ::= { zxAnQosMib 2 }
+--------------------------------------------------------------------------------
+-- 2.1 zxAnQosMapObjects
+--------------------------------------------------------------------------------
+    zxAnQosMapObjects     OBJECT IDENTIFIER ::= { zxAnQosObjects 1 }
+    
+
+--------------------------------------------------------------------------------
+-- 2.1.1 zxAnQosMapGlobalObjects
+--------------------------------------------------------------------------------
+    zxAnQosMapGlobalObjects OBJECT IDENTIFIER ::= { zxAnQosMapObjects 1 }
+
+    zxAnQosGlobalCosToDropPrecedence  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (8))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The global CoS mapping drop precedence value.
+             For example, '00 01 02 00 01 02 01 02' means CoS 0 is mapping to 
+             drop precedence 0, CoS 1 is mapping to drop precedence 1, ..., 
+             CoS 7 is mapping to drop precedence 2. 
+             The range of drop precedence is 0-2.
+             The value 'ff ff ff ff ff ff ff ff' means the drop precedence is
+             not configured."
+        ::= { zxAnQosMapGlobalObjects 1 }
+        
+--------------------------------------------------------------------------------
+-- 2.1.2 zxAnQosCosToCosPrfTable
+--------------------------------------------------------------------------------
+
+    zxAnQosCosToCosPrfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosCosToCosPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains CosToCos mapping information. One entry in
+            this table reflects a profile defined which can be used to
+            configure an interface."
+        ::= { zxAnQosMapObjects 2 }
+
+    zxAnQosCosToCosPrfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosCosToCosPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "zxAnQosCosToCosPrfTable entry.
+
+            The multi-variables binding rule should be complied with when a
+            manager creates an entry. According to this rule, all the related
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+
+            To create an entry, the mandatory and optional variables are as
+            follows:
+            mandatory: zxAnQosCosToCos, zxAnQosCosToCosPrfRowStatus.
+            optional : none.
+
+            To delete an entry, only zxAnQosCosToCosPrfRowStatus is needed in
+            one SNMP setOperation.
+
+            After an entry is created, only variable zxAnQosCosToCos can be
+            modified. If a manager tries to modify any other variables
+            in this entry, agent will return error with SNMP error code
+            inconsistentValue."
+
+        INDEX { zxAnQosCosToCosPrfName }
+        ::= { zxAnQosCosToCosPrfTable 1 }
+
+    ZxAnQosCosToCosPrfEntry ::=
+        SEQUENCE {
+            zxAnQosCosToCosPrfName       DisplayString,
+            zxAnQosCosToCos              OCTET STRING,
+            zxAnQosCosToCosPrfRowStatus  RowStatus
+        }
+
+    zxAnQosCosToCosPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The profile name is a display string. It is an index of this
+             table."
+        ::= { zxAnQosCosToCosPrfEntry 1 }
+
+    zxAnQosCosToCos    OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(8))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The values for CoS remarking. For example, the value
+             '00 01 02 03 04 05 06 07' means CoS 0 is remarked to CoS 0,...,
+             CoS 7 is remarked to CoS 7. The range of CoS is 0-7."
+        ::= { zxAnQosCosToCosPrfEntry 2 }
+
+    zxAnQosCosToCosPrfRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnQosCosToCosPrfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosCosToCosPrfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.1.3 zxAnQosDscpToDscpPrfTable
+--------------------------------------------------------------------------------
+    zxAnQosDscpToDscpPrfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosDscpToDscpPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains DSCP remark information.
+             One entry in this table reflects a profile defined which can be
+             used to configure an interface."
+        ::= { zxAnQosMapObjects 3 }
+
+    zxAnQosDscpToDscpPrfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosDscpToDscpPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "zxAnQosDscpToDscpPrfTable entry.
+
+            The multi-variables binding rule should be complied with when a
+            manager creates an entry. According to this rule, all the related
+            mib variables must be included in one SNMP set operation.
+
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone.
+
+            To create an entry, the mandatory and optional variables are as
+            follows: 
+            mandatory: zxAnQosDscpToDscp, zxAnQosDscpToDscpPrfRowStatus.
+            optional: none.
+
+            To delete an entry, only zxAnQosDscpToDscpPrfRowStatus is needed
+            in one SNMP set operation.
+
+            After an entry is created, only variable zxAnQosDscpToDscp can be
+            modified. If a manager tries to modify any other variables
+            in this entry, agent will return error with SNMP error code
+            inconsistentValue."
+        INDEX { zxAnQosDscpToDscpPrfName }
+        ::= { zxAnQosDscpToDscpPrfTable 1 }
+
+    ZxAnQosDscpToDscpPrfEntry ::=
+        SEQUENCE {
+            zxAnQosDscpToDscpPrfName       DisplayString,
+            zxAnQosDscpToDscp              OCTET STRING,
+            zxAnQosDscpToDscpPrfRowStatus  RowStatus
+        }
+
+    zxAnQosDscpToDscpPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The profile name is a display string. It is an index of
+             this table."
+        ::= { zxAnQosDscpToDscpPrfEntry 1 }
+
+    zxAnQosDscpToDscp    OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(64))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The values for DSCP priority remarking. For example,
+             the value '00 01 ...3F' means DSCP priority 0 is remarked
+             to DSCP priority 0,...,DSCP priority 63 is remarked to
+             DSCP priority 63. The range of DSCP priority is 0-63."
+        ::= { zxAnQosDscpToDscpPrfEntry 2 }
+
+    zxAnQosDscpToDscpPrfRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnQosDscpToDscpPrfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosDscpToDscpPrfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.1.4 zxAnQosDscpToCosPrfTable
+--------------------------------------------------------------------------------
+    zxAnQosDscpToCosPrfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosDscpToCosPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains DSCP to CoS mapping information.
+             One entry in this table reflects a profile defined which can be
+             used to configure an interface."
+        ::= { zxAnQosMapObjects 4 }
+
+    zxAnQosDscpToCosPrfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosDscpToCosPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "zxAnQosDscpToCosPrfTable entry.
+
+            The multi-variables binding rule should be complied with when a
+            manager creates an entry. According to this rule, all the related
+            mib variables must be included in one SNMP set operation.
+
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone.
+
+            To create an entry, the mandatory and optional variables are as
+            follows: 
+            mandatory: zxAnQosDscpToCos, zxAnQosDscpToCosPrfRowStatus.
+            optional: none.
+
+            To delete an entry, only zxAnQosDscpToCosPrfRowStatus is needed
+            in one SNMP set operation.
+
+            After an entry is created, only variable zxAnQosDscpToCos can be
+            modified. If a manager tries to modify any other variables
+            in this entry, agent will return error with SNMP error code
+            inconsistentValue."
+        INDEX { zxAnQosDscpToCosPrfName }
+        ::= { zxAnQosDscpToCosPrfTable 1 }
+
+    ZxAnQosDscpToCosPrfEntry ::=
+        SEQUENCE {
+            zxAnQosDscpToCosPrfName          DisplayString,
+            zxAnQosDscpToCos                 OCTET STRING,
+            zxAnQosDscpToCosPrfRowStatus     RowStatus
+        }
+
+    zxAnQosDscpToCosPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The profile name is a display string. It is an index of
+             this table."
+        ::= { zxAnQosDscpToCosPrfEntry 1 }
+
+    zxAnQosDscpToCos    OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(64))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The DSCP mapping CoS.
+             For example, the value '00 01...07' means DSCP priority 0 is
+             mapping to CoS 0,...,DSCP priority 63 is mapping to CoS 7.
+             The range of CoS is 0-7."
+        ::= { zxAnQosDscpToCosPrfEntry 2 }
+
+    zxAnQosDscpToCosPrfRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnQosDscpToCosPrfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosDscpToCosPrfEntry 50 }
+
+
+--------------------------------------------------------------------------------
+-- 2.1.6 zxAnQosMplsTcToCosPrfTable
+--------------------------------------------------------------------------------
+    zxAnQosMplsTcToCosPrfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosMplsTcToCosPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains MPLS TC value to CoS mapping information.
+            One entry in this table reflects a profile defined which can be
+            used to configure an interface."
+        ::= { zxAnQosMapObjects 6 }
+
+    zxAnQosMplsTcToCosPrfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosMplsTcToCosPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "zxAnQosMplsTcToCosPrfTable entry.
+
+            The multi-variables binding rule should be complied with when a
+            manager creates an entry. According to this rule, all the related
+            mib variables must be included in one SNMP set operation.
+
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone.
+
+            To create an entry, the mandatory and optional variables are as
+            follows: 
+            mandatory: zxAnQosMplsTcToCos, zxAnQosMplsTcToCosPrfRowStatus.
+            optional: none.
+   
+            To delete an entry, only zxAnQosMplsTcToCosPrfRowStatus is needed
+            in one SNMP set operation.
+
+            After an entry is created, only variable zxAnQosMplsTcToCos can be
+            modified. If a manager tries to modify any other variables
+            in this entry, agent will return error with SNMP error code
+            inconsistentValue."
+        INDEX { zxAnQosMplsTcToCosPrfName }
+        ::= { zxAnQosMplsTcToCosPrfTable 1 }
+
+    ZxAnQosMplsTcToCosPrfEntry  ::=
+        SEQUENCE {
+            zxAnQosMplsTcToCosPrfName        DisplayString,
+            zxAnQosMplsTcToCos               OCTET STRING,
+            zxAnQosMplsTcToCosPrfRowStatus   RowStatus
+        }
+
+    zxAnQosMplsTcToCosPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The profile name is a display string. It is an index of
+             this table."
+        ::= { zxAnQosMplsTcToCosPrfEntry 1 }
+
+    zxAnQosMplsTcToCos OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(8))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The MPLS TC mapping to CoS.
+             For example, '00 01 02 03 04 05 06 07' means TC 0 is mapping to
+             CoS 0, ..., TC 7 is mapping to CoS 7.
+             The range of MPLS TC value and CoS are 0-7."
+        ::= { zxAnQosMplsTcToCosPrfEntry 2 }
+
+    zxAnQosMplsTcToCosPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnQosMplsTcToCosPrfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosMplsTcToCosPrfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.1.7 zxAnQosCosToMplsTcPrfTable
+--------------------------------------------------------------------------------
+    zxAnQosCosToMplsTcPrfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosCosToMplsTcPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains CoS to MPLS TC mapping
+             information. One entry in this table reflects a profile defined
+             which can be used to configure an interface."
+        ::= { zxAnQosMapObjects 7 }
+
+    zxAnQosCosToMplsTcPrfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosCosToMplsTcPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "zxAnQosCosToMplsTcPrfTable entry.
+
+            The multi-variables binding rule should be complied with when a
+            manager creates an entry. According to this rule, all the related
+            mib variables must be included in one SNMP set operation.
+
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone.
+
+            To create an entry, the mandatory and optional variables are as
+            follows: 
+            mandatory: zxAnQosCosToMplsTc, zxAnQosCosToMplsTcPrfRowStatus.
+            optional: none.
+
+            To delete an entry, only zxAnQosCosToMplsTcPrfRowStatus is needed
+            in one SNMP set operation.
+
+            After an entry is created, only variable zxAnQosCosToMplsTc can be
+            modified. If a manager tries to modify any other variables
+            in this entry, agent will return error with SNMP error code
+            inconsistentValue."
+        INDEX { zxAnQosCosToMplsTcPrfName }
+        ::= { zxAnQosCosToMplsTcPrfTable 1 }
+
+    ZxAnQosCosToMplsTcPrfEntry  ::=
+        SEQUENCE {
+            zxAnQosCosToMplsTcPrfName        DisplayString,
+            zxAnQosCosToMplsTc               OCTET STRING,
+            zxAnQosCosToMplsTcPrfRowStatus   RowStatus
+        }
+
+    zxAnQosCosToMplsTcPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The profile name is a display string. It is an index of
+             this table."
+        ::= { zxAnQosCosToMplsTcPrfEntry 1 }
+
+    zxAnQosCosToMplsTc OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(8))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The CoS mapping MPLS TC value.
+             For example, '00 01 02 03 04 05 06 07' means CoS 0 is
+             mapping to TC value 0,..., CoS 7 is mapping to TC
+             value 7. The range of CoS and TC value are 0-7."
+        ::= { zxAnQosCosToMplsTcPrfEntry 2 }
+
+    zxAnQosCosToMplsTcPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnQosCosToMplsTcPrfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosCosToMplsTcPrfEntry 50 }
+
+
+--------------------------------------------------------------------------------
+-- 2.1.9 zxAnQosCosToDeiPrfTable
+--------------------------------------------------------------------------------
+    zxAnQosCosToDeiPrfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosCosToDeiPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains CoS to DEI (Drop Eligible Indicator) mapping
+             information.
+             One entry in this table reflects a profile defined which can be
+             used to configure an interface."
+        ::= { zxAnQosMapObjects 9 }
+
+    zxAnQosCosToDeiPrfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosCosToDeiPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "zxAnQosCosToDeiPrfTable entry.
+             The multi-variables binding rule should be complied with when a
+             manager creates an entry. According to this rule, all the related
+             mib variables must be included in one SNMP set operation.
+             There are two types of variables: mandatory and optional.
+             All of the mandatory variables must be included in one SNMP set
+             operation. Optional variables may be included in one SNMP set
+             operation with the mandatory variables, but must not be used alone.
+             To create an entry, the mandatory and optional variables are as
+             follows:
+             mandatory: zxAnQosCosToDeiMappingType,
+                        zxAnQosCosToDei,
+                        zxAnQosCosToDeiRowStatus.
+             optional: none.
+             To delete an entry, only zxAnQosCosToDeiRowStatus is needed
+             in one SNMP set operation.
+             After an entry is created, variable zxAnQosCosToDeiMappingType,
+             zxAnQosCosToDei can be modified. If a manager tries to modify any
+             other variables in this entry, agent will return error with SNMP
+             error code inconsistentValue."
+        INDEX { zxAnQosCosToDeiPrfName }
+        ::= { zxAnQosCosToDeiPrfTable 1 }
+
+    ZxAnQosCosToDeiPrfEntry ::=
+        SEQUENCE {
+            zxAnQosCosToDeiPrfName      DisplayString,
+            zxAnQosCosToDeiMappingType  INTEGER,
+            zxAnQosCosToDei             OCTET STRING,
+            zxAnQosCosToDeiRowStatus    RowStatus
+        }
+
+    zxAnQosCosToDeiPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The profile name is a display string. It is an index of
+             this table."
+        ::= { zxAnQosCosToDeiPrfEntry 1 }
+
+    zxAnQosCosToDeiMappingType OBJECT-TYPE
+        SYNTAX      INTEGER {
+            ccosToSdei(1),
+            ccosToCdei(2),
+            scosToSdei(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "ccosToSdei(1)  -- mapping C-Tag CoS to S-DEI.
+             ccosToCdei(2)  -- mapping C-Tag CoS to C-DEI.
+             scosToSdei(3)  -- mapping S-Tag CoS to S-DEI."
+        ::= { zxAnQosCosToDeiPrfEntry 2 }
+
+    zxAnQosCosToDei    OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(8))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The CoS mapping to DEI value.
+             For example, '00 01 02 00 01 02 01 02' means CoS 0 is
+             mapping to DEI 0, CoS 1 is mapping to DEI 1, ..., CoS 7 is mapping
+             to DEI 2. The range of DEI is 0-2.
+             '0'  -- green packet.
+             '1'  -- yellow packet.
+             '2'  -- discarded."
+        ::= { zxAnQosCosToDeiPrfEntry 3 }
+
+    zxAnQosCosToDeiRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+             The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnQosCosToDeiPrfEntry.
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosCosToDeiPrfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.2 zxAnQosQueueObjects
+--------------------------------------------------------------------------------
+    zxAnQosQueueObjects   OBJECT IDENTIFIER ::= { zxAnQosObjects 2 }
+--------------------------------------------------------------------------------
+-- 2.2.1 zxAnQosQueueGlobalObjects
+--------------------------------------------------------------------------------
+
+    zxAnQosQueueGlobalObjects OBJECT IDENTIFIER ::= { zxAnQosQueueObjects 1 }
+
+    zxAnQosGlobalMaxQueues OBJECT-TYPE
+        SYNTAX      INTEGER {
+            four(1),
+            eight(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The global maximum queues."
+        DEFVAL  { eight }
+        ::= { zxAnQosQueueGlobalObjects 3 }
+
+    zxAnQosGlobalCosToQueue  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (8))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The queues of CoS.
+             For example, the value '01 01 02 03 04 06 06 07' means that the 
+             queue of CoS 5 is 6, ..., the queue of CoS 7 is 7.
+             The range of each queue is 0 to 7.
+             The number of queues is fixed to zxAnQosGlobalMaxQueues."
+        ::= { zxAnQosQueueGlobalObjects 4 }
+        
+    zxAnQosGlobalQueueWeight  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (8))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The weight of queues.
+             For example, the value '01 02 04 06 02 02 02 02' means that the
+             weight of queue0 is 1, ..., the weight of queue7 is 2.
+             The range of each weight is 0 to 100.
+             The number of queues is fixed to zxAnQosGlobalMaxQueues."
+        ::= { zxAnQosQueueGlobalObjects 5 }
+
+    zxAnQosGlobalQueueMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+            pon(1),
+            vportNormal(2),
+            vportCir(3),
+            vportPir(4),
+            vportNormalBidirectional(5)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The global queue mode configuration.
+             pon(1) - The queue configuration is effective on PON interfaces.
+             vportNormal(2) - The queue configuration is effective on VPort,
+                              the priority of unicast or multicast green
+                              packets is higher than yellow packets. Only
+                              four queues is supported.
+             vportCir(3) - The queue configuration is effective on VPort,
+                           the priority of unicast green packets is higher than
+                           multicast packets, the priority of multicast packets
+                           is higher than yellow packets.
+             vportPir(4) - The queue configuration is effective on VPort,
+                           the priority of unicast or multicast green packets
+                           is higher than yellow packets. Only eight queues is
+                           supported.
+             vportNormalBidirectional(5) - The queue configuration supports
+                                           egress or ingress direction based on
+                                           vportNormal."
+        DEFVAL { pon }
+        ::= { zxAnQosQueueGlobalObjects 6 }
+
+    zxAnQosGlobalQueueToQueue  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (4))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The mapping of queue to queue.
+             For example, the value '00 02 03 05' means that queue0 is mapping
+             queue0, queue2 is mapping queue1, queue3 is mapping queue2, queue5
+             is mapping queue3.
+             The range of each queue is 0 to 7.
+             The number of queues is fixed to 4."
+        DEFVAL { '00010203'H }
+        ::= { zxAnQosQueueGlobalObjects 7 }
+
+    zxAnQosGlbQStatShortInterval OBJECT-TYPE
+        SYNTAX          Integer32(5..60)
+        UNITS           "Seconds"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The short interval of queue statistics."
+        DEFVAL {5}
+        ::=  { zxAnQosQueueGlobalObjects  8 }
+
+    zxAnQosGlbQStatLongInterval OBJECT-TYPE
+        SYNTAX          Integer32(60..86400)
+        UNITS           "Seconds"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The long interval of queue statistics."
+        DEFVAL {60}
+        ::=  { zxAnQosQueueGlobalObjects  9 }
+
+
+--------------------------------------------------------------------------------
+-- 2.2.7 zxAnQosQueueConfPrfTable
+--------------------------------------------------------------------------------
+    zxAnQosQueueConfPrfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosQueueConfPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "QoS queue configuration profile table."
+        ::= { zxAnQosQueueObjects 7 }
+
+    zxAnQosQueueConfPrfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosQueueConfPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "QoS queue configuration profile entry."
+        INDEX  { zxAnQosQueueConfPrfName }
+        ::= { zxAnQosQueueConfPrfTable 1 }
+
+    ZxAnQosQueueConfPrfEntry  ::= SEQUENCE {
+        zxAnQosQueueConfPrfName           DisplayString,
+        zxAnQosQueueConfDepthRatio        OCTET STRING,
+        zxAnQosQueueConfBufferSize        Integer32,
+        zxAnQosQueueConfPrfRowStatus      RowStatus
+        }
+
+    zxAnQosQueueConfPrfName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "QoS queue configuration profile name."
+        ::= { zxAnQosQueueConfPrfEntry 1 }
+        
+    zxAnQosQueueConfDepthRatio  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(8))
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "QoS queue depth ratio.
+             For example, the value '01 02 04 06 02 02 02 50' means depth ratio
+             of queue0 is 1, ..., depth ratio of queue7 is 80.
+             The range of depth ratio is 1 to 100.
+             The number of queues is fixed to zxAnQosGlobalMaxQueues."
+        ::= { zxAnQosQueueConfPrfEntry 2 }
+
+     zxAnQosQueueConfBufferSize  OBJECT-TYPE
+        SYNTAX      Integer32(1..102400)
+        UNITS       "kbytes"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "QoS queue buffer size."
+        ::= { zxAnQosQueueConfPrfEntry 3 }
+        
+    zxAnQosQueueConfPrfRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the multi-variables binding 
+             rule described in zxAnQosQueueConfPrfEntry.
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosQueueConfPrfEntry 50 }
+        
+--------------------------------------------------------------------------------
+-- 2.2.8 zxAnQosQueueWredConfTable
+--------------------------------------------------------------------------------
+    zxAnQosQueueWredConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosQueueWredConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "WRED configuration table."
+        ::= { zxAnQosQueueObjects 30 }
+
+    zxAnQosQueueWredConfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosQueueWredConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "WRED configuration entry."
+        INDEX  { zxAnQosQWredConfQueueNo }
+        ::= { zxAnQosQueueWredConfTable 1 }
+
+    ZxAnQosQueueWredConfEntry  ::= SEQUENCE {
+        zxAnQosQWredConfQueueNo              Integer32,
+        zxAnQosQWredConfYellowLThresh        Integer32,
+        zxAnQosQWredConfYellowHThresh        Integer32,
+        zxAnQosQWredConfYellowMaxProb        Integer32,
+        zxAnQosQWredConfGreenLThresh         Integer32,
+        zxAnQosQWredConfGreenHThresh         Integer32,
+        zxAnQosQWredConfGreenMaxProb         Integer32
+        }
+        
+    zxAnQosQWredConfQueueNo  OBJECT-TYPE
+        SYNTAX      Integer32  (0..7) 
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The No. of the queue."
+        ::= { zxAnQosQueueWredConfEntry 1 }
+        
+    zxAnQosQWredConfYellowLThresh    OBJECT-TYPE
+        SYNTAX      Integer32  (0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The lower WRED threshold parameter of a threshold number for the
+             yellow packet when WRED dropping algorithm is used."
+        DEFVAL { 100 }
+        ::= { zxAnQosQueueWredConfEntry 2 }
+        
+    zxAnQosQWredConfYellowHThresh    OBJECT-TYPE
+        SYNTAX      Integer32  (0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The higher WRED threshold parameter of a threshold number for the
+             yellow packets when WRED dropping algorithm is used."
+        DEFVAL { 100 }
+        ::= { zxAnQosQueueWredConfEntry 3 }
+        
+    zxAnQosQWredConfYellowMaxProb    OBJECT-TYPE
+        SYNTAX      Integer32  (0..100) 
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Maximum dropping probability of yellow packet."
+        DEFVAL { 50 }
+        ::= { zxAnQosQueueWredConfEntry 4 }
+        
+    zxAnQosQWredConfGreenLThresh    OBJECT-TYPE
+        SYNTAX      Integer32  (0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The lower WRED threshold parameter of a threshold number for the
+             green packet when WRED dropping algorithm is used."
+        DEFVAL { 100 }
+        ::= { zxAnQosQueueWredConfEntry 5 }
+        
+    zxAnQosQWredConfGreenHThresh    OBJECT-TYPE
+        SYNTAX      Integer32  (0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The higher WRED threshold parameter of a threshold number for the
+             green packet when WRED dropping algorithm is used."
+        DEFVAL { 100 }
+        ::= { zxAnQosQueueWredConfEntry 6 }
+        
+    zxAnQosQWredConfGreenMaxProb    OBJECT-TYPE
+        SYNTAX      Integer32  (0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Maximum dropping probability of green packet."
+        DEFVAL { 50 }
+        ::= { zxAnQosQueueWredConfEntry 7 }
+        
+--------------------------------------------------------------------------------
+-- 2.3 zxAnQosIfObjects
+--------------------------------------------------------------------------------
+    zxAnQosIfObjects      OBJECT IDENTIFIER ::= { zxAnQosObjects 3 }
+--------------------------------------------------------------------------------
+-- 2.3.2 zxAnQosIfConfTable
+--------------------------------------------------------------------------------
+    zxAnQosIfConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnQosIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains configuration data for interface, include
+             ethernet interface, GPON OLT and ONU interface."
+        ::= { zxAnQosIfObjects 2 }
+
+    zxAnQosIfConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnQosIfConfTable.
+             This table contains QoS configuration parameters for physical
+             interface (include ethernet interface and GPON OLT interface)
+             and GPON ONU interface.
+
+             For ethernet interface, parameters can be configured include
+             zxAnQosIfRateLimit, zxAnQosIfBucketSize, zxAnQosIfTrustMode,
+             zxAnQosIfDefaultCos, zxAnQosIfDscpToDscpPrf, zxAnQosIfDscpToCosPrf,
+             zxAnQosIfDscpToDropPrecedencePrf and zxAnQosIfQueueBlockPrf.
+             Variables zxAnQosIfRateLimit and zxAnQosIfBucketSize must be
+             configured bindingly. Notice that elements of zxAnQosQueueDepth
+             in the configuring zxAnQosIfQueueBlockPrf should between 5 and 14,
+             or all zreos.
+
+             For ethernet interface of C600 series, parameters can be
+             configured include zxAnQosIfTrustMode, zxAnQosIfDefaultCos,
+             zxAnQosIfCosToCosPrf, zxAnQosIfDscpToDscpPrf,
+             zxAnQosIfDscpToCosPrf, zxAnQosIfCosOverride,
+             zxAnQosIfEgressCosToCosPrf, zxAnQosIfEgressDscpToCosPrf,
+             and zxAnQosIfQueueConfPrf.
+
+             For PTP interface, besides the parameters that can be
+             configured to ethernet interface, three more parameters can be 
+             configured include zxAnQosIfIngressRateLimit, 
+             zxAnQosIfIngressBucketSize and zxAnQosIfQueueMapPrf.
+             Variables zxAnQosIfIngressRateLimit and zxAnQosIfIngressBucketSize
+             must be configured bindingly.
+             Notice that zxAnQosIfQueueMapPrf configured to this interface, its
+             zxAnQosQueueMapMode can only be set to cos or serviceType.
+
+             For GPON OLT interface, parameters can be configured include
+             zxAnQosIfQueueBlockPrf and zxAnQosIfQueueMapPrf.
+             Notice that zxAnQosIfQueueMapPrf configured to this interface, its
+             zxAnQosQueueMapMode can only be set to cos or serviceType.
+
+             For GPON ONU interface, parameters can be configured include
+             zxAnQosIfTrustMode, zxAnQosIfCosFilter, zxAnQosIfDefaultCos, 
+             zxAnQosIfEgressDefaultCos, zxAnQosIfCosToCosPrf, 
+             zxAnQosIfDscpToCosPrf, zxAnQosIfCosOverride, 
+             zxAnQosIfEgressCosOverride, zxAnQosIfQueueBlockPrf,
+             zxAnQosIfQueueMapPrf, zxAnQosIfEgressCosToCosPrf 
+             and zxAnQosIfEgressDscpToCosPrf.
+
+             For GPON ONU interface of C600 series, parameters can be
+             configured include zxAnQosIfTrustMode, zxAnQosIfDefaultCos,
+             zxAnQosIfCosToCosPrf, zxAnQosIfDscpToDscpPrf,
+             zxAnQosIfDscpToCosPrf, zxAnQosIfCosOverride,
+             zxAnQosIfEgressCosToCosPrf, zxAnQosIfEgressDscpToCosPrf,
+             and zxAnQosIfQueueConfPrf."
+        INDEX  { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnQosIfConfTable 1 }
+
+    ZxAnQosIfConfEntry ::=
+        SEQUENCE {
+            
+            
+            zxAnQosIfTrustMode                INTEGER,
+            
+            zxAnQosIfDefaultCos               Integer32,
+            
+            zxAnQosIfCosToCosPrf              DisplayString,
+            zxAnQosIfDscpToDscpPrf            DisplayString,
+            zxAnQosIfDscpToCosPrf             DisplayString,
+
+            zxAnQosIfCosOverride              INTEGER,
+
+            zxAnQosIfEgressCosOverride        INTEGER,
+
+            zxAnQosIfEgressCosToCosPrf        DisplayString,
+            zxAnQosIfEgressDscpToCosPrf       DisplayString,
+
+            zxAnQosIfQueueWredPrf             DisplayString,
+            
+            zxAnQosIfQueueConfPrf             DisplayString
+        }
+
+ 
+
+    zxAnQosIfTrustMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+            cos(1),
+            dscp(2),
+            notSupport(255)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Trust cos or trust dscp. Not support for gpon olt interface."
+        DEFVAL { cos }
+        ::= { zxAnQosIfConfEntry 3 }
+
+
+    zxAnQosIfDefaultCos OBJECT-TYPE
+        SYNTAX      Integer32(0..7|255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Default CoS, 255 means not support.
+             This object is valid only when zxAnQosIfTrustMode is set to CoS."
+        DEFVAL { 0 }
+        ::= { zxAnQosIfConfEntry 5 }
+
+
+    zxAnQosIfCosToCosPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "CoS to CoS mapping profile name.
+             An empty string means unsupported. 
+             Valid for gpon onu interface."
+        ::= { zxAnQosIfConfEntry 7 }
+
+    zxAnQosIfDscpToDscpPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "DSCP remarking profile name.
+             This object is valid only when zxAnQosIfTrustMode is set to dscp.
+             An empty string means unsupported. "
+        ::= { zxAnQosIfConfEntry 8 }
+
+    zxAnQosIfDscpToCosPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "DSCP to CoS mapping profile name.
+             This object is valid only when zxAnQosIfTrustMode is set to dscp.
+             An empty string means unsupported."
+        ::= { zxAnQosIfConfEntry 9 }
+
+
+    zxAnQosIfCosOverride OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enable(1),
+            disable(2),
+            notSupport(255)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable CoS Override."
+        DEFVAL { disable }
+        ::= { zxAnQosIfConfEntry 12 }
+
+
+    zxAnQosIfEgressCosOverride OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enable(1),
+            disable(2),
+            notSupport(255)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable Egress CoS Override."
+        DEFVAL { disable }
+        ::= { zxAnQosIfConfEntry 14 }
+
+
+    zxAnQosIfEgressCosToCosPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Egress CoS to CoS mapping profile name.
+             An empty string means unsupported."
+        ::= { zxAnQosIfConfEntry 17 }
+
+    zxAnQosIfEgressDscpToCosPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Egress DSCP to CoS mapping profile name.
+             An empty string means unsupported."
+        ::= { zxAnQosIfConfEntry 18 }
+
+
+
+    zxAnQosIfQueueWredPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Queue WRED profile name.
+             An empty string means unsupported."
+        ::= { zxAnQosIfConfEntry 23 }
+
+
+    zxAnQosIfQueueConfPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Queue configuration profile name.
+             An empty string means unsupported."
+        ::= { zxAnQosIfConfEntry 26 }
+        
+
+
+--------------------------------------------------------------------------------
+-- 2.4 zxAnQosIfStatsObjects
+--------------------------------------------------------------------------------
+    zxAnQosIfStatsObjects   OBJECT IDENTIFIER ::= { zxAnQosObjects 4 }
+--------------------------------------------------------------------------------
+-- 2.4.1 zxAnQosIfQueueStatsTable
+--------------------------------------------------------------------------------
+
+    zxAnQosIfQueueStatsTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosIfQueueStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Interfaces queue statistics table."
+        ::= { zxAnQosIfStatsObjects 1 }
+
+    zxAnQosIfQueueStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosIfQueueStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnQosIfQueueStatsTable.
+             This table contains queue statistics for GPON OLT interfaces
+             and P2P interfaces.
+             It includes zxAnQosIfQueueStatsPassPkts,
+             zxAnQosIfQueueStatsDiscardPkts and zxAnQosIfQueueStatsReset."
+        INDEX  { ifIndex, zxAnSubIfIndex, zxAnQosIfQueueStatsQueueId}
+        ::= { zxAnQosIfQueueStatsTable 1 }
+
+    ZxAnQosIfQueueStatsEntry ::= SEQUENCE {
+        zxAnQosIfQueueStatsQueueId      Integer32,
+        zxAnQosIfQueueStatsForwardPkts  Counter64,
+        zxAnQosIfQueueStatsDiscardPkts  Counter64,
+        zxAnQosIfQueueDiscardGreenPkts  Counter64,
+        zxAnQosIfQueueDiscardYellowPkts Counter64,
+        zxAnQosIfQueueStatsReset        INTEGER
+    }
+
+    zxAnQosIfQueueStatsQueueId   OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Queue ID."
+        ::= { zxAnQosIfQueueStatsEntry 1 }
+
+    zxAnQosIfQueueStatsForwardPkts   OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Forwarding packets.
+             Value 0x7fffffffffffffff means not supported."
+        ::= { zxAnQosIfQueueStatsEntry 2 }
+
+    zxAnQosIfQueueStatsDiscardPkts   OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Discarded packets.
+             Value 0x7fffffffffffffff means not supported."
+        ::= { zxAnQosIfQueueStatsEntry 3 }
+        
+    zxAnQosIfQueueDiscardGreenPkts   OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Discarded green packets.
+             Value 0x7fffffffffffffff means not supported."
+        ::= { zxAnQosIfQueueStatsEntry 4 }
+
+    zxAnQosIfQueueDiscardYellowPkts   OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Discarded yellow packets.
+             Value 0x7fffffffffffffff means not supported."
+        ::= { zxAnQosIfQueueStatsEntry 5 }
+
+    zxAnQosIfQueueStatsReset   OBJECT-TYPE
+        SYNTAX         INTEGER
+            {
+                reset(1)
+            }
+        MAX-ACCESS     read-write
+        STATUS         current
+        DESCRIPTION
+            "Set the number of packets to zero.
+             When getting this variable, this object always returns 1."
+        ::= { zxAnQosIfQueueStatsEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.4.2 zxAnQosBrgIfQueueStatsTable
+--------------------------------------------------------------------------------
+
+    zxAnQosBrgIfQueueStatsTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosBrgIfQueueStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table containing queue statistics information."
+        ::= { zxAnQosIfStatsObjects 2 }
+
+    zxAnQosBrgIfQueueStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosBrgIfQueueStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnQosBrgIfQueueStatsTable.
+             This table contains queue statistics for bridge interfaces."
+        INDEX  { ifIndex, zxAnSubIfIndex, zxAnQosBrgIfQStatsQueueId}
+        ::= { zxAnQosBrgIfQueueStatsTable 1 }
+
+    ZxAnQosBrgIfQueueStatsEntry ::= SEQUENCE {
+        zxAnQosBrgIfQStatsQueueId      Integer32,
+        zxAnQosBrgIfQStatsForwardPkts  Counter64,
+        zxAnQosBrgIfQStatsDiscardPkts  Counter64,
+        zxAnQosBrgIfQDiscardGreenPkts  Counter64,
+        zxAnQosBrgIfQDiscardYellowPkts Counter64,
+        zxAnQosBrgIfQStatsReset        INTEGER,
+        zxAnQosBrgIfQStatsRowStatus    RowStatus
+    }
+
+    zxAnQosBrgIfQStatsQueueId   OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Queue ID."
+        ::= { zxAnQosBrgIfQueueStatsEntry 1 }
+
+    zxAnQosBrgIfQStatsForwardPkts   OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Forwarding packets.
+             Value 0x7fffffffffffffff means not supported."
+        ::= { zxAnQosBrgIfQueueStatsEntry 2 }
+
+    zxAnQosBrgIfQStatsDiscardPkts   OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Discarded packets.
+             Value 0x7fffffffffffffff means not supported."
+        ::= { zxAnQosBrgIfQueueStatsEntry 3 }
+
+    zxAnQosBrgIfQDiscardGreenPkts   OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Discarded green packets.
+             Value 0x7fffffffffffffff means not supported."
+        ::= { zxAnQosBrgIfQueueStatsEntry 4 }
+
+    zxAnQosBrgIfQDiscardYellowPkts   OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Discarded yellow packets.
+             Value 0x7fffffffffffffff means not supported."
+        ::= { zxAnQosBrgIfQueueStatsEntry 5 }
+
+    zxAnQosBrgIfQStatsReset   OBJECT-TYPE
+        SYNTAX         INTEGER
+            {
+                reset(1)
+            }
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+            "Set the number of packets to zero.
+             When getting this variable, this object always returns 1."
+        ::= { zxAnQosBrgIfQueueStatsEntry 49 }
+
+    zxAnQosBrgIfQStatsRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnQosBrgIfQueueStatsEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosBrgIfQueueStatsEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.4.3 zxAnQosIfQDiscardPktThreshTable
+--------------------------------------------------------------------------------
+
+    zxAnQosIfQDiscardPktThreshTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosIfQDiscardPktThreshEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table containing discarded packet threshold information."
+        ::= { zxAnQosIfStatsObjects 3 }
+
+    zxAnQosIfQDiscardPktThreshEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosIfQDiscardPktThreshEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnQosIfQDiscardPktThreshTable.
+             This table contains discarded packet threshold for queue statistics."
+        INDEX  { ifIndex, zxAnSubIfIndex, zxAnQosIfQDiscardPktThrQueueId}
+        ::= { zxAnQosIfQDiscardPktThreshTable 1 }
+
+    ZxAnQosIfQDiscardPktThreshEntry ::= SEQUENCE {
+        zxAnQosIfQDiscardPktThrQueueId   Integer32,
+        zxAnQosIfQShortDiscardPktThresh  Integer32,
+        zxAnQosIfQLongDiscardPktThresh   Integer32,
+        zxAnQosIfQDiscardPktThrRowStatus RowStatus
+    }
+
+    zxAnQosIfQDiscardPktThrQueueId   OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Queue ID."
+        ::= { zxAnQosIfQDiscardPktThreshEntry 1 }
+
+    zxAnQosIfQShortDiscardPktThresh   OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Short interval discarded packet threshold."
+        ::= { zxAnQosIfQDiscardPktThreshEntry 2 }
+
+    zxAnQosIfQLongDiscardPktThresh   OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Long interval discarded packet threshold."
+        ::= { zxAnQosIfQDiscardPktThreshEntry 3 }
+
+    zxAnQosIfQDiscardPktThrRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnQosIfQDiscardPktThreshEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosIfQDiscardPktThreshEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.5 zxAnQosVlanObjects
+--------------------------------------------------------------------------------
+   zxAnQosVlanObjects   OBJECT IDENTIFIER ::= { zxAnQosObjects 5 }
+--------------------------------------------------------------------------------
+-- 2.5.2 zxAnQosVlanCosToDeiPrfConfTable
+--------------------------------------------------------------------------------
+
+    zxAnQosVlanCosToDeiPrfConfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosVlanCosToDeiPrfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table containing VLAN CoS to DEI (Drop Eligible Indicator)
+             profile information."
+        ::= { zxAnQosVlanObjects 2 }
+
+    zxAnQosVlanCosToDeiPrfConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosVlanCosToDeiPrfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Entry for zxAnQosVlanCosToDeiPrfConfTable."
+        INDEX   { zxAnQosVlanCosToDeiPrfConfVid }
+        ::= { zxAnQosVlanCosToDeiPrfConfTable 1 }
+
+    ZxAnQosVlanCosToDeiPrfConfEntry ::= SEQUENCE {
+        zxAnQosVlanCosToDeiPrfConfVid          VlanId,
+        zxAnQosVlanCosToDeiPrfConfName         DisplayString,
+        zxAnQosVlanCosToDeiPrfRowStatus        RowStatus
+        }
+
+    zxAnQosVlanCosToDeiPrfConfVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnQosVlanCosToDeiPrfConfEntry 1 }
+
+    zxAnQosVlanCosToDeiPrfConfName OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "CoS to DEI profile name."
+        ::={  zxAnQosVlanCosToDeiPrfConfEntry 2 }
+
+    zxAnQosVlanCosToDeiPrfRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in ZxAnVlanCosToDeiPrfConfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns 1."
+        ::={ zxAnQosVlanCosToDeiPrfConfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.5.3 zxAnQosVlanEgressDeiTable
+--------------------------------------------------------------------------------
+
+    zxAnQosVlanEgressDeiTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosVlanEgressDeiEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table containing VLAN egress DEI information."
+        ::= { zxAnQosVlanObjects 3 }
+
+    zxAnQosVlanEgressDeiEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosVlanEgressDeiEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Entry for zxAnQosVlanEgressDeiTable."
+        INDEX   { zxAnQosVlanEgressDeiVid }
+        ::= { zxAnQosVlanEgressDeiTable 1 }
+
+    ZxAnQosVlanEgressDeiEntry ::= SEQUENCE {
+        zxAnQosVlanEgressDeiVid       VlanId,
+        zxAnQosVlanEgressDeiRowStatus RowStatus
+        }
+
+    zxAnQosVlanEgressDeiVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnQosVlanEgressDeiEntry 1 }
+
+    zxAnQosVlanEgressDeiRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnQosVlanEgressDeiEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns 1."
+        ::={ zxAnQosVlanEgressDeiEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.5.4 zxAnQosVlanCosToCosPrfConfTable
+--------------------------------------------------------------------------------
+
+    zxAnQosVlanCosToCosPrfConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosVlanCosToCosPrfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table containing VLAN CoS remarking information."
+        ::= { zxAnQosVlanObjects 4 }
+
+    zxAnQosVlanCosToCosPrfConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosVlanCosToCosPrfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Entry for zxAnQosVlanCosToCosPrfConfTable."
+        INDEX   { zxAnQosVlanCosToCosPrfConfSVid, zxAnQosVlanCosToCosPrfConfCVid, zxAnQosVlanCosToCosPrfConfMode }
+        ::= { zxAnQosVlanCosToCosPrfConfTable 1 }
+
+    ZxAnQosVlanCosToCosPrfConfEntry ::= SEQUENCE {
+        zxAnQosVlanCosToCosPrfConfSVid       VlanId,
+        zxAnQosVlanCosToCosPrfConfCVid       Integer32,
+        zxAnQosVlanCosToCosPrfConfMode       INTEGER,
+        zxAnQosVlanCosToCosPrfConfName       DisplayString,
+        zxAnQosVlanCosToCosPrfRowStatus      RowStatus
+        }
+
+    zxAnQosVlanCosToCosPrfConfSVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "SVLAN ID."
+        ::= { zxAnQosVlanCosToCosPrfConfEntry 1 }
+
+    zxAnQosVlanCosToCosPrfConfCVid OBJECT-TYPE
+        SYNTAX      Integer32 (0..4094)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CVLAN ID."
+        ::= { zxAnQosVlanCosToCosPrfConfEntry 2 }
+
+    zxAnQosVlanCosToCosPrfConfMode OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            networkSide(1),
+            userSide(2)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CoS remarking mode."
+        ::= { zxAnQosVlanCosToCosPrfConfEntry 3 }
+
+    zxAnQosVlanCosToCosPrfConfName OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "CoS to CoS profile name."
+        ::={  zxAnQosVlanCosToCosPrfConfEntry 4 }
+
+    zxAnQosVlanCosToCosPrfRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnQosVlanCosToCosPrfConfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns 1."
+        ::={ zxAnQosVlanCosToCosPrfConfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 3. zxAnQosConformance
+--------------------------------------------------------------------------------
+    zxAnQosConformance        OBJECT IDENTIFIER ::= { zxAnQosMib 4 }
+--------------------------------------------------------------------------------
+-- 3.1 zxAnQosCompliances
+--------------------------------------------------------------------------------
+    zxAnQosCompliances        OBJECT IDENTIFIER ::= { zxAnQosConformance 1 }
+
+    zxAnQosCompliance  MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-QOS-MIB."
+        MODULE -- this module
+            MANDATORY-GROUPS {
+                zxAnQosCosToCosPrfGroup,
+                zxAnQosDscpToDscpPrfGroup,
+                zxAnQosDscpToCosPrfGroup,
+                zxAnQosDscpToDropPrecedePrfGroup,
+                zxAnQosMplsTcToCosPrfGroup,
+                zxAnQosCosToMplsTcPrfGroup,
+                zxAnQosEthCosToQueueGroup,
+                zxAnQosQueueBlockPrfGroup,
+                zxAnQosQueueMapPrfGroup,
+                zxAnQosIfTrafficShapeGroup,
+                zxAnQosIfTrustModeGroup,
+                zxAnQosIfDefaultCosGroup,
+                zxAnQosIfCosToCosPrfGroup,
+                zxAnQosIfDscpToDscpPrfGroup,
+                zxAnQosIfDscpToCosPrfGroup,
+                zxAnQosIfDscpToDropPrePrfGroup,
+                zxAnQosIfEgressCosToCosPrfGroup,
+                zxAnQosIfEgressDscpToCosPrfGroup,
+                zxAnQosIfQueueBlockPrfGroup,
+                zxAnQosIfQueueMapPrfGroup
+            }
+        ::= { zxAnQosCompliances 1 }
+
+--------------------------------------------------------------------------------
+-- 3.2 zxAnQosGroups
+--------------------------------------------------------------------------------
+    zxAnQosGroups             OBJECT IDENTIFIER ::= { zxAnQosConformance 2 }
+
+    zxAnQosCosToCosPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosCosToCos,
+                  zxAnQosCosToCosPrfRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+             a CosToCosPrf."
+        ::= { zxAnQosGroups 1 }
+
+    zxAnQosDscpToDscpPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosDscpToDscp,
+                  zxAnQosDscpToDscpPrfRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+             a DscpToDscpPrf."
+        ::= { zxAnQosGroups 2 }
+
+    zxAnQosDscpToCosPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosDscpToCos,
+                  zxAnQosDscpToCosPrfRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+             a DscpToCosPrf."
+        ::= { zxAnQosGroups 3 }
+
+    zxAnQosDscpToDropPrecedePrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosDscpToDropPrecedence,
+                  zxAnQosDscpToDropPrePrfRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+             a DscpToDropPrf."
+        ::= { zxAnQosGroups 4 }
+
+    zxAnQosMplsTcToCosPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosMplsTcToCos,
+                  zxAnQosMplsTcToCosPrfRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+             a MplsTcToCosPrf."
+        ::= { zxAnQosGroups 5 }
+
+    zxAnQosCosToMplsTcPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosCosToMplsTc,
+                  zxAnQosCosToMplsTcPrfRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+             a CosToMplsTcPrf."
+        ::= { zxAnQosGroups 6 }
+
+    zxAnQosEthCosToQueueGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosEthCosToQueue }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring cos-to-queue mapping
+             for ethernet interface."
+        ::= { zxAnQosGroups 7 }
+
+    zxAnQosQueueBlockPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosQueueBlockQNumber,
+                  zxAnQosQueueWeight,
+                  zxAnQosQueueDepth,
+                  zxAnQosQueueBlockRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+             a QueueBlockPrf."
+        ::= { zxAnQosGroups 8 }
+
+    zxAnQosQueueMapPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosQueueMapQNumber,
+                  zxAnQosQueueMapMode,
+                  zxAnQosCosToQueue,
+                  zxAnQosQueueMapRowStatus }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+             a QueueMapPrf."
+        ::= { zxAnQosGroups 9 }
+
+    zxAnQosIfTrafficShapeGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfRateLimit,
+                  zxAnQosIfBucketSize }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring traffic-shaping
+             for ethernet interface."
+        ::= { zxAnQosGroups 10 }
+
+    zxAnQosIfTrustModeGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfTrustMode }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring trust-mode for ethernet
+             interface or gpon onu interface. For ethernet interface,
+             when trust dscp, packets received will be modified
+             according to the configured dscp-to-dscp-profile,
+             dscp-to-cos-profile and dscp-to-drop-precedence-profile."
+        ::= { zxAnQosGroups 11 }
+
+    zxAnQosIfDefaultCosGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfDefaultCos }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring default-cos value
+            for ethernet interface. For ethernet interface, 
+            default-cos value is tagged for receiving untag packets."
+        ::= { zxAnQosGroups 13 }
+
+    zxAnQosIfCosToCosPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfCosToCosPrf,
+                  zxAnQosIfTrustMode }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring cos-to-cos-profile for gpon
+            onu interface. When trust cos, cos-to-cos-profile configured is 
+            valid."
+        ::= { zxAnQosGroups 15 }
+
+    zxAnQosIfDscpToDscpPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfDscpToDscpPrf,
+                  zxAnQosIfTrustMode }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring dscp-to-dscp-profile for
+            ethernet interface. When trust dscp, dscp-to-dscp-profile
+            configured is valid."
+        ::= { zxAnQosGroups 16 }
+
+    zxAnQosIfDscpToCosPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfDscpToCosPrf,
+                  zxAnQosIfTrustMode }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring dscp-to-cos-profile for
+            ethernet interface and gpon onu interface. When trust dscp,
+            dscp-to-cos-profile configured is valid."
+        ::= { zxAnQosGroups 17 }
+
+    zxAnQosIfDscpToDropPrePrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfDscpToDropPrecedencePrf,
+                  zxAnQosIfTrustMode }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring dscp-to-drop-profile for
+            ethernet interface. When trust dscp, dscp-to-drop-profile
+            configured is valid."
+        ::= { zxAnQosGroups 18 }
+
+    zxAnQosIfEgressCosToCosPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfEgressCosToCosPrf,
+                  zxAnQosIfTrustMode }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring cos-to-cos-profile for
+            gpon onu interface. When trust cos, cos-to-cos-profile configured
+            is valid."
+        ::= { zxAnQosGroups 23 }
+
+    zxAnQosIfEgressDscpToCosPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfEgressDscpToCosPrf,
+                  zxAnQosIfTrustMode }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects configuring dscp-to-cos-profile for
+            gpon onu interface. When trust dscp, dscp-to-cos-profile
+            configured is valid."
+        ::= { zxAnQosGroups 24 }
+
+    zxAnQosIfQueueBlockPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfQueueBlockPrf }
+        STATUS current
+        DESCRIPTION
+            "A queue-block profile configuring on ethernet interface, gpon
+            olt interface."
+        ::= { zxAnQosGroups 25 }
+
+    zxAnQosIfQueueMapPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosIfQueueMapPrf }
+        STATUS current
+        DESCRIPTION
+            "A queue-map profile configuring on gpon olt interface."
+        ::= { zxAnQosGroups 26 }
+
+END

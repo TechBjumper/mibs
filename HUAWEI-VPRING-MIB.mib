@@ -1,0 +1,1005 @@
+--   ============================================================================
+-- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved.
+-- 
+-- Description:  
+-- Reference:  
+-- Version: V3.00
+-- History:
+-- liu chenglong 20030428 Added IPR Decriptions and updated all MIB version to V3.00
+-- ============================================================================  
+
+	HUAWEI-VPRING-MIB DEFINITIONS ::= BEGIN
+ 
+		IMPORTS
+			huaweiUtility			
+				FROM HUAWEI-MIB			
+			 OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE			
+				FROM SNMPv2-SMI			
+			RowStatus, DisplayString, TruthValue			
+				FROM SNMPv2-TC;
+	
+	
+		hwVPRing MODULE-IDENTITY 
+			LAST-UPDATED "200304280900Z"
+			ORGANIZATION 
+				"Fix-Net Dep, Huawei Technologies Co.,Ltd."
+			CONTACT-INFO 
+				"Floot 5 ,Block 4, R&D Building,
+				Huawei Longgang Production Base,
+				Shenzhen,  P.R.C.
+				http://www.huawei.com
+				Zip:518057
+				"
+			DESCRIPTION 
+				"huawei ATM VPRING  MIb	"
+			REVISION "200211290900Z"
+			DESCRIPTION
+				" Huawei VPRING MIB"
+			::= { huaweiUtility 20 }
+		
+	
+	
+--
+-- Node definitions
+--
+	
+		hwAtmApsVpRingTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwAtmApsVpRingEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwVPRing 1 }
+		
+		hwAtmApsVpRingEntry OBJECT-TYPE
+			SYNTAX HwAtmApsVpRingEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			INDEX { hwAtmApsVpRingIndex }
+			::= { hwAtmApsVpRingTable 1 }
+		
+		HwAtmApsVpRingEntry ::=
+			SEQUENCE { 
+				hwAtmApsVpRingIndex
+					INTEGER,
+				hwAtmApsVpRingPosition
+					INTEGER,
+				hwAtmApsVpRingFrameID1
+					INTEGER,
+				hwAtmApsVpRingSlotID1
+					INTEGER,
+				hwAtmApsVpRingPortID1
+					INTEGER,
+				hwAtmApsVpRingFrameID2
+					INTEGER,
+				hwAtmApsVpRingSlotID2
+					INTEGER,
+				hwAtmApsVpRingPortID2
+					INTEGER,
+				hwAtmApsVpRingRowStatus
+					RowStatus
+			 }
+
+		
+		hwAtmApsVpRingIndex OBJECT-TYPE
+			SYNTAX INTEGER (0..15)
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 1 }
+		
+		
+		hwAtmApsVpRingPosition OBJECT-TYPE
+			SYNTAX INTEGER (0..15)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 2 }
+		
+		
+		hwAtmApsVpRingFrameID1 OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 3 }
+		
+		
+		hwAtmApsVpRingSlotID1 OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 4 }
+		
+		
+		hwAtmApsVpRingPortID1 OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 5 }
+		
+		
+		hwAtmApsVpRingFrameID2 OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 6 }
+		
+		
+		hwAtmApsVpRingSlotID2 OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 7 }
+		
+		
+		hwAtmApsVpRingPortID2 OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 8 }
+		
+		
+		hwAtmApsVpRingRowStatus OBJECT-TYPE
+			SYNTAX RowStatus
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVpRingEntry 9 }
+		
+--    hwAtmApsVPGConfigTable
+-- 
+		hwAtmApsVPGConfigTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwAtmApsVPGConfigEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwVPRing 2 }
+		
+		
+		hwAtmApsVPGConfigEntry OBJECT-TYPE
+			SYNTAX HwAtmApsVPGConfigEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			INDEX { hwAtmApsVPGIndex }
+			::= { hwAtmApsVPGConfigTable 1 }
+		
+		HwAtmApsVPGConfigEntry ::=
+			SEQUENCE { 
+				hwAtmApsVPGIndex
+					INTEGER,
+				hwAtmApsVPGName
+					DisplayString,
+				hwAtmApsVPGWorkingFrameID
+					INTEGER,
+				hwAtmApsVPGWorkingSlotID
+					INTEGER,
+				hwAtmApsVPGWorkingPhyportID
+					INTEGER,
+				hwAtmApsVPGProtectionFrameID
+					INTEGER,
+				hwAtmApsVPGProtectionSlotID
+					INTEGER,
+				hwAtmApsVPGProtectionPhyportID
+					INTEGER,
+				hwAtmApsVPGMode
+					INTEGER,
+				hwAtmApsVPGWTRTime
+					INTEGER,
+				hwAtmApsVPGExternalCommands
+					INTEGER,
+				hwAtmApsVPGProtectK1K2Rcv
+					INTEGER,
+				hwAtmApsVPGProtectK1K2Trans
+					INTEGER,
+				hwAtmApsVPGWorkingEntityStatus
+					BITS,
+				hwAtmApsVPGProtectionEntityStatus
+					BITS,
+				hwAtmApsVPGCurrEntity
+					INTEGER,
+				hwAtmApsVPGApsStatus
+					INTEGER,
+				hwAtmApsVPGVplIsInUse
+					TruthValue,
+				hwAtmApsVPGVpRingIndex
+					INTEGER,
+				hwAtmApsVPGRevertive
+					TruthValue,
+				hwAtmApsVPGRowStatus
+					RowStatus
+			 }
+
+		
+		hwAtmApsVPGIndex OBJECT-TYPE
+			SYNTAX INTEGER (1..256)
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 1 }
+		
+		
+		hwAtmApsVPGName OBJECT-TYPE
+			SYNTAX DisplayString (SIZE (0..51))
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				""
+			::= { hwAtmApsVPGConfigEntry 2 }
+		
+		
+		hwAtmApsVPGWorkingFrameID OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 3 }
+		
+		
+		hwAtmApsVPGWorkingSlotID OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 4 }
+		
+		
+		hwAtmApsVPGWorkingPhyportID OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 5 }
+		
+		
+		hwAtmApsVPGProtectionFrameID OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 6 }
+		
+		
+		hwAtmApsVPGProtectionSlotID OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 7 }
+		
+		
+		hwAtmApsVPGProtectionPhyportID OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 8 }
+		
+		
+		hwAtmApsVPGMode OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				onePlusOneUnidirection(1),
+				onePlusOneBidirection(2)
+				}
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				""
+			::= { hwAtmApsVPGConfigEntry 9 }
+		
+		
+		hwAtmApsVPGWTRTime OBJECT-TYPE
+			SYNTAX INTEGER (1..30)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				""
+			::= { hwAtmApsVPGConfigEntry 10 }
+		
+		
+		hwAtmApsVPGExternalCommands OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				clear(1),
+				freeze(2),
+				lockoutOfProtection(3),
+				forcedSwitchForWorking(4),
+				manualSwitchForWorking(5),
+				manualSwitchForProtection(6)
+				}
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				""
+			::= { hwAtmApsVPGConfigEntry 11 }
+		
+		
+		hwAtmApsVPGProtectK1K2Rcv OBJECT-TYPE
+			SYNTAX INTEGER (0..65535)
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				""
+			::= { hwAtmApsVPGConfigEntry 12 }
+		
+		
+		hwAtmApsVPGProtectK1K2Trans OBJECT-TYPE
+			SYNTAX INTEGER (0..65535)
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				""
+			::= { hwAtmApsVPGConfigEntry 13 }
+		
+		
+		hwAtmApsVPGWorkingEntityStatus OBJECT-TYPE
+			SYNTAX BITS
+				{
+					lof(1),
+                                        los(2),
+                                        sd(3),
+                                        rdi(4),
+                                        ais(5),
+                                        rsd(6)
+				}
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"				
+				     0x00000002-RSD
+                                     0x00000004-AIS,
+                                     0x00000008-RDI,
+                                     0x00000010-SD,
+                                     0x00000020-LOS,
+                                     0x00000040-LOF"
+			::= { hwAtmApsVPGConfigEntry 14 }
+		
+		
+		hwAtmApsVPGProtectionEntityStatus OBJECT-TYPE
+			SYNTAX BITS
+				{
+					lof(1),
+                                        los(2),
+                                        sd(3),
+                                        rdi(4),
+                                        ais(5),
+                                        rsd(6)
+				}
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"
+				     0x00000002-RSD
+                                     0x00000004-AIS,
+                                     0x00000008-RDI,
+                                     0x00000010-SD,
+                                     0x00000020-LOS,
+                                     0x00000040-LOF"
+			::= { hwAtmApsVPGConfigEntry 15 }
+		
+		
+		hwAtmApsVPGCurrEntity OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				work(1),
+				protect(2)
+				}
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				""
+			::= { hwAtmApsVPGConfigEntry 16 }
+		
+		
+		hwAtmApsVPGApsStatus OBJECT-TYPE
+			SYNTAX INTEGER
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"
+				   Bidirectional APSC:
+				   0x00000080-DNR,
+				   0x00000100-rsv1,
+				   0x00000200-WTR,
+				   0x00000400-rsv2,
+				   0x00000800-MS-W,
+				   0x00001000-MS-P,
+				   0x00002000-rsv3,
+				   0x00004000-SD-W,
+				   0x00008000-SD-P,
+				   0x00010000-rsv4,
+				   0x00020000-SF-W,
+				   0x00040000-rsv5,
+				   0x00080000-FS-W,
+				   0x00100000-SF-P,
+				   0x00200000-LOP,
+				   0x00400000-FREEZE,
+				   0x00800000-CLEAR,
+				   Unidirectional APSC:
+				   0x01000000-WTR,
+				   0x02000000-MS-P,
+				   0x04000000-MS-W,
+				   0x08000000-SD,
+				   0x10000000-SF,
+				   0x20000000-FS,
+				   0x40000000-LOP,
+				   0x80000000-CLEAR "
+			::= { hwAtmApsVPGConfigEntry 17 }
+		
+		
+		hwAtmApsVPGVplIsInUse OBJECT-TYPE
+			SYNTAX TruthValue
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"
+				    enable(1),
+				    disable(2)"
+			::= { hwAtmApsVPGConfigEntry 18 }
+		
+		
+		hwAtmApsVPGVpRingIndex OBJECT-TYPE
+			SYNTAX INTEGER (0..15)
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 19 }
+		
+		
+		hwAtmApsVPGRevertive OBJECT-TYPE
+			SYNTAX TruthValue
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"
+				revertible(1),
+				non-revertible(2)"
+			::= { hwAtmApsVPGConfigEntry 20 }
+		
+		
+		hwAtmApsVPGRowStatus OBJECT-TYPE
+			SYNTAX RowStatus
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGConfigEntry 21 }
+		
+--    hwAtmApsVPGVplTable
+-- 
+		hwAtmApsVPGVplTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwAtmApsVPGVplEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwVPRing 3 }
+		
+		
+		hwAtmApsVPGVplEntry OBJECT-TYPE
+			SYNTAX HwAtmApsVPGVplEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			INDEX { hwAtmApsVPGIndex, hwAtmApsVPGVplWorkingVpi }
+			::= { hwAtmApsVPGVplTable 1 }
+		
+		HwAtmApsVPGVplEntry ::=
+			SEQUENCE { 
+				hwAtmApsVPGVplWorkingVpi
+					INTEGER,
+				hwAtmApsVPGVplProtectionVpi
+					INTEGER,
+				hwAtmApsVPGVplServiceClass
+					INTEGER,
+				hwAtmApsVPGVplRowStaus
+					RowStatus,
+				hwAtmApsVPGVplTrafficTableIndex
+					INTEGER
+			 }
+
+		
+		hwAtmApsVPGVplWorkingVpi OBJECT-TYPE
+			SYNTAX INTEGER (1..255)
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGVplEntry 1 }
+		
+		
+		hwAtmApsVPGVplProtectionVpi OBJECT-TYPE
+			SYNTAX INTEGER (1..255)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGVplEntry 2 }
+		
+		hwAtmApsVPGVplServiceClass OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				cbr(1),
+				rtvbr(2),
+				nrtvbr(3),
+				abr(4),
+				ubr(5)
+				}
+			MAX-ACCESS read-create
+			STATUS deprecated
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGVplEntry 3 }
+		
+		hwAtmApsVPGVplRowStaus OBJECT-TYPE
+			SYNTAX RowStatus
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGVplEntry 4 }
+
+
+		hwAtmApsVPGVplTrafficTableIndex OBJECT-TYPE
+			SYNTAX INTEGER (0..511)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsVPGVplEntry 5 }
+
+		
+--    hwAtmApsAPSChannelTable
+-- 
+		hwAtmApsAPSChannelTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwAtmApsAPSChannelEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwVPRing 4 }
+		
+		
+		hwAtmApsAPSChannelEntry OBJECT-TYPE
+			SYNTAX HwAtmApsAPSChannelEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			INDEX { hwAtmApsAPSChannelFrameID, hwAtmApsAPSChannelSlotID, hwAtmApsAPSChannelPhyport, hwAtmApsAPSChannelVpi }
+			::= { hwAtmApsAPSChannelTable 1 }
+		
+		HwAtmApsAPSChannelEntry ::=
+			SEQUENCE { 
+				hwAtmApsAPSChannelFrameID
+					INTEGER,
+				hwAtmApsAPSChannelSlotID
+					INTEGER,
+				hwAtmApsAPSChannelPhyport
+					INTEGER,
+				hwAtmApsAPSChannelVpi
+					INTEGER,
+				hwAtmApsAPSChannelGroupIndex
+					INTEGER,
+				hwAtmApsAPSChannelVlType
+					INTEGER,
+				hwAtmApsAPSChannelRowStaus
+					RowStatus
+			 }
+
+		
+		hwAtmApsAPSChannelFrameID OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsAPSChannelEntry 1 }
+		
+		
+		hwAtmApsAPSChannelSlotID OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsAPSChannelEntry 2 }
+		
+		
+		hwAtmApsAPSChannelPhyport OBJECT-TYPE
+			SYNTAX INTEGER (0..63)
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsAPSChannelEntry 3 }
+		
+		
+		hwAtmApsAPSChannelVpi OBJECT-TYPE
+			SYNTAX INTEGER (1..255)
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsAPSChannelEntry 4 }
+		
+		
+		hwAtmApsAPSChannelGroupIndex OBJECT-TYPE
+			SYNTAX INTEGER (1..256)
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				APS "
+			::= { hwAtmApsAPSChannelEntry 5 }
+		
+		
+		hwAtmApsAPSChannelVlType OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				p2p(1),
+				w-leaf(2),
+				p-leaf(3)
+				}
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsAPSChannelEntry 6 }
+		
+		
+		hwAtmApsAPSChannelRowStaus OBJECT-TYPE
+			SYNTAX RowStatus
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"
+				"
+			::= { hwAtmApsAPSChannelEntry 7 }
+		
+		hwVPRingSnmpTrapDef OBJECT IDENTIFIER ::= { hwVPRing 5 }
+		
+		
+		hwAtmApsTraps OBJECT IDENTIFIER ::= { hwVPRingSnmpTrapDef 0 }
+		
+		
+		hwAtmApsVPGStatusTraps NOTIFICATION-TYPE
+			OBJECTS { hwAtmApsVPGIndex, hwAtmApsVPGProtectK1K2Rcv, hwAtmApsVPGProtectK1K2Trans, hwAtmApsVPGWorkingEntityStatus, hwAtmApsVPGProtectionEntityStatus, 
+				hwAtmApsVPGCurrEntity, hwAtmApsVPGApsStatus }
+			STATUS current
+			DESCRIPTION 
+				"vp group dynamic status trap:
+				1:hwAtmApsVPGIndex,
+				2:hwAtmApsVPGProtectK1K2Rcv,
+				3:hwAtmApsVPGProtectK1K2Trans,
+				4:hwAtmApsVPGWorkingEntityStatus,
+				5:hwAtmApsVPGProtectionEntityStatus,
+				6:hwAtmApsVPGCurrEntity,
+				7:hwAtmApsVPGApsStatus
+				
+				               
+				"
+			::= { hwAtmApsTraps 1 }
+		
+		
+		
+		
+		hwAtmApsVPGProtectionSwitching NOTIFICATION-TYPE
+			OBJECTS { hwAtmApsVPGWorkingFrameID, hwAtmApsVPGWorkingSlotID, hwAtmApsVPGWorkingPhyportID, hwAtmApsVPGIndex, hwAtmApsVPGProtectionSwitchingReason
+				 }
+			STATUS current
+			DESCRIPTION 
+				"alarm description:VP Channel Protection Switching
+				explain: 
+					1.Loss of signal,
+					2.Deterioration of signal,
+					3.User operation,
+					4.Remote request causes switchover
+				resolving method:
+					1.Check if the transmission optical fiber is broken,
+					2.Check if the transmission line quality is deteriorated,
+					3.If it is the above 3/4 reason,no need to proceed.
+				
+				
+				"
+			::= { hwAtmApsTraps 2 }
+		
+		
+		hwAtmApsVPGProtectionSwitchingFail NOTIFICATION-TYPE
+			OBJECTS { hwAtmApsVPGWorkingFrameID, hwAtmApsVPGWorkingSlotID, hwAtmApsVPGWorkingPhyportID, hwAtmApsVPGIndex, hwAtmApsVPGProtectionSwitchingFailReason
+				 }
+			STATUS current
+			DESCRIPTION 
+				"alarm description:VP Channel Protection Switching fails
+				explain: 
+					1.Command execution time out,
+					2.VP group status abnormal caused by insufficient synchronization of active and standby boards
+				resolving method:
+					1.Check if the interface board works normally,
+					2.There is no need to proceed. The VPRING data will be recovered within three minutes
+				
+				
+				"
+			::= { hwAtmApsTraps 3 }
+		
+		
+		hwAtmApsVPGProtectionSwitchingClear NOTIFICATION-TYPE
+			OBJECTS { hwAtmApsVPGWorkingFrameID, hwAtmApsVPGWorkingSlotID, hwAtmApsVPGWorkingPhyportID, hwAtmApsVPGIndex, hwAtmApsVPGProtectionSwitchingClearReason
+				 }
+			STATUS current
+			DESCRIPTION 
+				"alarm description:VP Channel Protection Switching is cleared
+				explain: 
+					1.The local/remote working channel is recovered, or there is no switchover request at present,
+					2.Remote request causes switchover
+				resolving method:
+					1.No need to proceed
+				
+				
+				"
+			::= { hwAtmApsTraps 4 }
+		
+		
+		hwAtmApsVPGProtectionSwitchingClearFail NOTIFICATION-TYPE
+			OBJECTS { hwAtmApsVPGWorkingFrameID, hwAtmApsVPGWorkingSlotID, hwAtmApsVPGWorkingPhyportID, hwAtmApsVPGIndex, hwAtmApsVPGProtectionSwitchingClearFailReason
+				 }
+			STATUS current
+			DESCRIPTION 
+				"alarm description:fail to clear VP Channel Protection Switching
+				explain: 
+					1.Command execution time out,
+					2.VP group status abnormal caused by insufficient synchronization of active and standby boards
+				resolving method:
+					1.Check if the interface board works normally,
+					2.There is no need to proceed. The VPRING data will be recovered within three minutes
+				
+				
+		"
+			::= { hwAtmApsTraps 5 }
+		
+		
+		hwAtmApsVPGKByteMismatch NOTIFICATION-TYPE
+			OBJECTS { hwAtmApsVPGIndex, hwAtmApsVPGProtectK1K2Rcv, hwAtmApsVPGProtectK1K2Trans, hwAtmApsVPGKByteMismatchReason }
+			STATUS current
+			DESCRIPTION 
+				"alarm description:The received K2 byte are not the same as transmitted one
+				explain: 
+					1.Local and remote switchover status inconsistent,
+					2.Current status of the local protection switchover is frozen
+				resolving method:
+					1.No need to proceed,
+					2.Disable the freezing of current status of the local protection switchover
+				
+				"
+			::= { hwAtmApsTraps 6 }
+		
+		
+		hwAtmApsVPGStartPSFail NOTIFICATION-TYPE
+			OBJECTS { hwAtmApsVPGWorkingFrameID, hwAtmApsVPGWorkingSlotID, hwAtmApsVPGWorkingPhyportID, hwAtmApsVPGIndex, hwAtmApsVPGStartPSFailReason
+				 }
+			STATUS current
+			DESCRIPTION 
+				"alarm description:fail to Start protection switching
+				explain: 
+					1.Command execution time out
+				resolving method:
+					1.Check if the interface board works normally
+				"
+			::= { hwAtmApsTraps 7 }
+		
+		
+		hwAtmApsAlmBindReason OBJECT IDENTIFIER ::= { hwVPRingSnmpTrapDef 2 }
+		
+		
+		hwAtmApsVPGProtectionSwitchingReason OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				lossofsignal(1),
+				signaldegrade(2),
+				useroperation(3),
+				farProtectionSwitching(4)
+				}
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"
+				alarm description:VP Channel Protection Switching
+					explain: 
+						1.Loss of signal,
+						2.Deterioration of signal,
+						3.User operation,
+						4.Remote request causes switchover
+					resolving method:
+						1.Check if the transmission optical fiber is broken,
+						2.Check if the transmission line quality is deteriorated,
+						3.If it is the above 3/4 reason,no need to proceed.
+					
+
+				
+				"
+			::= { hwAtmApsAlmBindReason 1 }
+		
+		
+		hwAtmApsVPGProtectionSwitchingFailReason OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				timeout(1),
+				statusabnormal(2)
+				}
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"
+				alarm description:VP Channel Protection Switching fails
+					explain: 
+						1.Command execution time out,
+						2.VP group status abnormal caused by insufficient synchronization of active and standby boards
+					resolving method:
+						1.Check if the interface board works normally,
+						2.There is no need to proceed. The VPRING data will be recovered within three minutes
+					
+	
+				
+				"
+			::= { hwAtmApsAlmBindReason 2 }
+		
+		
+		hwAtmApsVPGProtectionSwitchingClearReason OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				farandlocalNR(1),
+				farrequest(2)
+				}
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"
+				alarm description:VP Channel Protection Switching is cleared
+					explain: 
+						1.The local/remote working channel is recovered, or there is no switchover request at present,
+						2.Remote request causes switchover
+					resolving method:
+						1.No need to proceed
+					
+
+				
+				"
+			::= { hwAtmApsAlmBindReason 3 }
+		
+		
+		hwAtmApsVPGProtectionSwitchingClearFailReason OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				timeout(1),
+				statusabnormal(2)
+				}
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"
+				alarm description:fail to clear VP Channel Protection Switching
+					explain: 
+						1.Command execution time out,
+						2.VP group status abnormal caused by insufficient synchronization of active and standby boards
+					resolving method:
+						1.Check if the interface board works normally,
+						2.There is no need to proceed. The VPRING data will be recovered within three minutes
+					
+					
+
+				
+				"
+			::= { hwAtmApsAlmBindReason 4 }
+		
+		
+		hwAtmApsVPGKByteMismatchReason OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				statuserror(1),
+				freezelocalswitchingstatus(2)
+				}
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"
+				alarm description:The received K2 byte are not the same as transmitted one
+					explain: 
+						1.Local and remote switchover status inconsistent,
+						2.Current status of the local protection switchover is frozen
+					resolving method:
+						1.No need to proceed,
+						2.Disable the freezing of current status of the local protection switchover
+					
+	
+				"
+			::= { hwAtmApsAlmBindReason 5 }
+		
+		
+		hwAtmApsVPGStartPSFailReason OBJECT-TYPE
+			SYNTAX INTEGER { timeout(1) }
+			MAX-ACCESS accessible-for-notify
+			STATUS current
+			DESCRIPTION
+				"
+				alarm description:fail to Start protection switching
+					explain: 
+						1.Command execution time out
+					resolving method:
+						1.Check if the interface board works normally
+					
+				
+				
+				"
+			::= { hwAtmApsAlmBindReason 6 }
+		
+	
+	END
+
+--
+-- HUAWEI-VPRING-MIB.my
+--

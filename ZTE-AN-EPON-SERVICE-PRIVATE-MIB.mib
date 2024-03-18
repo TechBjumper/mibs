@@ -1,0 +1,1480 @@
+-- *****************************************************************
+-- ZTE EPON MIB
+--
+-- 03-06-2007
+--
+-- Copyright(c) 2007 ZTE Corporation
+-- All rights reserved.
+-- *****************************************************************
+
+ZTE-AN-EPON-SERVICE-PRIVATE-MIB DEFINITIONS ::= BEGIN 
+    IMPORTS     
+        enterprises                      FROM SNMPv2-SMI
+        RowStatus                        FROM SNMPv2-TC
+        TruthValue                       FROM SNMPv2-TC
+        Unsigned32                       FROM SNMPv2-SMI
+        Counter64                        FROM SNMPv2-SMI
+        IpAddress                        FROM SNMPv2-SMI
+        Integer32                        FROM SNMPv2-SMI
+        Gauge32                          FROM SNMPv2-SMI
+        DateAndTime                      FROM SNMPv2-TC
+        MacAddress                       FROM SNMPv2-TC
+        TEXTUAL-CONVENTION               FROM SNMPv2-TC
+        MODULE-IDENTITY                  FROM SNMPv2-SMI
+        OBJECT-TYPE                      FROM SNMPv2-SMI
+        OBJECT-GROUP                     FROM SNMPv2-CONF
+        MODULE-COMPLIANCE                FROM SNMPv2-CONF
+        NOTIFICATION-TYPE                FROM SNMPv2-SMI
+        ZxAnIdList                       FROM ZTE-AN-TC-MIB
+        DisplayString                    FROM SNMPv2-TC
+        ifIndex                          FROM IF-MIB
+        zxAnPon                          FROM ZTE-AN-SMI
+        zxAnPonOnuIndex                  FROM ZTE-AN-PON-BASE-MIB
+        ZxAnEponOnuVportIndex            FROM ZTE-AN-PON-TC-MIB;
+
+
+zxAnEponServicesObjectsMib        MODULE-IDENTITY
+    LAST-UPDATED    "201703080000Z"
+    ORGANIZATION    "ZTE Corporation"
+    CONTACT-INFO    "Wang XiaoHua     ZTE Corporation
+                     Mail: wang.xiaohua2@zte.com.cn
+                     Tel : +86-21-68897216"
+    DESCRIPTION
+        "The MIB module for the management of EPON service."
+        
+    REVISION      "201703080000Z"
+    DESCRIPTION
+        ""
+    ::= { zxAnPon 30 }
+
+    sysAttrObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF SysAttrObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 1 }
+            
+    sysAttrObjectEntry OBJECT-TYPE
+            SYNTAX         SysAttrObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex } 
+            ::= { sysAttrObjectTable 1}
+            
+    SysAttrObjectEntry ::= 
+        SEQUENCE {                
+                sysOnuAdminAuthMode                     INTEGER,
+                sysAttrAutoAuthEnable                   INTEGER,
+                macHwAuthOnuState                       INTEGER,
+                zxAnEponOnuSilenceEnable                 TruthValue
+                }  
+    
+    sysOnuAdminAuthMode OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    mac(1),
+                    sn(2),
+                    hybrid(3),
+                    loid(4),
+                    snPlusMac(5)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The value of this object indicates the ONU authentication mode.
+       ONU authentication may be used in one of the following modes:     
+       mac - ONU registration using MAC address;
+       sn -  ONU registration using SN;
+       hybrid - ONU registration using SN,MAC address or authentication
+                key and password;
+       loid - ONU registration using authentication key and password;
+       snPlusMac - ONU registration using both MAC address and SN."
+        ::= { sysAttrObjectEntry 1 }
+        
+    sysAttrAutoAuthEnable OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    enabled(1), 
+                    disabled(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            ""
+        ::= { sysAttrObjectEntry 2 }
+        
+    macHwAuthOnuState OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    enabled(1), 
+                    disabled(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            ""
+        ::= { sysAttrObjectEntry 3 }
+        
+        
+    zxAnEponOnuSilenceEnable  OBJECT-TYPE
+       SYNTAX      TruthValue  
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION  
+           "This attribute enables or disables the  ONU silence function
+             of the EPON card. It is valid only to LOID or hybrid 
+             authentication mode.    
+            "    
+       DEFVAL      { true }           
+       ::=  {  sysAttrObjectEntry  4  }
+        
+    onuAdminObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF OnuAdminObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 4 }
+              
+    onuAdminObjectEntry OBJECT-TYPE
+            SYNTAX         OnuAdminObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex, zxAnPonOnuIndex } 
+            ::= { onuAdminObjectTable 1}
+            
+    OnuAdminObjectEntry ::= 
+        SEQUENCE {                
+                onuDescript                         DisplayString,
+                onuSplitterSn                       INTEGER,
+                onuOpticalLineSn                    INTEGER,
+                onuUserInfo                         DisplayString,
+                onuType                             DisplayString,
+                onuAdminState                       INTEGER,
+                onuAuthMACAddress                   MacAddress,
+                onuRegisterMACAddress               MacAddress,
+                onuAuthMACSn                        DisplayString,
+                onuRegisterSn                       DisplayString,
+                onuCurrentRegState                  INTEGER,
+                onuRegisterTime                     DisplayString,
+                onuCurrAdminAuthState               INTEGER,
+                onuLatelyPassAdminAuthTime          DisplayString,
+                onuCurrDot1xAuthState               INTEGER,
+                onuLatelyPassDot1xAuthTime          DisplayString,
+                onuMgmtOnlineStatus                 INTEGER,
+                onuActiveStatus                     INTEGER,
+                onuMgmtEntryStatus                  RowStatus,
+                onuMgmtIpCfgMode                    INTEGER,
+                onuAuthLoid                         DisplayString,
+                onuAuthPassword                     DisplayString,
+                onuRegisterLoid                     DisplayString,
+                onuRegisterPassword                 DisplayString,
+                zxAnEponOnuCreateTime               DisplayString,
+                zxAnEponOnuLastOfflineTime          DisplayString,
+                zxAnEponOnuLastOfflineReason        INTEGER,
+                zxAnEponOnuSpeedMode                INTEGER,
+                zxAnEponOnuName                     DisplayString 
+                } 
+                
+    onuDescript OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..200)) 
+        MAX-ACCESS   read-write
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 1 }
+        
+    onuSplitterSn OBJECT-TYPE 
+        SYNTAX       INTEGER
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 2 }
+        
+    onuOpticalLineSn OBJECT-TYPE 
+        SYNTAX       INTEGER
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 3 }
+        
+    onuUserInfo OBJECT-TYPE 
+        SYNTAX       DisplayString
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 4 }
+        
+    onuType OBJECT-TYPE 
+        SYNTAX       DisplayString
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 5 }
+        
+    onuAdminState OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     enabled(1),
+                     disabled(2)
+                     }                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 6 }
+        
+    onuAuthMACAddress OBJECT-TYPE 
+        SYNTAX       MacAddress                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 7 }
+        
+    onuRegisterMACAddress OBJECT-TYPE 
+        SYNTAX       MacAddress                          
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 8 }
+        
+    onuAuthMACSn OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..127))
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 9 }
+        
+    onuRegisterSn OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..127))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 10 }
+        
+    onuCurrentRegState OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     unregister(1),
+                     registering(2),
+                     registered(3)
+                     }                          
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION 
+            ""        
+        ::= { onuAdminObjectEntry 11 }
+        
+    onuRegisterTime OBJECT-TYPE 
+        SYNTAX       DisplayString                          
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "EPON ONU latest online time. The format is 'yyyy-mm-dd HH:MM:SS'.
+            For example, '2011-01-05 13:06:30'."        
+        ::= { onuAdminObjectEntry 12 }
+        
+    onuCurrAdminAuthState OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     init(1),
+                     authenticating(2),
+                     pass(3),
+                     deny(4)
+                     }                        
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 13 }
+        
+    onuLatelyPassAdminAuthTime OBJECT-TYPE 
+        SYNTAX       DisplayString                          
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 14 }
+        
+    onuCurrDot1xAuthState OBJECT-TYPE 
+        SYNTAX       INTEGER                          
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 15 }
+        
+    onuLatelyPassDot1xAuthTime OBJECT-TYPE 
+        SYNTAX       DisplayString                          
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "EPON ONU last offline time. 
+             The format is 'yyyy/mm/dd HH:MM:SS'."        
+        ::= { onuAdminObjectEntry 16 }
+        
+    onuMgmtOnlineStatus OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    poweroff(1),
+                    offline(2),
+                    online(3)
+                    }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            ""
+        ::= { onuAdminObjectEntry 17 }
+        
+    onuActiveStatus OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    active(1),
+                    inactive(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            ""
+        ::= { onuAdminObjectEntry 18 }   
+             
+    onuMgmtEntryStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            ""
+        ::= { onuAdminObjectEntry 19 }
+    onuMgmtIpCfgMode    OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    static(1),
+                    dynatmic(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            ""
+        ::= { onuAdminObjectEntry 20 }
+
+    onuAuthLoid OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..24))
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 21 }
+
+    onuAuthPassword OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..12))
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 22 }
+
+    onuRegisterLoid OBJECT-TYPE 
+        SYNTAX       DisplayString (SIZE(0..24))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 23 }
+
+    onuRegisterPassword OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..12))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuAdminObjectEntry 24 }
+
+    zxAnEponOnuCreateTime OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(1..19))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "EPON ONU create time. The format is 'yyyy-mm-dd HH:MM:SS'.
+            For example, '2011-01-05 13:06:30'."        
+        ::= { onuAdminObjectEntry 25 }   
+
+    zxAnEponOnuLastOfflineTime OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(1..19))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "EPON ONU last offline time. The format is 'yyyy-mm-dd HH:MM:SS'.
+            For example, '2011-01-05 13:06:30'. Possible offline reasons 
+            associate with 'onuMgmtOnlineStatus'. The possible reason 
+            values are: 
+              poweroff (1)  - Power off
+              offline  (2)  - Off-line."        
+        ::= { onuAdminObjectEntry 26 }
+        
+   zxAnEponOnuLastOfflineReason OBJECT-TYPE
+        SYNTAX       INTEGER{
+                     unknown(1),
+                     bugsell(14),
+                     linkDisconnect(21),
+                     powerOff(22),
+                     timestampDrift(23)
+                     }                           
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "EPON ONU last offline reason. The possible reason 
+            values are: 
+             1 : unknown reason
+             14 : ONU  bugsell
+             21 : ONU link disconnected
+             22 : ONU power off
+             23 : ONU timestamp drift
+              "
+        ::= { onuAdminObjectEntry 27 }
+
+    zxAnEponOnuSpeedMode    OBJECT-TYPE
+        SYNTAX       INTEGER{
+                     oneG(1),
+                     tenGSymmetric(2),
+                     tenGAsymmetric(3)
+                     }    
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "EPON ONU speed mode.
+             Speed mode is defined as follows:
+             oneG(1): it indicates that the ONU speed mode is 1G.
+             tenGSymmetric(2): it indicates that the ONU speed mode is
+                               10G-symmetric.
+             tenGAsymmetric(3): it indicates that the ONU speed mode is 
+                               10G-asymmetric."        
+        ::= { onuAdminObjectEntry 28 }            
+        
+    zxAnEponOnuName OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..127))
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "The ONU name."        
+        ::= { onuAdminObjectEntry 29 }
+            
+    oltEncryAdminObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF OltEncryAdminObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 5 }
+              
+    oltEncryAdminObjectEntry OBJECT-TYPE
+            SYNTAX         OltEncryAdminObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex } 
+            ::= { oltEncryAdminObjectTable 1}
+            
+    OltEncryAdminObjectEntry ::= 
+        SEQUENCE {                
+                encryptArithmetic                   INTEGER,
+                keyUpdateTime                       Integer32,
+                keyUpdateTimeout                    Integer32,
+                startEncryptThreshold               Integer32
+                } 
+                
+    encryptArithmetic OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     aes128(1),
+                     triplechurning(2)
+                     }                           
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltEncryAdminObjectEntry 1 }
+        
+    keyUpdateTime OBJECT-TYPE 
+        SYNTAX       Integer32                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltEncryAdminObjectEntry 2 }
+        
+    keyUpdateTimeout OBJECT-TYPE 
+        SYNTAX       Integer32                           
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltEncryAdminObjectEntry 3 }
+        
+    startEncryptThreshold OBJECT-TYPE 
+        SYNTAX       Integer32                           
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltEncryAdminObjectEntry 4 }
+        
+    lineEncryAdminObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF LineEncryAdminObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 6 }
+              
+    lineEncryAdminObjectEntry OBJECT-TYPE
+            SYNTAX         LineEncryAdminObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex, zxAnPonOnuIndex, zxAnEponOnuVportIndex } 
+            ::= { lineEncryAdminObjectTable 1}
+            
+    LineEncryAdminObjectEntry ::= 
+        SEQUENCE {
+                zxAnEponOnuVportIndex         ZxAnEponOnuVportIndex,
+                encryptMode                   INTEGER,
+                encrypeState                  TruthValue
+                } 
+                
+    zxAnEponOnuVportIndex OBJECT-TYPE
+        SYNTAX       ZxAnEponOnuVportIndex
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "This attribute represents the index of ONU."
+        ::= { lineEncryAdminObjectEntry 1 }
+
+    encryptMode OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     downlink(1),
+                     both(2)
+                     }                           
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { lineEncryAdminObjectEntry 2 }
+        
+    encrypeState OBJECT-TYPE 
+        SYNTAX       TruthValue                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { lineEncryAdminObjectEntry 3 }
+        
+    slaUpAdminObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF SlaUpAdminObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 7 }
+              
+    slaUpAdminObjectEntry OBJECT-TYPE
+            SYNTAX         SlaUpAdminObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex, zxAnPonOnuIndex, zxAnEponOnuVportIndex } 
+            ::= { slaUpAdminObjectTable 1}
+            
+    SlaUpAdminObjectEntry ::= 
+        SEQUENCE {                
+                upFixedBw               Integer32,
+                upAssuredBw             Integer32,
+                upMaximumBw             Integer32,
+                upMaxBurstSize          Integer32,
+                upPri                   INTEGER,
+                upMaxTimeDelay          Integer32,
+                upMaxDrift              Integer32,
+                upFixedPacketSize       Integer32
+               } 
+                
+    upFixedBw OBJECT-TYPE 
+        SYNTAX       Integer32                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaUpAdminObjectEntry 1 }
+
+    upAssuredBw OBJECT-TYPE 
+        SYNTAX       Integer32                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "512k is upAssuredBw's minimum, 1G is upAssuredBw's maximum. "
+        ::= { slaUpAdminObjectEntry 2 }
+        
+    upMaximumBw OBJECT-TYPE 
+        SYNTAX       Integer32                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "512k is upAssuredBw's minimum, 1G is upAssuredBw's maximum. "
+        ::= { slaUpAdminObjectEntry 3 }
+        
+    upMaxBurstSize OBJECT-TYPE 
+        SYNTAX       Integer32                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaUpAdminObjectEntry 4 }
+        
+    upPri OBJECT-TYPE 
+        SYNTAX       INTEGER(0..7)                   
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaUpAdminObjectEntry 5 }
+        
+    upMaxTimeDelay OBJECT-TYPE 
+        SYNTAX       Integer32                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaUpAdminObjectEntry 6 }
+        
+    upMaxDrift OBJECT-TYPE 
+        SYNTAX       Integer32                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaUpAdminObjectEntry 7 }
+        
+    upFixedPacketSize    OBJECT-TYPE 
+        SYNTAX       Integer32                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaUpAdminObjectEntry 8 }
+        
+    slaDownAdminObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF SlaDownAdminObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 8 }
+              
+    slaDownAdminObjectEntry OBJECT-TYPE
+            SYNTAX         SlaDownAdminObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex, zxAnPonOnuIndex, zxAnEponOnuVportIndex } 
+            ::= { slaDownAdminObjectTable 1}
+            
+    SlaDownAdminObjectEntry ::= 
+        SEQUENCE {             
+                downAssuredBw             Integer32,
+                downMaximumBw             Integer32,
+                downMaxBurstSize          Integer32,
+                downPri                   INTEGER,
+                downMaxTimeDelay          Integer32,
+                downMaxDrift              Integer32
+                } 
+          
+        downAssuredBw OBJECT-TYPE 
+        SYNTAX       Integer32                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "512k is downAssuredBw's minimum, 1G is downAssuredBw's maximum."        
+        ::= { slaDownAdminObjectEntry 1 }
+        
+    downMaximumBw OBJECT-TYPE 
+        SYNTAX       Integer32                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "512k is downMaximumBw's minimum, 1G is downMaximumBw's maximum."
+        ::= { slaDownAdminObjectEntry 2 }
+        
+    downMaxBurstSize OBJECT-TYPE 
+        SYNTAX       Integer32                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaDownAdminObjectEntry 3 }
+        
+    downPri OBJECT-TYPE 
+        SYNTAX       INTEGER(0..7)                    
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaDownAdminObjectEntry 4 }
+        
+    downMaxTimeDelay OBJECT-TYPE 
+        SYNTAX       Integer32                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaDownAdminObjectEntry 5 }
+        
+    downMaxDrift OBJECT-TYPE 
+        SYNTAX       Integer32                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { slaDownAdminObjectEntry 6 }
+
+       
+    onuUnPassedAdminAuthInfoTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF OnuUnPassedAdminAuthInfoEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 14 }
+              
+    onuUnPassedAdminAuthInfoEntry OBJECT-TYPE
+            SYNTAX         OnuUnPassedAdminAuthInfoEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex, onuIndex } 
+            ::= { onuUnPassedAdminAuthInfoTable 1}
+            
+    OnuUnPassedAdminAuthInfoEntry ::= 
+        SEQUENCE {  
+                onuIndex                      Integer32,
+                onuRegisterMacAddress         MacAddress,
+                onuReportSn                   DisplayString,
+                onuAdminAuthState             INTEGER,
+                onuDot1xAuthState             INTEGER,
+                onuUplineTime                 DisplayString,
+                onuReportLoid                 DisplayString,
+                onuReportPassword             DisplayString,
+                onuReportType                 DisplayString,
+                zxAnEponOnuSwVersion          DisplayString,
+                zxAnEponOnuHwVersion          DisplayString,
+                zxAnEponOnuOamBuildStatus     INTEGER,
+                zxAnEponOnuReportExtendedType DisplayString,
+                zxAnEponOnuChannelId          Integer32
+                } 
+                
+    onuIndex OBJECT-TYPE 
+        SYNTAX       Integer32                          
+        MAX-ACCESS   not-accessible 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuUnPassedAdminAuthInfoEntry 1 }
+        
+    onuRegisterMacAddress OBJECT-TYPE 
+        SYNTAX       MacAddress                          
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuUnPassedAdminAuthInfoEntry 2 }
+        
+    onuReportSn OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..127))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuUnPassedAdminAuthInfoEntry 3 }
+        
+    onuAdminAuthState OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     authenticating(1),
+                     deny(2)
+                     }                          
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuUnPassedAdminAuthInfoEntry 4 }
+        
+    onuDot1xAuthState OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     authenticating(1),
+                     deny(2)
+                     }                               
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuUnPassedAdminAuthInfoEntry 5 }
+    
+    onuUplineTime OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..30))                     
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuUnPassedAdminAuthInfoEntry 6 }
+
+    onuReportLoid OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..24))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuUnPassedAdminAuthInfoEntry 7 }
+
+    onuReportPassword OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..12))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuUnPassedAdminAuthInfoEntry 8 }
+        
+    onuReportType OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..16))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "It indicate the type of ONU, such as ZTE-F820. If can't identify 
+             the type of ONU, this value is unknown.For the more information, 
+             please refer to onuAdminObjectTable."        
+        ::= { onuUnPassedAdminAuthInfoEntry 9 }        
+        
+    zxAnEponOnuSwVersion OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..32))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "ONU Software Version"        
+        ::= { onuUnPassedAdminAuthInfoEntry 10 }  
+        
+        
+    zxAnEponOnuHwVersion OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..32))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "ONU Hardware Version"        
+        ::= { onuUnPassedAdminAuthInfoEntry 11 }  
+        
+        
+    zxAnEponOnuOamBuildStatus OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     failed(1),
+                     inProgress(2),
+                     notSupport(3),
+                     success(4)                     
+                     }                               
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "The OAM build status of ONU"        
+        ::= { onuUnPassedAdminAuthInfoEntry 12 }        
+                             
+    zxAnEponOnuReportExtendedType OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(0..16))
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "The extended type of ONU, such as ZTE-F820B. 
+             If OLT can't identify the type of ONU, this value is 'unknown'."        
+        ::= { onuUnPassedAdminAuthInfoEntry 13 }    
+     
+    zxAnEponOnuChannelId OBJECT-TYPE
+        SYNTAX       Integer32(1..8)
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "The channel ID of the ONU."
+         ::= { onuUnPassedAdminAuthInfoEntry 14 }     
+                 
+    onuConfigAdminObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF OnuConfigAdminObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 15 }
+              
+    onuConfigAdminObjectEntry OBJECT-TYPE
+            SYNTAX         OnuConfigAdminObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex, zxAnPonOnuIndex } 
+            ::= { onuConfigAdminObjectTable 1}
+            
+    OnuConfigAdminObjectEntry ::= 
+        SEQUENCE {  
+                onuConfigState               INTEGER,
+                onuCfgErrObjTables           Integer32
+                } 
+                
+    onuConfigState OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     notconfigure(1),
+                     configuring(2),
+                     configurationsucceeded(3),
+                     configurationfailed(4)
+                     }                           
+        MAX-ACCESS   read-only
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuConfigAdminObjectEntry 1 }
+        
+    onuCfgErrObjTables OBJECT-TYPE 
+        SYNTAX       Integer32                         
+        MAX-ACCESS   read-only
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { onuConfigAdminObjectEntry 2 }
+        
+    oltPonAttrObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF OltPonAttrObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 16 }
+              
+    oltPonAttrObjectEntry OBJECT-TYPE
+            SYNTAX         OltPonAttrObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex } 
+            ::= { oltPonAttrObjectTable 1}
+            
+    OltPonAttrObjectEntry ::= 
+        SEQUENCE {  
+                oltPonAttrName                   DisplayString,
+                oltPonPonAttrDesc                DisplayString,
+                oltPonAttrReset                  INTEGER,
+                oltPonAttrResetCounters          INTEGER,
+                oltPonAttrMultiLlidState         INTEGER,
+                zxAnEponOnuMaxLlidNumber         INTEGER,
+                oltPonAuthenticatedOnuIdList     DisplayString,
+                oltPonDualRate                   INTEGER,
+                zxAnEponIsUseOamCtc2Dot1OrMore   INTEGER
+                } 
+                
+    oltPonAttrName OBJECT-TYPE 
+        SYNTAX       DisplayString                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltPonAttrObjectEntry 1 }
+        
+    oltPonPonAttrDesc OBJECT-TYPE 
+        SYNTAX       DisplayString                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltPonAttrObjectEntry 2 }
+        
+    oltPonAttrReset OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     running(1),
+                     reset(2)
+                     }                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltPonAttrObjectEntry 3 }     
+      
+    oltPonAttrResetCounters OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     true(1),
+                     false(2)
+                     }
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltPonAttrObjectEntry 4 }  
+
+    oltPonAttrMultiLlidState OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     enable(1),
+                     disable(2)
+                     }
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltPonAttrObjectEntry 5 }  
+
+    zxAnEponOnuMaxLlidNumber OBJECT-TYPE 
+        SYNTAX       INTEGER(1..8)
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { oltPonAttrObjectEntry 6 }  
+        
+    oltPonAuthenticatedOnuIdList OBJECT-TYPE 
+        SYNTAX       DisplayString
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "It indicate the ONU's ID list in the PON port,which have 
+            been authenticated.For example ONU ID 1,2,3,4,10,61,62,63,
+            it's value is 1-4,10,61-63."        
+        ::= { oltPonAttrObjectEntry 7 }        
+        
+    oltPonDualRate OBJECT-TYPE
+        SYNTAX       INTEGER{
+                     oneG(1),
+                     tenGSymmetric(2),
+                     tenGAsymmetric(3)   
+                     } 
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "This object indicates the dual-rate of PON port."        
+        ::= { oltPonAttrObjectEntry 8 }         
+        
+    zxAnEponIsUseOamCtc2Dot1OrMore OBJECT-TYPE 
+        SYNTAX  INTEGER {
+                enable(1),
+                disable(2)
+                }
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "Using OAM CTC2.1 or more version"     
+        DEFVAL  { enable }         
+        ::= { oltPonAttrObjectEntry 9 }  
+                 
+
+        
+    zxEponMaxrttObjectTable OBJECT-TYPE 
+        SYNTAX         SEQUENCE OF ZxEponMaxrttObjectEntry
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "EPON OLT Maxrtt"        
+        ::= { zxAnEponServicesObjectsMib 23 }
+              
+    zxEponMaxrttObjectEntry OBJECT-TYPE
+            SYNTAX         ZxEponMaxrttObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+            "EPON OLT maxrtt"        
+            INDEX    { ifIndex } 
+            ::= { zxEponMaxrttObjectTable 1}
+            
+    ZxEponMaxrttObjectEntry ::= 
+        SEQUENCE {  
+                maxrtt              Integer32    
+                } 
+    maxrtt OBJECT-TYPE 
+        SYNTAX       Integer32                          
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "EPON OLT maxrtt value"        
+        ::= { zxEponMaxrttObjectEntry 1 }
+        
+
+        
+  
+        
+    zxEponOnuAutoCfgObjectTable OBJECT-TYPE 
+        SYNTAX         SEQUENCE OF ZxEponOnuAutoCfgObjectEntry
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "EPON Onu AutoCfg"        
+        ::= { zxAnEponServicesObjectsMib 26 }
+              
+    zxEponOnuAutoCfgObjectEntry OBJECT-TYPE
+            SYNTAX         ZxEponOnuAutoCfgObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+            "EPON Onu AutoCfg"        
+            INDEX    { ifIndex, zxAnPonOnuIndex } 
+            ::= { zxEponOnuAutoCfgObjectTable 1}
+            
+    ZxEponOnuAutoCfgObjectEntry ::= 
+        SEQUENCE {  
+                onuBindStatus              INTEGER,
+                onuAutoCfgStatus          INTEGER
+                } 
+    onuBindStatus OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                        enable(1),
+                        disable(2)                        
+                        }                     
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "EPON ONU BindStatus value: disable|enable"        
+        ::= { zxEponOnuAutoCfgObjectEntry 1 }
+    onuAutoCfgStatus OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                        enable(1),
+                        disable(2)
+                        }                     
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "EPON ONU AutoCfgStatus value: disable|enable"        
+        ::= { zxEponOnuAutoCfgObjectEntry 2 }
+        
+ 
+    zxEponBwProfileAdmin  OBJECT IDENTIFIER ::= { zxAnEponServicesObjectsMib 30}
+
+    zxEponBwProfileTable  OBJECT-TYPE 
+        SYNTAX         SEQUENCE OF ZxEponBwProfileEntry
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "EPON up bandwidth profile table"        
+        ::= { zxEponBwProfileAdmin 1 }
+              
+    zxEponBwProfileEntry OBJECT-TYPE
+            SYNTAX         ZxEponBwProfileEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+            "EPON up bandwidth profile entry"        
+            INDEX    { profileName } 
+            ::= { zxEponBwProfileTable 1}
+
+    ZxEponBwProfileEntry ::= 
+        SEQUENCE {  
+                profileName                 DisplayString,
+                profileIndex                INTEGER,
+                upBwProfileFixedBw          Integer32,
+                upBwProfileAssuredBw        Integer32,
+                upBwProfileMaximumBw        Integer32,
+                upBwProfileMaxBurstSize     Integer32,
+                upBwProfilePri              Integer32,
+                upBwProfileFixedPacketSize  Integer32,
+                downBwProfileMaximumBw      Integer32,
+                downBwProfileMaxBurstSize   Integer32,
+                bwProfileRowStatus          RowStatus
+                 } 
+
+   profileName    OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This object identifies a row in this table."
+          ::= { zxEponBwProfileEntry 1 }
+
+   profileIndex     OBJECT-TYPE 
+        SYNTAX       INTEGER                         
+        MAX-ACCESS    read-only
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { zxEponBwProfileEntry 2 }
+   
+   upBwProfileFixedBw    OBJECT-TYPE 
+        SYNTAX       Integer32(0..1000000)
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { zxEponBwProfileEntry 3 }
+
+   upBwProfileAssuredBw    OBJECT-TYPE 
+        SYNTAX       Integer32(512..1000000)
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "512k is upAssuredBw's minimum, 1G is upAssuredBw's maximum. "
+        ::= { zxEponBwProfileEntry  4 }
+        
+   upBwProfileMaximumBw   OBJECT-TYPE 
+        SYNTAX       Integer32(512..1000000)
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ". "        
+        ::= { zxEponBwProfileEntry 5 }
+        
+    upBwProfileMaxBurstSize OBJECT-TYPE 
+        SYNTAX       Integer32(1..16777215)
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { zxEponBwProfileEntry 6 }
+        
+    upBwProfilePri         OBJECT-TYPE 
+        SYNTAX       Integer32(0..7)                   
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { zxEponBwProfileEntry 7 }
+        
+    upBwProfileFixedPacketSize    OBJECT-TYPE 
+        SYNTAX       Integer32(0..1582)                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { zxEponBwProfileEntry 8 }
+     
+    downBwProfileMaximumBw   OBJECT-TYPE 
+        SYNTAX       Integer32(512..999994)                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { zxEponBwProfileEntry 9 }     
+        
+    downBwProfileMaxBurstSize   OBJECT-TYPE 
+        SYNTAX       Integer32(1..16777215)                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            ""        
+        ::= { zxEponBwProfileEntry 10 }  
+
+    bwProfileRowStatus     OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "EPON up bandwidth RowStatus "        
+        ::= { zxEponBwProfileEntry 11 }
+
+    
+    zxEponOnuBwCfgTable  OBJECT-TYPE 
+        SYNTAX         SEQUENCE OF ZxEponOnuBwCfgEntry
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "EPON onu bandwidth profile config table"        
+        ::= { zxAnEponServicesObjectsMib 32 }
+
+    zxEponOnuBwCfgEntry OBJECT-TYPE
+            SYNTAX         ZxEponOnuBwCfgEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+            "EPON onu bandwidth profile config entry"        
+            INDEX    { ifIndex, zxAnPonOnuIndex, zxAnEponOnuVportIndex } 
+            ::= { zxEponOnuBwCfgTable 1}
+            
+    ZxEponOnuBwCfgEntry ::= 
+        SEQUENCE {  
+                     onuCfgBwProfileName                  DisplayString
+                 } 
+    
+    onuCfgBwProfileName    OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "onu up bandwidth profile name, zero length for no profile."
+          ::= { zxEponOnuBwCfgEntry 1 }  
+          
+
+-- ONU auto config when onu online 
+
+    zxEponOnuAutoConfigTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF ZxEponOnuAutoConfigEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                "Determin if config is automaticly send to onu when onu online."
+            ::= { zxAnEponServicesObjectsMib 34 }
+              
+    zxEponOnuAutoConfigEntry OBJECT-TYPE
+            SYNTAX         ZxEponOnuAutoConfigEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex, zxAnPonOnuIndex } 
+            ::= { zxEponOnuAutoConfigTable 1}
+            
+    ZxEponOnuAutoConfigEntry ::= 
+        SEQUENCE {  
+                zxEponOnuAutoConfigStatus     INTEGER,
+                zxEponOnuVoipAutoConfigStatus     INTEGER
+                } 
+                
+    zxEponOnuAutoConfigStatus OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     off(1),
+                     on(2)
+                     }                           
+        MAX-ACCESS   read-write
+        STATUS       current 
+        DESCRIPTION
+            "Determin if configuration is automaticly send to onu when onu online."
+        ::= { zxEponOnuAutoConfigEntry 1 }
+        
+    zxEponOnuVoipAutoConfigStatus OBJECT-TYPE 
+        SYNTAX       INTEGER{
+                     off(1),
+                     on(2)
+                     }                           
+        MAX-ACCESS   read-write
+        STATUS       current 
+        DESCRIPTION
+            "Determin if voip configuration is automaticly send to onu when onu online."
+        ::= { zxEponOnuAutoConfigEntry 2 }   
+
+
+    zxEponRunningCtrl OBJECT IDENTIFIER  ::=  { zxAnEponServicesObjectsMib 35 }
+      
+    zxEponRevision     OBJECT-TYPE 
+        SYNTAX    BITS{ 
+            unknown(0),
+            ctc21(1),
+            voipIpSecondaryDns(2),
+            onuDescSupport200Bytes(3),
+            onuSpeedMode(4)                   
+            } 
+        MAX-ACCESS       read-only
+        STATUS           current
+        DESCRIPTION      
+            "Module revision flag.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.            
+             bit 3: value 1 means onuDescript supporting 200 bytes.
+             bit 4: value 1 means adding zxAnEponOnuSpeedMode to the 
+                    onuAdminObjectTable.             
+             NOTE: No recommended to display it in NMS."
+           ::=  {  zxEponRunningCtrl  1  }   
+           
+    onuCustomObjectTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF OnuCustomObjectEntry
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            ::= { zxAnEponServicesObjectsMib 36 }
+              
+    onuCustomObjectEntry OBJECT-TYPE
+            SYNTAX         OnuCustomObjectEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                ""
+            INDEX    { ifIndex, zxAnPonOnuIndex } 
+            ::= { onuCustomObjectTable 1}
+            
+    OnuCustomObjectEntry ::= 
+        SEQUENCE {                
+                onuOnlineForwardAction              INTEGER
+                 }   
+                 
+    onuOnlineForwardAction OBJECT-TYPE 
+        SYNTAX       INTEGER (1..2147483647)                    
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "This variable indicates the ONU online forwarding actions.
+             The onuOnlineForwardAction is a bit map represented as a
+            sum, therefore, it can represent multiple forwarding action.
+            The various bit positions are:
+                     1     CNC mode  1:enable,0:disable
+                     2     to define      
+                     4     to define      
+                   ... 
+            2147483647     to define
+            note: if all bit is 0,OLT will not report trap to NMS.
+            "        
+        ::= { onuCustomObjectEntry 1 }                            
+           
+
+        
+ -- PON Port ONU Auto-discovery Configuration
+ 
+    zxEponIfOnuAutoDiscoverTable OBJECT-TYPE 
+        SYNTAX         SEQUENCE OF ZxEponIfOnuAutoDiscoverEntry
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "The ONU Auto-discovery configuration table."
+        ::= { zxAnEponServicesObjectsMib 41 }
+              
+    zxEponIfOnuAutoDiscoverEntry OBJECT-TYPE
+        SYNTAX         ZxEponIfOnuAutoDiscoverEntry 
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "The ONU Auto-discovery configuration entry."
+        INDEX    { ifIndex } 
+        ::= { zxEponIfOnuAutoDiscoverTable 1}
+            
+    ZxEponIfOnuAutoDiscoverEntry ::= 
+        SEQUENCE {  
+            zxEponIfOnuAutoDiscoverOneGEn            INTEGER,
+            zxEponIfOnuAutoDiscoverTenGSyEn          INTEGER,
+            zxEponIfOnuAutoDiscoverTenGAsyEn         INTEGER
+        } 
+                
+    zxEponIfOnuAutoDiscoverOneGEn OBJECT-TYPE 
+        SYNTAX  INTEGER {
+                enabled(1),
+                disabled(2)
+                }                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "Enable or disable the 1G symmetric Auto-discovery configuration."       
+        DEFVAL  { enabled } 
+        ::= { zxEponIfOnuAutoDiscoverEntry 1 }
+        
+    zxEponIfOnuAutoDiscoverTenGSyEn OBJECT-TYPE 
+        SYNTAX  INTEGER {
+                enabled(1),
+                disabled(2)
+                }                        
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "Enable or disable the 10G symmetric Auto-discovery configuration."
+        DEFVAL  { enabled } 
+        ::= { zxEponIfOnuAutoDiscoverEntry 2 }
+         
+    zxEponIfOnuAutoDiscoverTenGAsyEn OBJECT-TYPE
+        SYNTAX  INTEGER {
+                enabled(1),
+                disabled(2)
+                }  
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "Enable or disable the 10G asymmetric Auto-discovery configuration."
+        DEFVAL  { enabled }                
+        ::= { zxEponIfOnuAutoDiscoverEntry 3 }  
+        
+END

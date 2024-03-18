@@ -1,0 +1,522 @@
+    HUAWEI-HSL-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE,Integer32,Unsigned32
+            FROM SNMPv2-SMI
+        hwFrameIndex,hwSlotIndex,hwPortIndex
+            FROM HUAWEI-DEVICE-MIB
+        huaweiUtility
+            FROM HUAWEI-MIB;
+
+    hwHSL MODULE-IDENTITY
+        LAST-UPDATED "0301260900Z"
+        ORGANIZATION
+            "
+            HAUWEI MIB Standard community
+            "
+        CONTACT-INFO
+            "
+            ADDR:HUAWEI TECHNOLOGY CO.,LTD,SHEZHEN CHINA
+            Tel 86-755-26540808
+            "
+        DESCRIPTION
+            "
+            V2.00
+            reunification version based on the  Fix-Net MIBs baseline by the MIB Standard community.
+
+
+            "
+        ::= { huaweiUtility 13 }
+
+        hwHSLMibObjects     OBJECT IDENTIFIER   ::= { hwHSL             1 }
+        hwHSLMibTrap        OBJECT IDENTIFIER   ::= { hwHSL             2 }
+
+        hwHSLTrapOid        OBJECT IDENTIFIER   ::= { hwHSLMibTrap      1 }
+
+
+        hslBoardTable OBJECT-TYPE
+            SYNTAX      SEQUENCE OF HslBoardEntry
+            MAX-ACCESS  not-accessible
+            STATUS      current
+            DESCRIPTION
+                "
+                
+                "
+            ::= { hwHSLMibObjects 1 }
+
+        hslBoardEntry OBJECT-TYPE
+            SYNTAX      HslBoardEntry
+            MAX-ACCESS  not-accessible
+            STATUS      current
+            DESCRIPTION
+                "
+                
+                "
+            INDEX
+                {
+                hwFrameIndex,
+                hwSlotIndex
+                }
+            ::= { hslBoardTable 1 }
+
+        HslBoardEntry ::=
+            SEQUENCE
+                {
+                hwHslClockSource
+                    INTEGER,
+                hwHslFirstHwTsInfo
+                    Unsigned32,
+                hwHslSecondHwTsInfo
+                    Unsigned32,
+                hwHslFirstFE1TsInfo
+                    Unsigned32,
+                hwHslSecondFE1TsInfo
+                    Unsigned32,
+                hwHslFirstV35TsInfo
+                    Unsigned32,
+                hwHslSecondV35TsInfo
+                    Unsigned32
+                }
+
+
+        hwHslClockSource OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                firstFE1(1),
+                secondFE1(2),
+                hwClock(3)
+                }
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "
+                1.firstFE1, 2.secondFE1, 3.hwClock
+
+
+                "
+            ::= { hslBoardEntry 1 }
+
+        hwHslFirstHwTsInfo OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                Each bit figures a channel used or nor, '0' figure not used, '1' figures used
+
+
+                "
+            ::= { hslBoardEntry 2 }
+
+        hwHslSecondHwTsInfo OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                Each bit figures a channel used or nor, '0' figure not used, '1' figures used
+
+
+                "
+            ::= { hslBoardEntry 3 }
+
+        hwHslFirstFE1TsInfo OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                Each bit figures a channel used or nor, '0' figure not used, '1' figures used
+
+
+                "
+            ::= { hslBoardEntry 4 }
+
+        hwHslSecondFE1TsInfo OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                Each bit figures a channel used or nor, '0' figure not used, '1' figures used
+
+  
+                "
+            ::= { hslBoardEntry 5 }
+
+        hwHslFirstV35TsInfo OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                Each bit figures a channel used or nor, '0' figure not used, '1' figures used
+
+       
+                "
+            ::= { hslBoardEntry 6 }
+
+        hwHslSecondV35TsInfo OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                Each bit figures a channel used or nor, '0' figure not used, '1' figures used
+
+   
+                "
+            ::= { hslBoardEntry 7 }
+
+        hslFE1PortTable OBJECT-TYPE
+            SYNTAX      SEQUENCE OF HslFE1PortEntry
+            MAX-ACCESS  not-accessible
+            STATUS      current
+            DESCRIPTION
+              "
+              HSL 
+              "
+            ::= { hwHSLMibObjects 2 }
+
+        hslFE1PortEntry OBJECT-TYPE
+            SYNTAX      HslFE1PortEntry
+            MAX-ACCESS  not-accessible
+            STATUS      current
+            DESCRIPTION
+                "
+                HSL 
+                "
+            INDEX
+                {
+                hwFrameIndex,
+                hwSlotIndex,
+                hwPortIndex
+                }
+            ::= { hslFE1PortTable 1 }
+
+        HslFE1PortEntry ::=
+            SEQUENCE
+                {
+                hwHslFE1FrameType
+                    INTEGER,
+                hwHslFE1UserName
+                    OCTET STRING(SIZE(0..10)),
+                hwHslFE1SignalState
+                    INTEGER,
+                hwHslFE1LoopState
+                    INTEGER,
+                hwHslFE1OprType
+                    INTEGER
+                }
+
+
+
+        hwHslFE1FrameType OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                pcm30(1),
+                pcm30C(2),
+                pcm31(3),
+                pcm31C(4)
+                }
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "
+                the frame type of the HSL FE1 port
+
+                HSL 
+                "
+            ::= { hslFE1PortEntry 1 }
+
+        hwHslFE1UserName OBJECT-TYPE
+            SYNTAX      OCTET STRING(SIZE(0..10))
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "
+                name of HSL FE1 port.
+
+                HSL  (SIZE(0..10))
+                "
+            ::= { hslFE1PortEntry 2 }
+
+        hwHslFE1SignalState OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                normal(1),
+                frameAlignErr(2),
+                signalLos(3)
+                }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                1.normal, 2.frameAlignErr, 3.signalLos
+
+
+                "
+            ::= { hslFE1PortEntry 3 }
+
+        hwHslFE1LoopState OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                localLooping(1),
+                remoteLooping(2),
+                noLooping(3)
+                }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                1.localLooping, 2.remoteLooping, 3. noLooping
+
+       
+                "
+            ::= { hslFE1PortEntry 4 }
+
+        hwHslFE1OprType OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                noOperation(1),
+                cancelLoop(2),
+                localLoop(3),
+                remoteLoop(4)
+                }
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "
+                1.noOperation,
+                2.cancelLoop,
+                3.localLoop,
+                4.remoteLoop
+
+    
+                "
+            ::= { hslFE1PortEntry 5 }
+
+        hslV35PortTable OBJECT-TYPE
+            SYNTAX      SEQUENCE OF HslV35PortEntry
+            MAX-ACCESS  not-accessible
+            STATUS      current
+            DESCRIPTION
+              "
+              HSL 
+              "
+            ::= { hwHSLMibObjects 3 }
+
+        hslV35PortEntry OBJECT-TYPE
+            SYNTAX      HslV35PortEntry
+            MAX-ACCESS  not-accessible
+            STATUS      current
+            DESCRIPTION
+                "
+                HSL 
+                "
+            INDEX
+                {
+                hwFrameIndex,
+                hwSlotIndex,
+                hwPortIndex
+                }
+            ::= { hslV35PortTable 1 }
+
+        HslV35PortEntry ::=
+            SEQUENCE
+                {
+                hwHslV35NValue
+                    Integer32,
+                hwHslV35WorkMode
+                    INTEGER,
+                hwHslV35ClockMode
+                    INTEGER,
+                hwHslV35UserName
+                    OCTET STRING(SIZE(0..10)),
+                hwHslV35PortState
+                    INTEGER,
+                hwHslV35OprType
+                    INTEGER,
+                hwShdslActiveState
+                    INTEGER,
+                hwShdslPortMode
+                    INTEGER
+                }
+
+        hwHslV35NValue OBJECT-TYPE
+            SYNTAX      Integer32(1..31)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                1-31x64Kbps
+                "
+            ::= { hslV35PortEntry 1 }
+
+        hwHslV35WorkMode OBJECT-TYPE
+            SYNTAX      INTEGER{dce(1),dte(2)}
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "
+                work mode of the HSL V35 port, value must is DCE or DTE.
+
+                HSL 
+                "
+            ::= { hslV35PortEntry 2 }
+
+        hwHslV35ClockMode OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                internal(1),
+                external(2),
+                slave(3)
+                }
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "
+                1.internal, 2.external, 3.slave
+
+            
+                "
+            ::= { hslV35PortEntry 3 }
+
+        hwHslV35UserName OBJECT-TYPE
+            SYNTAX      OCTET STRING(SIZE(0..10))
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "
+                name of HSL V35 port, size in 10 characters.
+
+                HSL  (SIZE(0..10))
+                "
+            ::= { hslV35PortEntry 4 }
+
+        hwHslV35PortState OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                unavail(1),
+                idle(2),
+                working(3),
+                localLooping(4),
+                remoteLooping(5),
+                noLooping(6)
+                }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                1.unavail,
+                2.idle,
+                3.working,
+                4.localLooping,
+                5.remoteLooping,
+                6.noLooping
+
+     
+                "
+            ::= { hslV35PortEntry 5 }
+
+        hwHslV35OprType OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                noOperation(1),
+                cancelLoop(2),
+                localLoop(3),
+                remoteLoop(4)
+                }
+            MAX-ACCESS  read-write
+            STATUS      current
+            DESCRIPTION
+                "
+                1.noOperation, 2.cancelLoop, 3.localLoop, 4.remoteLoop
+
+                "
+            ::= { hslV35PortEntry 6 }
+
+        hwShdslActiveState OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                active(1),
+                deactive(2),
+                noActiveState(3)
+                }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                1.active, 2.deactive, 3.no active state
+
+ 
+                "
+            ::= { hslV35PortEntry 7 }
+
+        hwShdslPortMode OBJECT-TYPE
+            SYNTAX      INTEGER
+                {
+                e1Mode(1),
+                v35Mode(2),
+                noPortMode(3)
+                }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "
+                1.E1 mode, 2.V35 mode, 3.no port mode
+
+        
+                "
+            ::= { hslV35PortEntry 8 }
+
+        ----------  Notification type under Node hwHSLTrapOid--------
+        hwHslFE1SigLosTrapOid NOTIFICATION-TYPE
+        OBJECTS { hwFrameIndex,hwSlotIndex,hwPortIndex }
+        STATUS current
+        DESCRIPTION
+            "HSL board FE1 port signal lost
+             "
+        ::= { hwHSLTrapOid 1 }
+
+        hwHslFE1SigResumeTrapOid NOTIFICATION-TYPE
+        OBJECTS { hwFrameIndex,hwSlotIndex,hwPortIndex }
+        STATUS current
+        DESCRIPTION
+            "HSL board FE1 port signal restore
+             "
+        ::= { hwHSLTrapOid 2 }
+
+        hwHslFE1FrmLosTrapOid NOTIFICATION-TYPE
+        OBJECTS { hwFrameIndex,hwSlotIndex,hwPortIndex }
+        STATUS current
+        DESCRIPTION
+            " HSL board FE1 port frame lost
+               "
+        ::= { hwHSLTrapOid 3 }
+
+        hwHslFE1FrmResumeTrapOid NOTIFICATION-TYPE
+        OBJECTS { hwFrameIndex,hwSlotIndex,hwPortIndex }
+        STATUS current
+        DESCRIPTION
+            " HSL board FE1 port frame lost restore
+              "
+        ::= { hwHSLTrapOid 4 }
+
+        hwHslShdslDeactiveTrapOid NOTIFICATION-TYPE
+        OBJECTS { hwFrameIndex,hwSlotIndex,hwPortIndex }
+        STATUS current
+        DESCRIPTION
+            " H303HSL board SHDSL port deactive
+              "
+        ::= { hwHSLTrapOid 5 }
+
+        hwHslShdslActiveTrapOid NOTIFICATION-TYPE
+        OBJECTS { hwFrameIndex,hwSlotIndex,hwPortIndex }
+        STATUS current
+        DESCRIPTION
+            " H303HSL board SHDSL port active
+              "
+        ::= { hwHSLTrapOid 6 }
+
+    END

@@ -1,0 +1,371 @@
+ZTE-AN-ANTI-DOS-MIB    DEFINITIONS ::= BEGIN
+    IMPORTS
+        OBJECT-TYPE, MODULE-IDENTITY, 
+        Integer32, NOTIFICATION-TYPE                         FROM SNMPv2-SMI
+        RowStatus                                            FROM SNMPv2-TC
+        ifIndex                                              FROM IF-MIB
+        zxAnSubIfIndex                                       FROM ZTE-AN-IF-MIB
+        ZxAnPortList                                         FROM ZTE-AN-TC-MIB
+        zxAnServiceSecurity                                  FROM ZTE-AN-SMI;
+        
+    zxAnAntiDosMib MODULE-IDENTITY
+        LAST-UPDATED "201407240000Z"
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO 
+            "Zhou Guobin     ZTE Corporation
+            Mail: zhou.guobin@zte.com.cn
+            Tel : +86-21-68897227"
+        DESCRIPTION  
+            "The MIB module for the Anti-Dos management."
+        
+        REVISION        "201407240000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."        
+        ::= { zxAnServiceSecurity 27 }
+        
+-------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnAntiDosGlobalObjects
+-- 2. zxAnAntiDosObjects
+    -- 2.2 zxAnAntiDosGlobalIfConfTable
+    -- 2.3 zxAnAntiDosIfConfTable
+    -- 2.4 zxAnAntiDosBlacklistTable
+    
+-------------------------------------------------------------------------------
+    zxAnAntiDosGlobalObjects    OBJECT IDENTIFIER  ::= { zxAnAntiDosMib 1 }
+    zxAnAntiDosObjects          OBJECT IDENTIFIER  ::= { zxAnAntiDosMib 2 }
+    
+-------------------------------------------------------------------------------
+-- 1.zxAnAntiDosGlobalObjects
+-------------------------------------------------------------------------------
+        
+    zxAnAntiDosEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable anti-DoS function."
+        DEFVAL  { disabled }
+        ::= { zxAnAntiDosGlobalObjects 1 }
+
+    zxAnAntiDosDiagnosisLogEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable anti-DoS diagnosis log function.
+            Only supports C6XX, not supports C3XX."
+        DEFVAL  { disabled }
+        ::= { zxAnAntiDosGlobalObjects 2 }
+    
+    zxAnAntiDosRateLimitEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable anti-DoS rate limit.
+             Only supports C6XX, not supports C3XX."
+        DEFVAL  { disabled }
+        ::= { zxAnAntiDosGlobalObjects 3 }
+
+-------------------------------------------------------------------------------
+-- 2.2 zxAnAntiDosGlobalIfConfTable
+-------------------------------------------------------------------------------
+
+    zxAnAntiDosGlobalIfConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnAntiDosGlobalIfConfEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "Anti-DoS global interface configuration information table.
+            The global interface based anti-DoS configuration will be 
+            applied to the interface if the interface based anti-DoS 
+            configuration is not given in zxAnAntiDosIfConfTable." 
+        ::= { zxAnAntiDosObjects 2 }
+    
+    zxAnAntiDosGlobalIfConfEntry OBJECT-TYPE 
+        SYNTAX      ZxAnAntiDosGlobalIfConfEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "Anti-DoS global interface configuration information entry."
+        INDEX { zxAnAntiDosGlbIfConfIfType, zxAnAntiDosGlbIfConfProtoType }
+        ::= { zxAnAntiDosGlobalIfConfTable 1 }
+    
+    ZxAnAntiDosGlobalIfConfEntry ::= SEQUENCE {        
+        zxAnAntiDosGlbIfConfIfType               INTEGER,
+        zxAnAntiDosGlbIfConfProtoType            INTEGER,
+        zxAnAntiDosGlbIfConfChkInterval          Integer32,
+        zxAnAntiDosGlbIfConfRateThresh           Integer32,
+        zxAnAntiDosGlbIfConfRateLimit            Integer32,
+        zxAnAntiDosGlbIfConfRowStatus            RowStatus
+        }
+        
+    zxAnAntiDosGlbIfConfIfType     OBJECT-TYPE
+        SYNTAX         INTEGER {
+            dsl(1),
+            pon(2),
+            ptp(3)
+        }
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "Interface type based on global interface.
+            Dsl(1) only supports C3XX, not supports C6XX.
+            Others support C3XX and C6XX."
+        ::= { zxAnAntiDosGlobalIfConfEntry 1 }
+        
+    zxAnAntiDosGlbIfConfProtoType     OBJECT-TYPE
+        SYNTAX         INTEGER {
+            dhcp(1),
+            pppoe(2), 
+            igmp(3), 
+            arp(4),
+            ieee8021x(5),
+            dhcpv6(6),
+            nd(7),
+            mld(8),
+            all(255)
+        }
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "Protocol type based on global interface.
+            Ieee8021x(5) only supports C3XX, not supports C6XX.
+            dhcpv6(6),nd(7),mld(8) only supports C6XX, not supports C3XX.
+            Others support C3XX and C6XX."
+        ::= { zxAnAntiDosGlobalIfConfEntry 2 }
+        
+    zxAnAntiDosGlbIfConfChkInterval     OBJECT-TYPE
+        SYNTAX      Integer32(5..86400)
+        UNITS       "seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Interval based on global interface to check if the interface 
+            in blacklist is still under DoS attack, if not the interface 
+            will be removed from blacklist."
+        DEFVAL { 30 }
+        ::= { zxAnAntiDosGlobalIfConfEntry 3 }
+        
+    zxAnAntiDosGlbIfConfRateThresh     OBJECT-TYPE
+        SYNTAX      Integer32(1..1024)
+        UNITS       "pps"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Packet rate threshold based on global interface.
+            If the packet average rate of the interface exceeds this 
+            value, the interface will be temporarily blacklisted and 
+            an zxAnDosAttackAlarm notification will be generated."
+        DEFVAL { 128 }
+        ::= { zxAnAntiDosGlobalIfConfEntry 4 }
+         
+     zxAnAntiDosGlbIfConfRateLimit     OBJECT-TYPE
+         SYNTAX      Integer32(0..1024)
+         UNITS       "pps"
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "Packet rate limit in the blacklist based on global interface. 
+             The value '0' means discarding all the packets directly."
+         DEFVAL { 64 }
+     ::= { zxAnAntiDosGlobalIfConfEntry 5 }
+     
+     zxAnAntiDosGlbIfConfRowStatus    OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAntiDosGlobalIfConfEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAntiDosGlobalIfConfEntry 50 }
+     
+-------------------------------------------------------------------------------
+-- 2.3 zxAnAntiDosIfConfTable
+-------------------------------------------------------------------------------
+
+    zxAnAntiDosIfConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnAntiDosIfConfEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "Anti-DoS interface configuration information table." 
+        ::= { zxAnAntiDosObjects 3 }
+    
+    zxAnAntiDosIfConfEntry OBJECT-TYPE 
+        SYNTAX      ZxAnAntiDosIfConfEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "Anti-DoS interface configuration information entry."
+        INDEX { ifIndex, zxAnSubIfIndex, zxAnAntiDosIfConfProtoType }
+        ::= { zxAnAntiDosIfConfTable 1 }
+    
+    ZxAnAntiDosIfConfEntry ::= SEQUENCE {
+        zxAnAntiDosIfConfProtoType            INTEGER,
+        zxAnAntiDosIfConfChkInterval          Integer32,
+        zxAnAntiDosIfConfRateThresh           Integer32,
+        zxAnAntiDosIfConfRateLimit            Integer32,
+        zxAnAntiDosIfConfRowStatus            RowStatus
+        }
+        
+    zxAnAntiDosIfConfProtoType     OBJECT-TYPE
+        SYNTAX         INTEGER {
+            dhcp(1),
+            pppoe(2), 
+            igmp(3), 
+            arp(4),
+            ieee8021x(5),
+            dhcpv6(6),
+            nd(7),
+            mld(8),
+            all(255)
+        }
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "Protocol type based on interface.
+            Ieee8021x(5) only supports C3XX, not supports C6XX.
+            dhcpv6(6),nd(7),mld(8) only supports C6XX, not supports C3XX.
+            Others support C3XX and C6XX."
+        ::= { zxAnAntiDosIfConfEntry 1 }
+        
+    zxAnAntiDosIfConfChkInterval     OBJECT-TYPE
+        SYNTAX      Integer32(5..86400)
+        UNITS       "seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Interval based on interface to check if the interface 
+            in blacklist is still under DoS attack, if not the interface 
+            will be removed from blacklist."
+        DEFVAL { 30 }
+        ::= { zxAnAntiDosIfConfEntry 2 }
+        
+    zxAnAntiDosIfConfRateThresh     OBJECT-TYPE
+        SYNTAX      Integer32(1..1024)
+        UNITS       "pps"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Packet rate threshold based on interface.
+            If the packet average rate of the interface exceeds this 
+            value, the interface will be temporarily blacklisted and 
+            an zxAnDosAttackAlarm notification will be generated."
+        DEFVAL { 128 }
+        ::= { zxAnAntiDosIfConfEntry 3 }
+         
+     zxAnAntiDosIfConfRateLimit     OBJECT-TYPE
+         SYNTAX      Integer32(0..1024)
+         UNITS       "pps"
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "Packet rate limit of the interface in the blacklist. 
+             The value '0' means discarding all the packets directly."
+         DEFVAL { 64 }
+     ::= { zxAnAntiDosIfConfEntry 4 }
+     
+     zxAnAntiDosIfConfRowStatus    OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAntiDosIfConfEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAntiDosIfConfEntry 50 }
+        
+-------------------------------------------------------------------------------
+-- 2.4 zxAnAntiDosBlacklistTable
+-------------------------------------------------------------------------------
+
+    zxAnAntiDosBlacklistTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnAntiDosBlacklistEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "Anti-DoS blacklist information table." 
+        ::= { zxAnAntiDosObjects 4 }
+    
+    zxAnAntiDosBlacklistEntry OBJECT-TYPE 
+        SYNTAX      ZxAnAntiDosBlacklistEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "Anti-DoS blacklist information entry."
+        INDEX { zxAnAntiDosBlacklistRack, zxAnAntiDosBlacklistShelf, 
+            zxAnAntiDosBlacklistSlot }
+        ::= { zxAnAntiDosBlacklistTable 1 }
+    
+    ZxAnAntiDosBlacklistEntry ::= SEQUENCE {        
+        zxAnAntiDosBlacklistRack               Integer32,
+        zxAnAntiDosBlacklistShelf              Integer32,
+        zxAnAntiDosBlacklistSlot               Integer32,
+        zxAnAntiDosBlacklistPortList           ZxAnPortList
+        }
+        
+    zxAnAntiDosBlacklistRack     OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "The rack that contains the port list."
+        ::= { zxAnAntiDosBlacklistEntry 1 }
+
+    zxAnAntiDosBlacklistShelf     OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The shelf that contains the port list."
+        ::= { zxAnAntiDosBlacklistEntry 2 }
+
+    zxAnAntiDosBlacklistSlot     OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The slot that contains the port list."
+        ::= { zxAnAntiDosBlacklistEntry 3 }
+        
+    zxAnAntiDosBlacklistPortList OBJECT-TYPE
+        SYNTAX      ZxAnPortList
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The port list in the blacklist."
+        ::= { zxAnAntiDosBlacklistEntry 4 }
+        
+END

@@ -1,0 +1,1083 @@
+ZTE-AN-CLOCK-MIB DEFINITIONS ::= BEGIN 
+    IMPORTS 
+        MODULE-IDENTITY                  FROM SNMPv2-SMI
+        OBJECT-GROUP                     FROM SNMPv2-CONF
+        NOTIFICATION-GROUP               FROM SNMPv2-CONF
+        OBJECT-TYPE                      FROM SNMPv2-SMI
+        NOTIFICATION-TYPE                FROM SNMPv2-SMI
+        Integer32                        FROM SNMPv2-SMI
+        RowStatus                        FROM SNMPv2-TC
+        zxAnClockSync                    FROM ZTE-AN-SMI
+        MODULE-COMPLIANCE                FROM SNMPv2-CONF;
+
+
+    zxAnClockMib MODULE-IDENTITY 
+        LAST-UPDATED    "201805150000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Mail: xu.xiaodong@zte.com.cn
+                         Tel : 0086-021-68897247"
+        DESCRIPTION     "The MIB module for the management of Clock."
+        
+        --  Revision history
+        REVISION        "201805150000Z"
+        DESCRIPTION
+            "Add zxAnClockCardClockConfTable table."
+        REVISION        "201609220000Z"
+        DESCRIPTION
+            "Add zxAnClockStatusChanged trap."                               
+        REVISION        "201108020000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        REVISION        "201108020000Z"
+        DESCRIPTION
+            "modify zxAnClockExtOutQlMinimum description."
+        ::= {zxAnClockSync 10}
+
+-------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- zxAnClockGlobalObjects
+    -- zxAnClockExtOutQlMinimum
+    -- zxAnClockExtOutMode
+    -- zxAnClockWorkMode
+    -- zxAnClockWaitToRestoreTime
+    -- zxAnClockHoldOffTime
+    -- zxAnClockOperationStatus
+    -- zxAnClockActiveId,
+    -- zxAnClockPllState
+    -- zxAnClockSrcSwitchReason
+    -- zxAnClockSrcSwitchOldInfo
+    -- zxAnClockSrcSwitchNewInfo
+
+
+-- zxAnClockObjects
+    -- zxAnClockSrcTable
+    -- zxAnClockSsmSentTable
+    -- zxAnClockEsmcTable
+    -- zxAnClockCardClockConfTable
+    
+-- Following notification objects are defined.
+-- zxAnClockNotifications
+    --  zxAnClockTraps
+        -- zxAnClockSrcSwitch
+        -- zxAnClockSsmMismatchAlm
+        -- zxAnClockSsmMismatchClr
+        -- zxAnClockEFDAlm
+        -- zxAnClockEFDClr
+        -- zxAnClockNoClkAvailableAlm
+        -- zxAnClockNoClkAvailableClr
+        -- zxAnClockLosLofAlm
+        -- zxAnClockLosLofClr
+        -- zxAnClockLockOutAlm
+        -- zxAnClockLockOutClr
+        -- zxAnClockQlFailAlm
+        -- zxAnClockQlFailclr
+        -- zxAnClockLosEsmcAlm
+        -- zxAnClockLosEsmcClr
+    
+    
+-- Following conformance information is defined.
+-- zxAnClockConformance
+    -- zxAnClockCompliances
+    -- zxAnClockGroups
+-------------------------------------------------------------------------------
+    
+    zxAnClockGlobalObjects    OBJECT IDENTIFIER ::= {zxAnClockMib 1}
+    zxAnClockObjects          OBJECT IDENTIFIER ::= {zxAnClockMib 2}
+    zxAnClockNotifications    OBJECT IDENTIFIER ::= {zxAnClockMib 3}
+    zxAnClockConformance      OBJECT IDENTIFIER ::= {zxAnClockMib 4}
+
+    zxAnClockSrcFunc          OBJECT IDENTIFIER ::= {zxAnClockObjects 1}
+    zxAnClockSsmFunc          OBJECT IDENTIFIER ::= {zxAnClockObjects 2}
+    zxAnClockCardClockConfFunc    OBJECT IDENTIFIER ::= {zxAnClockObjects 3}
+
+    zxAnClockTraps            OBJECT IDENTIFIER ::= {zxAnClockNotifications 1}
+-------------------------------------------------------------------------------
+-- 1. Global Objects
+-------------------------------------------------------------------------------
+    zxAnClockExtOutQlMinimum OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    qlprc(2),
+                    qlssua(4),
+                    qlssub(8),
+                    qlsec(11),
+                    ssmNULL(255)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The ssm threshold to open or close external output clock(T4).
+             open  : QL >= zxAnClockExtOutQlMinimum
+             close : QL < zxAnClockExtOutQlMinimum
+             First time to set this object:
+                zxAnClockExtOutMode must be set together, and inhibit 
+             zxAnClockExtOutQlMinimum be ssmNULL or zxAnClockExtOutMode be 
+             clockNULL.
+             normal set:
+                will change the ssm threshold.
+                SsmNULL value only can be set when zxAnClockExtOutMode 
+             is setted clockNULL, means destroy the config of external 
+             output clock.
+             get:   
+                ssmNull means no external output clock config"
+        DEFVAL { ssmNULL }
+        ::= { zxAnClockGlobalObjects 1}       
+
+    zxAnClockExtOutMode OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    hz(1),
+                    readableSsm(2),
+                    unreadableSsm(3),
+                    clockNULL(255)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Mode of external output clock.
+             First time to set this object:
+                zxAnClockExtOutQlMinimum must be set together, and inhibit 
+             zxAnClockExtOutQlMinimum be ssmNULL or zxAnClockExtOutMode be 
+             clockNULL.
+             Normal operator:
+                change external output clock mode;
+             clockNULL value only can be set when zxAnClockExtOutQlMinimum 
+             is setted ssmNull, means destroy the config of external 
+             output clock."
+        DEFVAL { clockNULL }
+        ::= { zxAnClockGlobalObjects 2}
+        
+    zxAnClockWorkMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    qlenable(1),
+                    qldisable(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This attribute specifies the clock work mode comply with G.781 
+             section 5.12 Automatic reference selection process."
+        DEFVAL  { qlenable } 
+        ::= { zxAnClockGlobalObjects 3 }
+    
+    zxAnClockWaitToRestoreTime OBJECT-TYPE
+        SYNTAX      Integer32(0..12)
+        UNITS       "minutes"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This attribute specifies the clock source wait to restore time,
+             comply with G.781 section 5.9 wait to restore time."
+        DEFVAL { 5 }
+        ::= { zxAnClockGlobalObjects 4 } 
+        
+    zxAnClockHoldOffTime OBJECT-TYPE
+        SYNTAX      Integer32(300..1800)
+        UNITS       "ms"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This attribute specifies the clock source hold-off Time,
+             comply with G.781 section 5.8 hold-off time."
+        DEFVAL { 300 }
+        ::= { zxAnClockGlobalObjects 5 }
+        
+    zxAnClockOperationStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    freerunPhaselockedNormal(1),
+                    holdOver(2),
+                    destoryFreerunOrHoldOver(21),
+                    unknown(255)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This attribute specifies clock operation status.
+             freerunPhaselockedNormal,holdOver: 
+                 set means force PLL switch to freerun/holdover state.
+                 geted means PLL is forced by freerun/holdover operator.
+             destoryFreerunOrHoldOver:
+                 write only, means destroy freerun/holdover operator.
+             unknown:
+                 read only, means no any force operator exist."
+        ::= { zxAnClockGlobalObjects 6 }
+
+    zxAnClockActiveId OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            " Active clock id.
+              If get zero,means Internal clock is active.
+              If not,means zxAnClockActiveId is a giving zxAnClockSrcId which
+              related to a record of zxAnClockSrcTable."
+        ::= { zxAnClockGlobalObjects 7}
+        
+    zxAnClockPllState OBJECT-TYPE
+        SYNTAX      INTEGER{
+                     pllFreerun(1),
+                     holdOver(2),
+                     locked(4),
+                     preLocked2(5),
+                     preLocked(6),
+                     outOfPhase(7),
+                     pllWrong(11)                                                                                                                              
+                     }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "state of pll.
+             preLocked2: This state is very similar to the preLocked state. 
+             It is entered from the Holdover state when a reference source
+             has been selected and applied to the phase locked loop. "
+        ::= { zxAnClockGlobalObjects 8}
+        
+    zxAnClockSrcSwitchReason OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "clock source switch reason:
+              1,  CLOCKSOURCE_SWITCH_ABMNORMAL,
+              2,  CLOCKSOURCE_SWITCH_S1CHANGE,
+              3,  CLOCKSOURCE_SWITCH_ALMCHANGE,
+              4,  CLOCKSOURCE_SWITCH_PRICHANGE,
+              5,  CLOCKSOURCE_SWITCH_OUTOFLOCK,
+              6,  CLOCKSOURCE_SWITCH_DEGRADE,
+              7,  LOCKSOURCE_SWITCH_PLLFAIL,
+              8,  CLOCKSOURCE_SWITCH_PRELOCKFAIL,
+              9,  CLOCKSOURCE_SWITCH_HOLDOVESTOP,
+              10, CLOCKSOURCE_SWITCH_LOADCFG,
+              11, CLOCKSOURCE_SWITCH_ALMRESTORE,
+              12, CLOCKSOURCE_SWITCH_PROTECT,
+              13, CLOCKSOURCE_SWITCH_PROTECT_CANCEL,
+              14, CLOCKSOURCE_SWITCH_BACKUP_PLLFAIL,"          
+        ::= { zxAnClockGlobalObjects 9}       
+        
+    zxAnClockSrcSwitchOldInfo OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "the active clock source identify before switch:
+                 |shelf|     slot  |    port |clockType|
+             0000  0000   0000 0000 0000 0000 0000 0000
+             clockType:
+                    0: internal clock
+                    2: external clock
+                    3: E1 clock not supported this version
+                    6: synchronous ethernet equipment clock
+                    7: SDH clock not supported this version
+                    8: PTP clock not supported this version"
+        ::= { zxAnClockGlobalObjects 10}    
+
+    zxAnClockSrcSwitchNewInfo OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+           "the active clock source identify after switch:
+                 |shelf|     slot  |    port |clockType|
+             0000  0000   0000 0000 0000 0000 0000 0000
+             clockType:
+                    0: internal clock
+                    2: external clock
+                    3: E1 clock  not supported this version
+                    6: synchronous ethernet equipment clock
+                    7: SDH clock not supported this version
+                    8: PTP clock not supported this version"
+        ::= { zxAnClockGlobalObjects 11}  
+
+    zxAnClockLastPllStatus OBJECT-TYPE
+        SYNTAX      INTEGER{
+                     pllFreerun(1),
+                     holdOver(2),
+                     locked(4),
+                     preLocked2(5),
+                     preLocked(6),
+                     outOfPhase(7),
+                     pllWrong(11)                                                                                                                              
+                     }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The last status of clock PLL."
+        ::= { zxAnClockGlobalObjects 12}
+
+-------------------------------------------------------------------------------
+-- 2.  zxAnClockSrcFunc: zxAnClockSrcTable
+-------------------------------------------------------------------------------
+    zxAnClockSrcTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnClockSrcEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "" 
+        REFERENCE
+            ""
+        ::= { zxAnClockSrcFunc 1 }
+
+    zxAnClockSrcEntry OBJECT-TYPE
+        SYNTAX      ZxAnClockSrcEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ClockSource entry. 
+             Entries in the zxClockSrcTable are created and deleted by using 
+             zxAnClockSrcEntryStatus object.
+             When create the zxClockSrcTable, zxAnClockSrcShelf, 
+             zxAnClockSrcSlot, zxAnClockSrcPort, zxAnClockSrcType,
+             zxAnClockSrcPriority must be setted together.             
+             zxAnClockSrcExtInQuality and zxAnClockSrcExtInMode must be setted
+             when creating externalClock,
+             zxAnClockSrcShelf, zxAnClockSrcSlot,zxAnClockSrcPort, 
+             zxAnClockSrcType and zxAnClockSrcExtInMode do not support modify.
+             only one EEC port can be configed per card of which supporting 
+             synchronous ethernet equipment clock "
+        INDEX  { zxAnClockSrcId }
+        ::= { zxAnClockSrcTable 1 }
+
+    ZxAnClockSrcEntry ::=
+        SEQUENCE {
+            zxAnClockSrcId Integer32,
+            zxAnClockSrcShelf Integer32,
+            zxAnClockSrcSlot Integer32,
+            zxAnClockSrcPort Integer32,            
+            zxAnClockSrcType INTEGER,
+            zxAnClockSrcPriority Integer32,
+            zxAnClockSrcTxS1 Integer32,
+            zxAnClockSrcRxS1 Integer32,
+            zxAnClockSrcAlarm INTEGER, 
+            zxAnClockSrcExtInQuality INTEGER,
+            zxAnClockSrcExtInMode INTEGER,
+            zxAnClockSrcSwitchMode INTEGER,
+            zxAnClockSrcEntryStatus RowStatus
+        }
+
+    zxAnClockSrcId OBJECT-TYPE
+        SYNTAX      Integer32(1..255)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            " clock source id"
+        ::= { zxAnClockSrcEntry 1}
+        
+    zxAnClockSrcShelf OBJECT-TYPE
+        SYNTAX      Integer32(1)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " This object indicates the shelf number."
+        ::= { zxAnClockSrcEntry 2}
+        
+    zxAnClockSrcSlot OBJECT-TYPE
+        SYNTAX      Integer32(1..22)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " This object indicates the slot number.
+              In IEC19Shelf type ,value 21,22 are not supported."
+        ::= { zxAnClockSrcEntry 3}
+
+    zxAnClockSrcPort OBJECT-TYPE
+        SYNTAX      Integer32(0..4)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " This object indicates the port number.
+              0 is only used for internal clock source.
+              1-4 is used for uplink card.
+              1-2 is used for common interface card,  
+              and other clock support card(CES) ."
+        ::= { zxAnClockSrcEntry 4}
+                
+    zxAnClockSrcType OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    internalClock(1),
+                    maintainClock(2),
+                    externalClock(3),
+                    e1Clock(4),
+                    stm1Clock(5),
+                    stm4Clock(6),
+                    syncEth(7),
+                    sdhClock(8),
+                    ptpClock(9)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " This object indicates the source type 
+              internalClock,maintainClock            for master card
+              externalClock                          for interface card
+              e1Clock                                not supported this version
+              stm1Clock,stm4Clock,sdhClock           not supported this version
+              syncEth                                for syncE card
+              ptpClock                               not supported this version
+              This object can not be modified."
+        ::= { zxAnClockSrcEntry 5}
+
+    zxAnClockSrcPriority OBJECT-TYPE
+        SYNTAX      Integer32(1..250)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " 1 has the highest priority.
+              Priority can be write 1-250, when zxClockSrcPriority is created and
+              modified. "
+        ::= { zxAnClockSrcEntry 6}
+
+    zxAnClockSrcTxS1 OBJECT-TYPE
+        SYNTAX      Integer32(0..15) 
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            " transmitted QL-level "
+        ::= { zxAnClockSrcEntry 7}
+
+    zxAnClockSrcRxS1 OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            " received QL-level. 
+              16-254 not supported.255 means not received QL-level."
+        ::= { zxAnClockSrcEntry 8}
+
+    zxAnClockSrcAlarm OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    normal(1),
+                    abnormal(2),
+                    los(3),
+                    lockAlam(4),
+                    s1Mismatch(5),
+                    lockOut(6),
+                    qlFail(7),
+                    lostEsmc(8),
+                    waitToRecover(9),
+                    noAlarm(255)
+                    
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "This attribute specifies alarm of this clock reference source.
+                 normal:    the alarm status is normal, this value is disused.
+                 abnormal: the alarm status is abnormal, this value is disused.
+                 los:       loss of signal status.
+                 lockAlam:  exceed of frequency status.
+                 s1Mismatch:S1 mismatch status.
+                 lockOut:   lockOut status.
+                 qlFail:    quality level fail status.
+                 lostEsmc:  loss of ESMC status.
+                 waitToRecover: wait the clock source to recover.
+                 noAlarm:   no alarm, the normal status."
+        ::= { zxAnClockSrcEntry 9}
+
+    zxAnClockSrcExtInQuality OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    qlprc(2),
+                    qlssua(4),
+                    qlssub(8),
+                    qlsec(11),
+                    qldnu(15),
+                    ssmNULL(255)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+          "Quality level of input clock. 
+           This object must be written with a certain value excluding SsmNULL
+           when creating external clock."
+        DEFVAL {ssmNULL}
+        ::= { zxAnClockSrcEntry 10}       
+
+    zxAnClockSrcExtInMode OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    hz(1),
+                    readableSsm(2),
+                    unreadableSsm(3),
+                    clockNULL(255)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+           "Mode of external input clock.
+            This object must be written with a certain value excluding 
+            clockNULL when creating external clock."
+        ::= { zxAnClockSrcEntry 11}
+ 
+     zxAnClockSrcSwitchMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    none(1),
+                    forced(2),
+                    manual(3),
+                    lockOut(4)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This attribute specifies clock source switch mode in G.781.
+                 none:    no switch operator on or be locked out.
+                 forced:  force switch on. 
+                 manual:  manual switch on.
+                 lockOut: be locked out."
+        ::= { zxAnClockSrcEntry 12}
+            
+    zxAnClockSrcEntryStatus OBJECT-TYPE
+      SYNTAX      RowStatus
+      MAX-ACCESS  read-create
+      STATUS      current 
+      DESCRIPTION 
+        "The status of this conceptual row.
+
+         To create a row in this table, a manager must
+         set this object to createAndGo(4).
+          
+         In particular, a newly created row cannot be created
+         until the corresponding zxAnClockSrcId and zxAnClockSrcShelf
+         and zxAnClockSrcSlot and zxAnClockSrcIPort and zxAnClockSrcType
+         and zxAnClockSrcPriority have been set.
+             
+         To delete a row in this table, a manager must
+         set this object to destroy(6)."
+      ::= {zxAnClockSrcEntry 50}
+
+       
+-------------------------------------------------------------------------------
+-- 3.  zxAnClockSsmSendTable
+-------------------------------------------------------------------------------
+    zxAnClockSsmSendTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnClockSsmSendEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "SSM/QL-level overwriting management of clock tx port."
+        ::= { zxAnClockSsmFunc 1 }
+
+    zxAnClockSsmSendEntry OBJECT-TYPE
+        SYNTAX      ZxAnClockSsmSendEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "It is entry in the zxClockSsmSendTable.
+             Entries in the zxClockSsmSendTable are created and
+             deleted using the zxClockSsmSendRowStatus object.
+             When create the zxAnClockSsmSendTable, zxAnClockSsmSendShelf,
+             zxAnClockSsmSendSlot,zxAnClockSsmSendPort, zxAnClockSsmSendBytes
+             must be setted together.Only support Pon and SyncE port."
+        INDEX   { zxAnClockSsmSendId }
+        ::= { zxAnClockSsmSendTable 1 }
+        
+    ZxAnClockSsmSendEntry ::=
+        SEQUENCE {
+             zxAnClockSsmSendId                  Integer32,
+             zxAnClockSsmSendShelf               Integer32,
+             zxAnClockSsmSendSlot                Integer32,
+             zxAnClockSsmSendPort                Integer32,
+             zxAnClockSsmSendBytes               Integer32,
+             zxAnClockSsmSendRowStatus           RowStatus
+        }
+
+    zxAnClockSsmSendId OBJECT-TYPE
+        SYNTAX      Integer32(1..255)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            " ssm send id"
+        ::= { zxAnClockSsmSendEntry 1 }
+                                          
+    zxAnClockSsmSendShelf OBJECT-TYPE
+        SYNTAX      Integer32(1)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " This object indicates the shelf number."
+        ::= { zxAnClockSsmSendEntry 2 }
+        
+    zxAnClockSsmSendSlot OBJECT-TYPE
+        SYNTAX      Integer32(1..22)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " Tis object indicates the slot number.
+              In IEC19Shelf type ,value 21,22 are not supported."
+        ::= { zxAnClockSsmSendEntry 3 }
+        
+    zxAnClockSsmSendPort OBJECT-TYPE
+        SYNTAX      Integer32(1..8)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " Tis object indicates the port number.
+              1-4 is used for uplink card.
+              1-8 is used for pon card"
+        ::= { zxAnClockSsmSendEntry 4 }
+        
+    zxAnClockSsmSendBytes OBJECT-TYPE
+        SYNTAX      Integer32(0..15)
+        UNITS       "byte"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This attribute defines the SSM sent bytes.
+             Only support 0,2,4,8,11,15."
+        ::= { zxAnClockSsmSendEntry 5 } 
+
+    zxAnClockSsmSendRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+        "The status of this conceptual row.
+
+         To create a row in this table, a manager must
+         set this object to createAndGo(4).
+          
+         In particular, a newly created row cannot be created
+         until the corresponding zxAnClockSsmSendShelf and 
+         zxAnClockSsmSendSlot and zxAnClockSsmSendPort and 
+         zxAnClockSsmSendBytes have been set.The port-type must
+         be syncE or Pon.
+             
+         To delete a row in this table, a manager must
+         set this object to destroy(6)."
+        ::= { zxAnClockSsmSendEntry 50 } 
+
+-------------------------------------------------------------------------------
+-- 4.  zxAnClockEsmcTable
+-------------------------------------------------------------------------------
+    zxAnClockEsmcTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnClockEsmcEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This managed entity represents the 
+             ESMC(Ethernet Synchronization Messaging Channel)."
+        ::= { zxAnClockSsmFunc 2 }
+
+    zxAnClockEsmcEntry OBJECT-TYPE
+        SYNTAX      ZxAnClockEsmcEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "It is entry in the zxClockEsmcTable.
+             Entries in the zxClockEsmcTable are created and
+             deleted using the zxClockEsmcRowStatus object.
+             When create the zxAnClockEsmcTable, zxAnClockEsmcShelf,
+             zxAnClockEsmcSlot,zxAnClockEsmcPort, zxAnClockSsmSendBytes must be
+             setted together.Only support Pon and SyncE port."
+        INDEX   { zxAnClockEsmcId }
+        ::= { zxAnClockEsmcTable 1 }
+        
+    ZxAnClockEsmcEntry ::=
+        SEQUENCE {
+            zxAnClockEsmcId                  Integer32,
+            zxAnClockEsmcShelf               Integer32,
+            zxAnClockEsmcSlot                Integer32,
+            zxAnClockEsmcPort                Integer32,
+            zxAnClockEsmcRowStatus           RowStatus
+        }
+
+    zxAnClockEsmcId OBJECT-TYPE
+        SYNTAX      Integer32(1..255)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            " This object indicates clock ESMC recoder id."
+        ::= { zxAnClockEsmcEntry 1}
+        
+    zxAnClockEsmcShelf OBJECT-TYPE
+        SYNTAX      Integer32(1)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " This object indicates the shelf number."
+        ::= { zxAnClockEsmcEntry 2}
+        
+    zxAnClockEsmcSlot OBJECT-TYPE
+        SYNTAX      Integer32(1..22)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " This object indicates the slot number.
+              In IEC19Shelf type ,value 21,22 are not supported."
+        ::= { zxAnClockEsmcEntry 3}
+        
+    zxAnClockEsmcPort OBJECT-TYPE
+        SYNTAX      Integer32(1..8)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            " This object indicates the port number.
+              1-4 is used for uplink card.
+              1-8 is used for pon card."
+        ::= { zxAnClockEsmcEntry 4}
+                
+    zxAnClockEsmcRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+        "The status of this conceptual row.
+
+         To create a row in this table, a manager must
+         set this object to createAndGo(4).
+          
+         In particular, a newly created row cannot be created
+         until the corresponding zxAnClockEsmcShelf and 
+         zxAnClockEsmcSlot and zxAnClockEsmcPort and 
+         have been set.The port-type must be syncE or Pon.
+             
+         To delete a row in this table, a manager must
+         set this object to destroy(6)."
+        ::= { zxAnClockEsmcEntry 50 }        
+
+-------------------------------------------------------------------------------
+-- 5.  zxAnClockCardClockConfTable
+-------------------------------------------------------------------------------
+    zxAnClockCardClockConfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnClockCardClockConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The card clock configuration table."
+        ::= { zxAnClockCardClockConfFunc 2 }
+        
+    zxAnClockCardClockConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnClockCardClockConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The card clock configuration entry."
+        INDEX   { zxAnClockCardClockConfRack, zxAnClockCardClockConfShelf, 
+                  zxAnClockCardClockConfSlot }
+        ::= { zxAnClockCardClockConfTable 1 }
+
+    ZxAnClockCardClockConfEntry ::=
+        SEQUENCE {
+            zxAnClockCardClockConfRack                Integer32,
+            zxAnClockCardClockConfShelf               Integer32,
+            zxAnClockCardClockConfSlot                Integer32,
+            zxAnClockCardClockConfType                INTEGER
+        }
+        
+    zxAnClockCardClockConfRack  OBJECT-TYPE
+        SYNTAX      Integer32(1)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The rack number of the card."
+        ::= {zxAnClockCardClockConfEntry 1}
+        
+    zxAnClockCardClockConfShelf OBJECT-TYPE
+        SYNTAX      Integer32(1)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The shelf number of the card."
+        ::= {zxAnClockCardClockConfEntry 2}
+        
+    zxAnClockCardClockConfSlot  OBJECT-TYPE
+        SYNTAX      Integer32(1..48)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The slot number of the card."
+        ::= {zxAnClockCardClockConfEntry 3}
+        
+    zxAnClockCardClockConfType    OBJECT-TYPE
+        SYNTAX  INTEGER {
+            systemClock(1),
+            localClock(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The card clock configuration type.
+             There are two types: 
+               systemClock(1): it means the card clock type is the system clock.
+               localClock(2): it means the card clock type is the local clock."
+        DEFVAL { systemClock }
+        ::= {zxAnClockCardClockConfEntry 4}
+
+-------------------------------------------------------------------------------
+-- 6.  zxAnClockNotifications
+-------------------------------------------------------------------------------
+    zxAnClockSrcSwitch NOTIFICATION-TYPE
+        OBJECTS {
+                    zxAnClockSrcSwitchReason,
+                    zxAnClockSrcSwitchOldInfo,
+                    zxAnClockSrcSwitchNewInfo
+                }
+        STATUS current
+        DESCRIPTION 
+           "for clock source switch incident report.
+            reason:1-Abnormal,2-S1Changed,...;
+            OldInfo:active clock source identify before switch;
+            NewInfo:active clock source identify after switch;"
+        ::={zxAnClockTraps 1 } 
+        
+    zxAnClockStatusChanged NOTIFICATION-TYPE
+        OBJECTS {
+                    zxAnClockLastPllStatus,
+                    zxAnClockPllState
+                }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnClockStatusChanged trap is sent when the agent has 
+             detected that the current clock status has been changed to 
+             another new clock status."
+        ::={zxAnClockTraps 2 } 
+                       
+    zxAnClockEFDAlm    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "Exceeded frequency deviation alarm of clock signal
+             Generate notification."
+        ::={zxAnClockTraps 21 }
+        
+    zxAnClockEFDClr    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "Clear Exceeded frequency deviation alarm of clock signal.
+             when the clock signal is normal,the alarm is restored."
+        ::={zxAnClockTraps 22 }   
+        
+    zxAnClockNoClkAvailableAlm    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "no available clock source in OLT.Generate notification."
+        ::={zxAnClockTraps 23 }
+        
+    zxAnClockNoClkAvailableClr    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "Clear no available clock source alarm in OLT.
+             when an available clock source occoured,
+             the alarm is restored."
+        ::={zxAnClockTraps 24 }     
+ 
+    zxAnClockLosLofAlm    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "Los Lof alarm of clock signal.Generate notification."
+        ::={zxAnClockTraps 25 }
+        
+    zxAnClockLosLofClr    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "Clear Los Lof alarm of clock signal..
+             when the clock signal is normal, the alarm is restored."
+        ::={zxAnClockTraps 26 } 
+ 
+    zxAnClockLockOutAlm    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            " clock signal is setted lockout.Generate notification.
+              not supported. need further study"
+        ::={zxAnClockTraps 27 }
+        
+    zxAnClockLockOutClr    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "Clear lockout alarm of clock signal.
+             when the clock signal is clear lockout configure, 
+             alarm is restored.
+             not supported. need further study"
+        ::={zxAnClockTraps 28 } 
+ 
+    zxAnClockQlFailAlm    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            " Ql Fail alarm of clock signal.Generate notification."
+        ::={zxAnClockTraps 29 }
+        
+    zxAnClockQlFailClr    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "Clear Ql Fail alarm of clock signal..
+             when the QL-level is available, alarm is restored."
+        ::={zxAnClockTraps 30 } 
+        
+    zxAnClockLosEsmcAlm    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            " Loss of ESMC alarm of clock signal.Generate notification."
+        ::={zxAnClockTraps 31 }
+        
+    zxAnClockLosEsmcClr    NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnClockSrcShelf,
+                zxAnClockSrcSlot,
+                zxAnClockSrcPort,
+                zxAnClockSrcType
+                }
+        STATUS current
+        DESCRIPTION 
+            "Loss of ESMC alarm of clock signal..
+             when the ESMC normal, alarm is restored."
+        ::={zxAnClockTraps 32 }                             
+
+-------------------------------------------------------------------------------
+-- 7.  zxAnClockConformance
+-------------------------------------------------------------------------------
+zxAnClockCompliances      OBJECT IDENTIFIER ::= {zxAnClockConformance 1}
+zxAnClockGroups           OBJECT IDENTIFIER ::= {zxAnClockConformance 2}
+
+    zxAnClockCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-CLOCK-MIB."
+        MODULE
+            MANDATORY-GROUPS {
+                zxAnClockGlobalGroup,
+                zxAnClockSrcGroup,
+                zxAnClockSsmGroup,
+                zxAnClockAlarmTrapGroup
+            }
+        ::= { zxAnClockCompliances 1 }
+        
+    zxAnClockGlobalGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnClockExtOutQlMinimum,
+            zxAnClockExtOutMode,
+            zxAnClockWorkMode,
+            zxAnClockWaitToRestoreTime,
+            zxAnClockHoldOffTime,
+            zxAnClockOperationStatus,
+            zxAnClockActiveId,
+            zxAnClockPllState,
+            zxAnClockSrcSwitchReason,
+            zxAnClockSrcSwitchOldInfo,
+            zxAnClockSrcSwitchNewInfo
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of global objects providing clock functions"
+        ::= { zxAnClockGroups 1 } 
+
+    zxAnClockSrcGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnClockSrcShelf,
+            zxAnClockSrcSlot,
+            zxAnClockSrcPort,
+            zxAnClockSrcType, 
+            zxAnClockSrcPriority,
+            zxAnClockSrcTxS1,
+            zxAnClockSrcRxS1,
+            zxAnClockSrcAlarm, 
+            zxAnClockSrcExtInQuality,
+            zxAnClockSrcExtInMode,
+            zxAnClockSrcSwitchMode,
+            zxAnClockSrcEntryStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing clock source 
+             configure functions"
+        ::= { zxAnClockGroups 2 }
+        
+    zxAnClockSsmGroup OBJECT-GROUP
+        OBJECTS {
+        zxAnClockSsmSendShelf,
+        zxAnClockSsmSendSlot,
+        zxAnClockSsmSendPort,
+        zxAnClockSsmSendBytes,
+        zxAnClockSsmSendRowStatus,
+        zxAnClockEsmcShelf,
+        zxAnClockEsmcSlot,
+        zxAnClockEsmcPort,
+        zxAnClockEsmcRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing Esmc&SsmSend functions"
+        ::= { zxAnClockGroups 3 }
+
+    zxAnClockAlarmTrapGroup NOTIFICATION-GROUP
+        NOTIFICATIONS {
+        zxAnClockSrcSwitch,
+        zxAnClockEFDAlm,
+        zxAnClockEFDClr,
+        zxAnClockNoClkAvailableAlm,
+        zxAnClockNoClkAvailableClr,
+        zxAnClockLosLofAlm,
+        zxAnClockLosLofClr,
+        zxAnClockLockOutAlm,
+        zxAnClockLockOutClr,
+        zxAnClockQlFailAlm,
+        zxAnClockLosEsmcAlm,
+        zxAnClockLosEsmcClr
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing clock alarm functions"
+        ::= { zxAnClockGroups 4 }
+    
+END
+

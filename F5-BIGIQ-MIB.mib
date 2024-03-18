@@ -1,0 +1,357 @@
+F5-BIGIQ-MIB DEFINITIONS ::= BEGIN
+--================================================================
+-- F5-BIGIQ-MIB
+--     A private enterprise MIB for F5 BIG-IQ
+--     systems.
+--     VERSION: 7.1.0.2
+--================================================================
+
+IMPORTS
+    OBJECT-TYPE, NOTIFICATION-TYPE, MODULE-IDENTITY,
+    Integer32, Opaque, enterprises, Counter32, Counter64
+        FROM SNMPv2-SMI
+
+    TEXTUAL-CONVENTION, MacAddress,  DisplayString, DateAndTime
+        FROM SNMPv2-TC
+
+    OBJECT-GROUP, MODULE-COMPLIANCE
+        FROM SNMPv2-CONF
+
+    InetAddress, InetAddressType
+      FROM INET-ADDRESS-MIB
+
+    bigipCompliances, bigipGroups, LongDisplayString, f5
+      FROM F5-BIGIP-COMMON-MIB;
+
+--================================================================
+bigiq MODULE-IDENTITY
+    LAST-UPDATED "201401082154Z" -- Wed Jan  8 10:21:54 PST 2014
+    ORGANIZATION "F5 Networks, Inc."
+    CONTACT-INFO
+         "postal: F5 Networks, Inc.
+                  401 Elliott Ave. West
+                  Seattle, WA 98119
+          phone:  (206) 272-5555
+          email:  support@f5.com"
+
+    DESCRIPTION
+        "Top-level infrastructure of the F5 BIG-IQ MIB tree."
+    ::= { f5 20 }
+
+--================================================================
+
+-- bigiq
+bigiqDeviceAlert              OBJECT IDENTIFIER ::= { bigiq 1 }
+bigiqDevices                  OBJECT IDENTIFIER ::= { bigiq 2 }
+bigiqDeviceAlerts             OBJECT IDENTIFIER ::= { bigiqDeviceAlert 0 }
+bigiqDeviceAlertObjects       OBJECT IDENTIFIER ::= { bigiqDeviceAlerts 1 }
+
+
+bigiqManagedDeviceList        OBJECT IDENTIFIER ::= { bigiqDevices 1 }
+bigiqPeerDeviceList           OBJECT IDENTIFIER ::= { bigiqDevices 2 }
+
+
+--=================================================================
+--bigiqDevices
+
+--bigiqManagedDeviceList
+deviceNumber OBJECT-TYPE
+        SYNTAX Integer32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The number of device entries in the table."
+        ::= { bigiqManagedDeviceList 1 }
+
+deviceEntryTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF DeviceEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "The table of device."
+        ::= { bigiqManagedDeviceList 2 }
+
+deviceEntry OBJECT-TYPE
+        SYNTAX  DeviceEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "Columns in the deviceEntry Table"
+        INDEX {
+                deviceName
+        }
+        ::= { deviceEntryTable 1 }
+
+DeviceEntry ::=
+        SEQUENCE {
+                deviceName                               DisplayString,
+                deviceAvailability                       DisplayString,
+                deviceAddress                            InetAddress
+        }
+
+deviceName OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The name of the device."
+        ::= { deviceEntry 1 }
+
+deviceAvailability OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The availability of the device."
+        ::= { deviceEntry 2 }
+
+deviceAddress OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The IP address of the device."
+        ::= { deviceEntry 3 }
+
+
+
+--bigiqPeerDeviceList
+
+peerDeviceNumber OBJECT-TYPE
+        SYNTAX Integer32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The number of device entries in the table."
+        ::= { bigiqPeerDeviceList 1 }
+
+peerDeviceEntryTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF PeerDeviceEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "The table of device."
+        ::= { bigiqPeerDeviceList 2 }
+
+peerDeviceEntry OBJECT-TYPE
+        SYNTAX  PeerDeviceEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "Columns in the deviceEntry Table"
+        INDEX {
+                peerDeviceName
+        }
+        ::= { peerDeviceEntryTable 1 }
+
+PeerDeviceEntry ::=
+        SEQUENCE {
+                peerDeviceName                               DisplayString,
+                peerDeviceAvailability                       DisplayString,
+                peerDeviceAddress                            InetAddress
+        }
+
+
+peerDeviceName OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The name of the peerDevice."
+        ::= { peerDeviceEntry 1 }
+
+peerDeviceAvailability OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The availability of the peerDevice."
+        ::= { peerDeviceEntry 2 }
+
+peerDeviceAddress OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The IP address of the peerDevice."
+        ::= { peerDeviceEntry 3 }
+
+
+--================================================================
+-- bigiqDeviceAlertObjects
+--
+bigiqDeviceAlertObjMsg OBJECT-TYPE
+        SYNTAX DisplayString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION
+                "The additional information about the related alert."
+        ::= { bigiqDeviceAlertObjects 1 }
+
+--==================================================================
+-- bigiqNotifications
+--==================================================================
+
+bigiqPeerDeviceAvailable        NOTIFICATION-TYPE
+	OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+        STATUS      current
+        DESCRIPTION
+                "BIG-IQ Peer Device Available"
+        ::= { bigiqDeviceAlerts 2 }
+
+bigiqPeerDeviceUnavailable        NOTIFICATION-TYPE
+	OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+        STATUS      current
+        DESCRIPTION
+                "BIG-IQ Peer Device Unavailable"
+        ::= { bigiqDeviceAlerts 3 }
+
+bigiqManagedDeviceAvailable             NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "BIG-IQ Managed Device Available"
+       ::= { bigiqDeviceAlerts 4 }
+
+bigiqManagedDeviceUnavailable             NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "BIG-IQ Managed Device Unavailable"
+       ::= { bigiqDeviceAlerts 5 }
+
+bigiqServerSideRTTAlert                     NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "Server-side Round Trip alert"
+       ::= { bigiqDeviceAlerts 6 }
+
+bigiqASMMemoryAlert                         NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "BIG-IP Control Plane ASM Memory alert"
+       ::= { bigiqDeviceAlerts 7 }
+
+bigiqIncompleteTransactionsAlert            NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "Incomplete Transactions ratio alert"
+       ::= { bigiqDeviceAlerts 8 }
+
+bigiqDeviceCPUAlert                         NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "BIG-IP Control Plane CPU alert"
+       ::= { bigiqDeviceAlerts 9 }
+
+bigiqASMBypassRatioAlert                    NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "BIG-IP Control Plane ASM Bypass Ratio alert"
+       ::= { bigiqDeviceAlerts 10 }
+
+bigiqLowTPSAlert                            NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "Low Application TPS alert"
+       ::= { bigiqDeviceAlerts 11 }
+
+bigiqDeviceThroughputINAlert                NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "BIG-IP Control Plane Incoming Throughput alert"
+       ::= { bigiqDeviceAlerts 12 }
+
+bigiqApplicationResponseTimeAlert           NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "Application Response Time alert"
+       ::= { bigiqDeviceAlerts 13 }
+
+bigiqApplicationRequestErrorsAlert          NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "Application Request Errors ratio alert"
+       ::= { bigiqDeviceAlerts 14 }
+
+bigiqDeviceMemoryAlert                      NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "BIG-IP Control Plane Memory alert"
+       ::= { bigiqDeviceAlerts 15 }
+
+bigiqServerErrorsAlert                      NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "Server Errors ratio alert"
+       ::= { bigiqDeviceAlerts 16 }
+
+bigiqClientSideRTTAlert                     NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "Client-side Round Trip alert"
+       ::= { bigiqDeviceAlerts 17 }
+
+bigiqDeviceThroughputOutAlert               NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "BIG-IP Control Plane Outgoing Throughput alert"
+       ::= { bigiqDeviceAlerts 18 }
+
+bigiqHighTPSAlert                           NOTIFICATION-TYPE
+       OBJECTS {
+                bigiqDeviceAlertObjMsg
+        }
+       STATUS      current
+       DESCRIPTION
+              "High Application TPS alert"
+       ::= { bigiqDeviceAlerts 19 }
+
+END

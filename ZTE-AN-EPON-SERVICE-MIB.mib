@@ -1,0 +1,429 @@
+-- *****************************************************************
+-- ZTE EPON MIB
+--
+-- 03-06-2007
+--
+-- Copyright(c) 2007 ZTE Corporation
+-- All rights reserved.
+-- *****************************************************************
+
+ZTE-AN-EPON-SERVICE-MIB DEFINITIONS ::= BEGIN 
+    IMPORTS         
+        TruthValue                       FROM SNMPv2-TC
+        Unsigned32                       FROM SNMPv2-SMI
+        Integer32                        FROM SNMPv2-SMI
+        Counter32                        FROM SNMPv2-SMI
+        Counter64                        FROM SNMPv2-SMI
+        MacAddress                       FROM SNMPv2-TC       
+        OBJECT-TYPE                      FROM SNMPv2-SMI
+        ifIndex                          FROM IF-MIB
+        zxAnPon                          FROM ZTE-AN-SMI
+        zxAnPonOnuIndex                  FROM ZTE-AN-PON-BASE-MIB
+        ZxAnEponOnuVportIndex            FROM ZTE-AN-PON-TC-MIB;
+
+        dot3Objects                       OBJECT IDENTIFIER ::= { zxAnPon 31}
+        dot3MpcpObjects                   OBJECT IDENTIFIER ::= { dot3Objects 2}
+        dot3EponFecObjects                OBJECT IDENTIFIER ::= { dot3Objects 4}
+        
+------------------------------------------------------------------------------
+--  1.dot3MpcpObjects 
+------------------------------------------------------------------------------ 
+          
+    dot3MpcpControlTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF Dot3MpcpControlEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                "A Table of dot3 Multi-Point Control Protocol 
+                 (MPCP) MIB objects. The entries in the table
+                 are control and status objects of the MPCP. 
+                 Each object has a row for every virtual link 
+                 denoted by the corresponding ifIndex. The LLID 
+                 field, as defined in the [802.3ah] is a 2bytes
+                 register (15bits field and a broadcast bit) 
+                 limiting the number of virtual links to 32768. 
+                 Typically the number of expected virtual links 
+                 in a PON is like the number of ONUs, which is 
+                 32-64, plus an additional entry for broadcast 
+                 LLID (with a value of 0xffff)." 
+            ::= { dot3MpcpObjects 1 }
+              
+    dot3MpcpControlEntry OBJECT-TYPE
+            SYNTAX         Dot3MpcpControlEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                "An entry in the dot3 MPCP Control table. Rows 
+                 exist for an OLT interface and an ONU interface. 
+                 A Row in the table is denoted by the ifIndex of 
+                 the link and it is created when the ifIndex is 
+                 created. The rows in the table for an ONU interface 
+                 are created at system initialization. The row in the 
+                 table corresponding to the OLT ifIndex and the row 
+                 corresponding to the broadcast virtual link are created 
+                 at system initialization. A row in the table 
+                 corresponding to the ifIndex of a virtual links is 
+                 created when a virtual link is established (ONU registers) 
+                 and deleted when the virtual link is deleted (ONU deregisters)." 
+            INDEX    { ifIndex, zxAnPonOnuIndex } 
+            ::= { dot3MpcpControlTable 1}
+            
+    Dot3MpcpControlEntry ::= 
+        SEQUENCE {
+                dot3MpcpOperStatus             TruthValue, 
+                dot3MpcpAdminState             TruthValue, 
+                dot3MpcpMode                   INTEGER, 
+                dot3MpcpSyncTime               Unsigned32, 
+                dot3MpcpLinkID                 Unsigned32, 
+                dot3MpcpRemoteMACAddress       MacAddress, 
+                dot3MpcpRegistrationState      INTEGER, 
+                dot3MpcpTransmitElapsed        Unsigned32, 
+                dot3MpcpReceiveElapsed         Unsigned32, 
+                dot3MpcpRoundTripTime          Unsigned32, 
+                dot3MpcpMaximumPendingGrants   Unsigned32 
+                } 
+                
+    dot3MpcpOperStatus OBJECT-TYPE 
+        SYNTAX       TruthValue 
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "This object reflects the operational state of the Multi-Point 
+             MAC Control sublayer, as defined in [802.3ah] clause 64. When 
+             the value is true(1) the interface will act as if Multi-Point 
+             control protocol is enabled. When the value is false(2) the 
+             interface will act as if the Multi-Point control protocol is 
+             disabled. The operational state can be changed using the 
+             MpcpAdminState object.This object is applicable 
+             for an OLT,with the same value for all virtual interfaces, 
+             and for an ONU."
+        ::= { dot3MpcpControlEntry 1 }
+        
+    dot3MpcpAdminState OBJECT-TYPE 
+        SYNTAX       TruthValue 
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "This object is used to define the admin state of the Multi-Point 
+             MAC Control sublayer, as defined in [802.3ah] clause 64, and 
+             to reflect its state. When selecting the value as true(1) the 
+             Multi-Point control protocol of the interface is enabled. When 
+             selecting the value as false(2) the Multi-Point Control protocol 
+             of the interface is disabled. This object reflects the administrative 
+             state of the Multi-Point control protocol of the interface. The 
+             write operation is not restricted in this document and can be 
+             done at any time. Changing dot3MpcpAdminState state can lead to 
+             disabling the Multi-point control protocol on the respective interface 
+             leading to the interruption of service of the users connected to the 
+             respective EPON interface. This object is applicable for an OLT, 
+             with the same value for all virtual interfaces, and for an ONU."
+        DEFVAL { false }
+        ::= { dot3MpcpControlEntry 2 }
+        
+    dot3MpcpMode OBJECT-TYPE 
+        SYNTAX       INTEGER{ 
+                     olt(1), 
+                     onu(2)
+                     } 
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "This object is used to identify the operational state of the Multi-Point 
+             MAC Control sublayer. Reading olt(1)for an OLT (server) mode and onu(2) 
+             for an ONU (client) mode. This object is used to identify the operational 
+             mode for the MPCP tables. This object is applicable for an OLT, with the 
+             same value for all virtual interfaces, and for an ONU."
+        DEFVAL { olt }
+        ::= { dot3MpcpControlEntry 3 }
+        
+    dot3MpcpSyncTime OBJECT-TYPE 
+        SYNTAX       Unsigned32
+        UNITS        "TQ (16nsec)" 
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that reports the 'sync lock time' of the OLT receiver in 
+             increments of Time Quanta. The value returned shall be (sync lock 
+             time ns)/16. If this value exceeds (2^32-1) the value (2^32-1) shall 
+             be returned. This object is applicable for an OLT, with the same 
+             value for all virtual interfaces, and for an ONU."
+        ::= { dot3MpcpControlEntry 4 }
+        
+    dot3MpcpLinkID OBJECT-TYPE 
+        SYNTAX       Unsigned32
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that identifies the Logical Link identifier (LLID) associated 
+             with the MAC of the virtual link. This object is applicable for an OLT 
+             and an ONU. At the OLT it has a distinct value for each virtual interface. 
+             The ONU and the corresponding virtual MAC of the OLT, for the same virtual 
+             link, have the same value. Value is assigned when the ONU registers. 
+             Value is freed when the ONU deregisters."
+        ::= { dot3MpcpControlEntry 5 }
+        
+    dot3MpcpRemoteMACAddress OBJECT-TYPE 
+        SYNTAX       MacAddress
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that identifies the source_address parameter of the last 
+             MPCPDUs passed to the MAC Control. This value is updated on reception 
+             of a valid frame with (1) a destination Field equal to the reserved 
+             multicast address for MAC Control specified in [802.3] Annex 31A, (2) 
+             lengthOrType field value equal to the reserved Type for MAC Control 
+             as specified in [802.3] Annex 31A. (3) an MPCP subtype value equal to 
+             the subtype reserved for MPCP as specified in [802.3ah] Annex 31A. 
+             This object is applicable for an OLT and an ONU. At the OLT it has a 
+             distinct value for each virtual interface. The value reflects the MAC 
+             address of the remote entity and therefore the OLT holds a value for 
+             each LLID which is the MAC address of the ONU and the ONU has a single 
+             value which is the OLT MAC address."
+        ::= { dot3MpcpControlEntry 6 }
+        
+    dot3MpcpRegistrationState OBJECT-TYPE 
+        SYNTAX       INTEGER{ 
+                     unregistered(1), 
+                     registering(2), 
+                     registered(3)
+                     }
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that identifies the registration state of the Multi-Point 
+             MAC Control sublayer. When this object has the enumeration unregistered(1) 
+             the interface is unregistered and may be used for registering a link 
+             partner. When this object has the enumeration registering(2) the interface 
+             is in the process of registering a link-partner. When this object has the 
+             enumeration registered(3) the interface has an established link-partner. 
+             This object is applicable for an OLT and an ONU. At the OLT it has a 
+             distinct value for each virtual interface."
+        ::= { dot3MpcpControlEntry 7 }
+    
+    dot3MpcpTransmitElapsed OBJECT-TYPE 
+        SYNTAX       Unsigned32
+        UNITS        "TQ (16nsec)"
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that reports the interval from last MPCP frame transmission 
+             in increments of Time Quanta (TQ)-16ns. The value returned shall be 
+             (interval from last MPCP frame transmission in ns)/16. If this value 
+             exceeds (2^32-1) the value (2^32-1) shall be returned. This object 
+             is applicable for an OLT and an ONU. At the OLT it has a distinct 
+             value for each virtual interface."
+        ::= { dot3MpcpControlEntry 8 }
+        
+    dot3MpcpReceiveElapsed OBJECT-TYPE 
+        SYNTAX       Unsigned32
+        UNITS        "TQ (16nsec)"
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that reports the interval from last MPCP frame reception 
+             in increments of Time Quanta (TQ)-16ns. The value returned shall be 
+             (interval from last MPCP frame reception in ns)/16. If this value 
+             exceeds (2^32-1) the value (2^32-1) shall be returned. This object 
+             is applicable for an OLT and an ONU. At the OLT it has a distinct 
+             value for each virtual interface."
+        ::= { dot3MpcpControlEntry 9 }
+        
+    dot3MpcpRoundTripTime OBJECT-TYPE 
+        SYNTAX       Unsigned32(0..'ffff'h)
+        UNITS        "TQ (16nsec)"
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that reports the MPCP round trip time in increments of Time 
+             Quanta (TQ)-16ns. The value returned shall be (round trip time in ns)/16. 
+             If this value exceeds (2^16-1) the value (2^16-1) shall be returned. 
+             This object is applicable for an OLT and an ONU. At the OLT it has a 
+             distinct value for each virtual interface."
+        ::= { dot3MpcpControlEntry 10 }
+    
+    dot3MpcpMaximumPendingGrants OBJECT-TYPE 
+        SYNTAX       Unsigned32(0..255)
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that reports the maximum number of grants which an ONU can 
+             store for handling. The maximum number of grants which an ONU can store 
+             for handling has a range of 0 to 255. This object is applicable for an 
+             OLT and an ONU. At the OLT it has a distinct value for each virtual 
+             interface. At the OLT the value should be zero."
+        ::= { dot3MpcpControlEntry 11 }
+        
+------------------------------------------------------------------------------
+--  2.dot3EponFecObjects 
+------------------------------------------------------------------------------ 
+    
+    dot3EponFecTable OBJECT-TYPE 
+            SYNTAX         SEQUENCE OF Dot3EponFecEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                "A table of dot3 EPON FEC management objects. The entries in the 
+                 table are control and status objects and statistic counters for 
+                 the FEC layer. Each object has a row for every virtual link denoted 
+                 by the corresponding ifIndex. The LLID field, as defined in the 
+                 [802.3ah] is a 2bytes register (15bits field and a broadcast bit) 
+                 limiting the number of virtual links to 32768. Typically the number 
+                 of expected virtual links in a PON is like the number of ONUs, which 
+                 is 32-64, plus an additional entry for broadcast LLID (with a value 
+                 of 0xffff)."
+            ::= { dot3EponFecObjects 1 }
+              
+    dot3EponFecEntry OBJECT-TYPE
+            SYNTAX         Dot3EponFecEntry 
+            MAX-ACCESS     not-accessible 
+            STATUS         current 
+            DESCRIPTION 
+                "An entry in the dot3 EPON FEC table. Rows exist for an OLT interface 
+                 and an ONU interface. A Row in the table is denoted by the ifIndex 
+                 of the link and it is created when the ifIndex is created. The rows 
+                 in the table for an ONU interface are created at system initialization. 
+                 The row in the table corresponding to the OLT ifIndex and the row 
+                 corresponding to the broadcast virtual link are created at system 
+                 initialization. A row in the table corresponding to the ifIndex of 
+                 a virtual links is created when a virtual link is established 
+                 (ONU registers) and deleted when the virtual link is deleted 
+                 (ONU deregisters)."
+            INDEX    { ifIndex, zxAnPonOnuIndex } 
+            ::= { dot3EponFecTable 1}
+            
+    Dot3EponFecEntry ::= 
+        SEQUENCE {                
+                dot3EponFecPCSCodingViolation               Counter64, 
+                dot3EponFecAbility                          INTEGER, 
+                dot3EponFecMode                             INTEGER, 
+                dot3EponFecCorrectedBlocks                  Counter64, 
+                dot3EponFecUncorrectableBlocks              Counter64, 
+                dot3EponFecBufferHeadCodingViolation        Counter64              
+                } 
+                
+    dot3EponFecPCSCodingViolation OBJECT-TYPE 
+        SYNTAX       Counter64
+        UNITS        "octets"                    
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "For 100 Mbps operation it is a count of the number of times an invalid 
+             code-group is received, other than the /H/ code-group. For 1000 Mbps 
+             operation it is a count of the number of times an invalid codegroup 
+             is received, other than the /V/ code-group. /H/ denotes a special 4b5b 
+             codeword of [802.3] 100 Mbps PCS layer (clause 24), and /V/ denotes a 
+             special 8b10b codeword of the [802.3] 1000 Mbps PCS layer (clause 36). 
+             This object is applicable for an OLT and an ONU. At the OLT it has a 
+             distinct value for each virtual interface. Discontinuities of this 
+             counter can occur at re-initialization of the management system, and 
+             at other times as indicated by the value of the ifCounterDiscontinuityTime 
+             object of the Interface MIB module."
+        ::= { dot3EponFecEntry 1 }
+        
+    dot3EponFecAbility OBJECT-TYPE 
+        SYNTAX       INTEGER{ 
+                     unknown (1), 
+                     unsupported (2), 
+                     supported (3)
+                     }                         
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "An object that indicates the support of operation of the optional FEC 
+             sublayer of the 1000BASE-PX PHY, specified in [802.3ah] clause 65.2. 
+             unknown(1) value is assigned in initialization, for non FEC support 
+             state or type not yet known. unsupported(2) value is assigned when 
+             sublayer is not supported. supported(3) value is assigned when sublayer 
+             is supported. This object is applicable for an OLT, with the same value 
+             for all virtual interfaces, and for an ONU. the FEC counters will have 
+             a zero value, when the interface is not supporting FEC. The counters: 
+             dot3EponFecPCSCodingViolation - not affected by FEC ability. 
+             dot3EponFecCorrectedBlocks - has a zero value when dot3EponFecAbility 
+             is unknown (1) and unsupported (2). dot3EponFecUncorrectableBlocks - 
+             has a zero value when dot3EponFecAbility is unknown (1) and unsupported (2). 
+             dot3EponFecBufferHeadCodingViolation - has a zero value when dot3EponFecAbility 
+             is unknown (1) and unsupported (2). "
+        ::= { dot3EponFecEntry 2 }
+        
+    dot3EponFecMode OBJECT-TYPE 
+        SYNTAX       INTEGER{ 
+                     unknown (1), 
+                     disabled (2), 
+                     enabled (3)
+                     }                         
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "An object that defines the mode of operation of the optional FEC sublayer 
+             of the 1000BASE-PX PHY, specified in [802.3ah] clause 65.2, and reflects 
+             its state. A GET operation returns the current mode of operation of the PHY. 
+             A SET operation changes the mode of operation of the PHY to the indicated 
+             value. unknown(1) value is assigned in initialization, for non FEC support 
+             state or type not yet known. disabled(2) value is assigned when the FEC 
+             sublayer is operating in disabled mode. enabled(3) value is assigned when 
+             the FEC sublayer is operating in FEC mode. The write operation is not 
+             restricted in this document and can be done at any time. Changing dot3EponFecMode 
+             state can lead to disabling the Forward error correction on the respective 
+             interface which can lead to a degradation of the optical link and therefore 
+             may lead to an interruption of service of the users connected to the 
+             respective EPON interface. This object is applicable for an OLT and an ONU. 
+             At the OLT it has a distinct value for each virtual interface. The counting 
+             of the FEC counters will stop when the FEC of the interface is disabled. 
+             The counters: dot3EponFecPCSCodingViolation - not affected by FEC mode. 
+             dot3EponFecCorrectedBlocks - stops counting when Rx_FEC is not enabled. 
+             (unknown (1) and disabled (2)). dot3EponFecUncorrectableBlocks - stops 
+             counting when Rx_FEC is not enabled (unknown (1) and disabled (2)). 
+             dot3EponFecBufferHeadCodingViolation - stops counting when Rx_FEC 
+             is not enabled (unknown (1) and disabled (2)). The object: dot3EponFecAbility 
+             - indicates the FEC ability and it is not affected by the dot3EponFecMode object."
+        DEFVAL { unknown }
+        ::= { dot3EponFecEntry 3 }
+        
+    dot3EponFecCorrectedBlocks OBJECT-TYPE 
+        SYNTAX       Counter64                   
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "For 10PASS-TS, 2BASE-TL and 1000BASE-PX PHYs it is a count of corrected 
+             FEC blocks. This counter will not increment for other PHY Types. Increment 
+             the counter by one for each received block that is corrected by the FEC
+             function in the PHY. This object is applicable for an OLT and an ONU. 
+             At the OLT it has a distinct value for each virtual interface. Discontinuities 
+             of this counter can occur at re-initialization of the management system, 
+             and at other times as indicated by the value of the ifCounterDiscontinuityTime 
+             object of the Interface MIB module."
+        ::= { dot3EponFecEntry 4 }
+        
+    dot3EponFecUncorrectableBlocks OBJECT-TYPE 
+        SYNTAX       Counter64                   
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "For 10PASS-TS, 2BASE-TL and 1000BASE-PX PHYs it is a count of 
+             uncorrectable FEC blocks. This counter will not increment for 
+             other PHY Types. Increment the counter by one for each FEC block 
+             that is determined to be uncorrectable by the FEC function in the 
+             PHY. This object is applicable for an OLT and an ONU. At the OLT it 
+             has a distinct value for each virtual interface. Discontinuities of 
+             this counter can occur at re-initialization of the management system, 
+             and at other times as indicated by the value of the ifCounterDiscontinuityTime 
+             object of the Interface MIB module."
+        ::= { dot3EponFecEntry 5 }  
+        
+    dot3EponFecBufferHeadCodingViolation OBJECT-TYPE 
+        SYNTAX       Counter64  
+        UNITS        "octets"                 
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "For 1000 Mbps operation it is a count of the number of invalid 
+             code-group received directly from the link. The value has a meaning 
+             only in 1000 Mbps mode and it is zero otherwise. This object is 
+             applicable for an OLT and an ONU. At the OLT it has a distinct value 
+             for each virtual interface. Discontinuities of this counter can occur 
+             at re-initialization of the management system, and at other times as 
+             indicated by the value of the ifCounterDiscontinuityTime object of 
+             the Interface MIB module."
+        ::= { dot3EponFecEntry 6 }  
+        
+END

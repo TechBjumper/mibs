@@ -1,0 +1,1111 @@
+
+------------------------------------------------------------------------------- 
+-- File Name : ZTE-AN-REMOTE-UNIT-SW-MIB.mib
+-- Date      : 2010-08-26
+-- Author    : ZTE Shanghai NMS Dept.
+--
+-- ZTE Remote Unit Software MIB for Access Node. 
+-- 
+------------------------------------------------------------------------------- 
+
+
+ZTE-AN-REMOTE-UNIT-SW-MIB    DEFINITIONS ::= BEGIN 
+    IMPORTS 
+        MODULE-IDENTITY                           FROM SNMPv2-SMI
+        OBJECT-TYPE                               FROM SNMPv2-SMI
+        NOTIFICATION-TYPE                         FROM SNMPv2-SMI
+        IpAddress                                 FROM SNMPv2-SMI
+        TimeTicks                                 FROM SNMPv2-SMI
+        Integer32                                 FROM SNMPv2-SMI
+        Counter32                                 FROM SNMPv2-SMI
+        Gauge32                                   FROM SNMPv2-SMI
+        Counter64                                 FROM SNMPv2-SMI 
+        RowStatus                                 FROM SNMPv2-TC
+        TruthValue                                FROM SNMPv2-TC
+        DisplayString                             FROM SNMPv2-TC
+        TEXTUAL-CONVENTION                        FROM SNMPv2-TC
+        DateAndTime                               FROM SNMPv2-TC
+        SnmpAdminString                           FROM SNMP-FRAMEWORK-MIB
+        InetAddress                               FROM INET-ADDRESS-MIB
+        InetAddressType                           FROM INET-ADDRESS-MIB
+        ifIndex                                   FROM IF-MIB
+        zxAccessNode                              FROM ZTE-AN-SMI
+        zxAnSystem                                FROM ZTE-AN-SMI
+        MODULE-COMPLIANCE                         FROM SNMPv2-CONF
+        OBJECT-GROUP                              FROM SNMPv2-CONF
+        NOTIFICATION-GROUP                        FROM SNMPv2-CONF;
+    
+    zxAnRemoteUnitSoftwareMib MODULE-IDENTITY
+        LAST-UPDATED "201105260000Z"
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO 
+            "ZTE Corporation
+            Customer Service
+
+            Postal: No.889 BiBo Rd
+            PuDong District, Shanghai  201203
+            China
+
+            Tel: +86-21-50801070
+
+            E-mail: support@zte.com.cn"
+        DESCRIPTION  "The MIB module for the management of Remote Unit ."
+        
+        REVISION        "201105260000Z"
+        DESCRIPTION
+        "Initial version of this MIB module."        
+        ::= {zxAnSystem 40}
+
+------------------------------------------------------------------------------- 
+-- Following management objects are defined.
+-- 1. Remote Unit Software Management: manual update Objects
+-- 2. Remote Unit Software Management: global configuration objects
+-- 3. Remote Unit Software Management: Global Objects Capabilities
+-- 4. Remote Unit Software Management: update task table
+-- 5. Remote Unit Software Management: task statistics table
+-- 6. Remote Unit Software Management: update status table
+-- 7. Remote Unit Software Management: Image table
+
+-- Following notification objects are defined.
+-- 20.Remote Unit Software Management: Trap
+
+-- Following conformance information is defined.
+-- 31. zxAnRuSwConformance
+
+-------------------------------------------------------------------------------    
+zxAnRuSwGlobalObjects    OBJECT IDENTIFIER   ::= { zxAnRemoteUnitSoftwareMib 1 }
+zxAnRuSwObjects          OBJECT IDENTIFIER   ::= { zxAnRemoteUnitSoftwareMib 2 }
+zxAnRuSwNotifications    OBJECT IDENTIFIER   ::= { zxAnRemoteUnitSoftwareMib 3 }
+    
+zxAnRuSwManualUpdateObjects  OBJECT IDENTIFIER   ::= { zxAnRuSwGlobalObjects 1 } 
+
+zxAnRuSwConformance      OBJECT IDENTIFIER   ::= { zxAnRemoteUnitSoftwareMib 4 }
+
+zxAnRuSwCompliances      OBJECT IDENTIFIER   ::= { zxAnRuSwConformance 1 }
+zxAnRuSwGroups           OBJECT IDENTIFIER   ::= { zxAnRuSwConformance 2 }
+
+
+------------------------------------------------------------------------------
+-- 1. Remote Unit Software Management: manual update Objects
+------------------------------------------------------------------------------
+   
+    zxAnRuSwManualUpdateList    OBJECT-TYPE
+        SYNTAX      OCTET STRING (SIZE (0..1024))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+           "The Remote Unit list, each Remote Unit consists of 'ifIndex' or 
+           private format." 
+        ::= {zxAnRuSwManualUpdateObjects 1 }                                      
+    
+    zxAnRuSwManualUpdateAction    OBJECT-TYPE
+        SYNTAX  INTEGER {
+            update(1),          
+            updateAndReboot(2), 
+            activate(3), 
+            commit(4), 
+            abort(5), 
+            updateReonline(6), 
+            updateAndCommit(7)                                              
+        }
+        MAX-ACCESS      read-write
+        STATUS          current 
+        DESCRIPTION
+            "The software version update action.
+             Actions are defined as follows:
+               1   update software version
+               2   update software version and reboot the CPE
+               3   activate the software version
+               4   commit software version
+               5   abort software version
+               6   update software version first, then activate and commit 
+                   software version when ONU re-onlines
+               7   update and commit software version
+            "      
+        ::= {zxAnRuSwManualUpdateObjects 6 }
+            
+    zxAnRuSwManualUpdateFileName   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The version file name of the software."
+        ::= { zxAnRuSwManualUpdateObjects 7 }
+                
+    zxAnRuSwManualUpdateFileLocation         OBJECT-TYPE     
+        SYNTAX  INTEGER {
+            flash(1),
+            remote(2),
+            sdCard(3)        
+        } 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The software file location. 
+             Location type is defined as following:
+               1: file comes from flash.
+               2: file comes from remote FTP server, and the
+                  following attributes are valid:
+                      zxAnRuSwManualUpdateFtpSvrProto, 
+                      zxAnRuSwManualUpdateFtpSvrIpType, 
+                      zxAnRuSwManualUpdateFtpSvrIpAddr, 
+                      zxAnRuSwManualUpdateFtpSvrUName, 
+                      zxAnRuSwManualUpdateFtpSvrUPwd, 
+                      zxAnRuSwManualUpdateFtpSvrPath,
+                      zxAnRuSwManualUpdateFtpSvrVrfNm.
+               3: file comes from SD card."
+        DEFVAL  { flash }       
+        ::= { zxAnRuSwManualUpdateObjects 8 }
+                                        
+    zxAnRuSwManualUpdateFtpSvrProto    OBJECT-TYPE
+        SYNTAX  INTEGER {
+            ftp(1),
+            sftp(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current 
+        DESCRIPTION
+            "The FTP protocol." 
+        DEFVAL  { sftp } 
+        ::= { zxAnRuSwManualUpdateObjects 9 }
+        
+    zxAnRuSwManualUpdateFtpSvrIpType  OBJECT-TYPE 
+        SYNTAX          InetAddressType 
+        MAX-ACCESS      read-write
+        STATUS          current 
+        DESCRIPTION     
+            "The FTP server IP address type." 
+        DEFVAL  { ipv4 }        
+        ::= { zxAnRuSwManualUpdateObjects 10 }  
+        
+    zxAnRuSwManualUpdateFtpSvrIpAddr    OBJECT-TYPE     
+        SYNTAX          InetAddress
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION 
+            "The FTP server IP address."
+        ::= { zxAnRuSwManualUpdateObjects 11 }
+
+    zxAnRuSwManualUpdateFtpSvrUName    OBJECT-TYPE 
+        SYNTAX          DisplayString(SIZE(0..32))
+        MAX-ACCESS      read-write
+        STATUS          current 
+        DESCRIPTION     
+            "The FTP server user name." 
+        ::= { zxAnRuSwManualUpdateObjects 12 }
+                
+    zxAnRuSwManualUpdateFtpSvrUPwd    OBJECT-TYPE     
+        SYNTAX          DisplayString(SIZE(0..32)) 
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The FTP server user password."
+        ::= { zxAnRuSwManualUpdateObjects 13 }
+                                                
+    zxAnRuSwManualUpdateFtpSvrPath       OBJECT-TYPE     
+        SYNTAX          DisplayString  (SIZE(0..80)) 
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The software file FTP server path."
+        ::= { zxAnRuSwManualUpdateObjects 14 } 
+        
+    zxAnRuSwManualUpdateStorageDevId  OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The ID of the storage device.
+             The numbering rule is:                          
+             When zxAnRuSwManualUpdateFileLocation is flash(1),
+                the value is 1 and it indicates flash 1.
+             When zxAnRuSwManualUpdateFileLocation is sdCard(3),
+                the value is 2 and it indicates SD card 1.   
+             When zxAnRuSwManualUpdateFileLocation is remote(2),
+                the value is 3 and it indicates RAM.   
+             ..."
+        DEFVAL  { 1 }                        
+        ::=  { zxAnRuSwManualUpdateObjects  15 }         
+    
+    zxAnRuSwManualUpdateFtpSvrVrfNm       OBJECT-TYPE     
+        SYNTAX          DisplayString (SIZE(0..33)) 
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The FTP server VRF name. 
+             The empty string indicates no VRF instance.
+             This attribute is only supported by C600 serial."
+        ::= { zxAnRuSwManualUpdateObjects 16 }
+             
+------------------------------------------------------------------------------- 
+-- 2. Remote Unit Software Management: global configuration objects
+-------------------------------------------------------------------------------                   
+    zxAnRuSwFileAgingTime  OBJECT-TYPE
+        SYNTAX      Integer32 (1..65535)
+        UNITS       "Minutes"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION     
+            "The aging time of the ONU version file in the flash.
+             This function is valid only zxAnRuSwUpdatingTaskFileLocation 
+             or zxAnRuSwManualUpdateFileLocation is remote(2). 
+             Value 65535 means this attribut is invalid."
+        DEFVAL  { 30 }                               
+        ::=  {  zxAnRuSwGlobalObjects 51  }  
+        
+------------------------------------------------------------------------------- 
+-- 3. Remote Unit Software Management: Global Objects Capabilities
+-------------------------------------------------------------------------------           
+    zxAnRuSwCapabilities  OBJECT-TYPE
+        SYNTAX  BITS {
+               onuParallelLimit(0),
+               remoteUpdating(1),
+               sdCardUpdating(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The management capabilities of remote unit software updating.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             bit 0: value 1 means that the remote unit software updating task 
+                    supports ONU parallel limit.
+             bit 1: value 1 means that manual updating and task updating 
+                    software version support remote FTP server updating mode. 
+             bit 2: value 1 means that manual updating and task updating 
+                    software version support SD card updating mode.        
+             NOTE: No recommended to display it in NMS."        
+        ::=  {  zxAnRuSwGlobalObjects 100  }
+        
+------------------------------------------------------------------------------- 
+-- 4. Remote Unit Software Management: update task table
+------------------------------------------------------------------------------- 
+    zxAnRuSwUpdatingTaskTable   OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnRuSwUpdatingTaskEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+           " Remote Unit software version update task configuration information 
+             table. It will complete batch Remote Unit version upgrade of two 
+             scenarios, one is online, the other is offline(automatic upgrade)."
+        ::= { zxAnRuSwObjects 2 }
+
+    zxAnRuSwUpdatingTaskEntry   OBJECT-TYPE 
+        SYNTAX      ZxAnRuSwUpdatingTaskEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Remote Unit software version update task configuration information 
+             entry."                      
+        INDEX   { zxAnRuSwUpdatingTaskName }
+        ::= { zxAnRuSwUpdatingTaskTable 1 } 
+
+    ZxAnRuSwUpdatingTaskEntry ::= SEQUENCE {
+        zxAnRuSwUpdatingTaskName             DisplayString, 
+        zxAnRuSwUpdatingTaskDesc             DisplayString, 
+        zxAnRuSwUpdatingTaskMode             INTEGER,        
+        zxAnRuSwUpdatingTaskServiceType      DisplayString,
+        zxAnRuSwUpdatingTaskVendor           DisplayString,
+        zxAnRuSwUpdatingTaskEquipType        DisplayString,
+        zxAnRuSwUpdatingTaskCrtrnType        INTEGER,
+        zxAnRuSwUpdatingTaskCrtrnVer         DisplayString,                
+        zxAnRuSwUpdatingTaskOperObjType      INTEGER,
+        zxAnRuSwUpdatingTaskOperObjList      OCTET STRING,
+        zxAnRuSwUpdatingTaskAction           INTEGER,
+        zxAnRuSwUpdatingTaskFileName         DisplayString, 
+        zxAnRuSwUpdatingTaskStatus           INTEGER,
+        zxAnRuSwUpdatingTaskRuAction         INTEGER,
+        zxAnRuSwUpdatingTaskParallelLmt      Integer32,
+        zxAnRuSwUpdatingTaskLinePrf          DisplayString,
+        zxAnRuSwUpdatingTaskRemotePrf        DisplayString,
+        zxAnRuSwUpdatingTaskFileLocation     INTEGER,
+        zxAnRuSwUpdatingTaskFtpSvrProto      INTEGER,
+        zxAnRuSwUpdatingTaskFtpSvrIpType     InetAddressType,
+        zxAnRuSwUpdatingTaskFtpSvrIpAddr     InetAddress,
+        zxAnRuSwUpdatingTaskFtpSvrUName      DisplayString,
+        zxAnRuSwUpdatingTaskFtpSvrUPwd       DisplayString,
+        zxAnRuSwUpdatingTaskFtpSvrPath       DisplayString,
+        zxAnRuSwUpdatingTaskStorageDevId     Integer32,
+        zxAnRuSwUpdatingTaskFtpSvrVrfNm      DisplayString,
+        zxAnRuSwUpdatingTaskRowStatus        RowStatus        
+        }
+        
+    zxAnRuSwUpdatingTaskName   OBJECT-TYPE  
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The task name of software version updating." 
+        ::= { zxAnRuSwUpdatingTaskEntry 1 }  
+        
+    zxAnRuSwUpdatingTaskDesc   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..128))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The task description."
+        ::= { zxAnRuSwUpdatingTaskEntry 2 }                              
+        
+    zxAnRuSwUpdatingTaskMode   OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    online(1),           
+                    offline(2), 
+                    both(3)                                      
+        }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The update mode of task.
+             Mode is defined as follows:
+               1   update software version to online CPE
+               2   update software version to offline CPE
+               3   updating software version  supports both online Remote Unit 
+                   and offline              
+               "      
+        DEFVAL  { both }
+        ::= {zxAnRuSwUpdatingTaskEntry 3 }    
+        
+    zxAnRuSwUpdatingTaskServiceType   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..8)) 
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The Remote Unit service type such as 'GPON','EPON','ADSL2','VDSL2' 
+             etc."
+        ::= { zxAnRuSwUpdatingTaskEntry 4 }      
+                
+    zxAnRuSwUpdatingTaskVendor   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..20))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The vendor of CPE, such as 'zte', 'cisco' etc."
+        DEFVAL  { "zte" }     
+        ::= { zxAnRuSwUpdatingTaskEntry 5 }  
+                        
+    zxAnRuSwUpdatingTaskEquipType   OBJECT-TYPE  
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The Remote Unit equipment type such as 'F620', 'D420', 'F622' etc."            
+        ::= { zxAnRuSwUpdatingTaskEntry 6 }          
+        
+    zxAnRuSwUpdatingTaskCrtrnType   OBJECT-TYPE 
+        SYNTAX  INTEGER {
+                    ignore(1),           
+                    equal(2),
+                    notEqual(3),
+                    below(4),
+                    upper(5)                    
+        }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The Crtrn type of the updating rule." 
+        DEFVAL  { ignore }
+        ::= {zxAnRuSwUpdatingTaskEntry 7 }             
+
+    zxAnRuSwUpdatingTaskCrtrnVer   OBJECT-TYPE  
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The remote unit running version as the base to compare."
+        ::= { zxAnRuSwUpdatingTaskEntry 8 }                   
+            
+    zxAnRuSwUpdatingTaskOperObjType   OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    ne(1),           
+                    port(2)                     
+        }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The operation object type of task. 
+             Type is defined as follows:
+               1   update version according to NE
+               2   update version according to port, port is defined as PON port 
+                   for xPON equipment
+               "      
+        DEFVAL  { port }
+        ::= {zxAnRuSwUpdatingTaskEntry 9 }                          
+        
+    zxAnRuSwUpdatingTaskOperObjList   OBJECT-TYPE 
+        SYNTAX      OCTET STRING (SIZE (0..2048))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The Remote Unit operation object list.
+             This attribute is only valid for port level,if NE level then 
+             size of the attribute is zero. 
+             Object format is defined as follows:
+             Remote Unit service type(1 byte) + slot count(1 byte)
+                                      + rack No.(4 bits)
+                                      + shelf No.(4 bits)
+                                      + slot No.(1 byte)
+                                      + port bitmap(n bytes)
+             'port bitmap' uses a different format for different types of Remote 
+             Unit service. For xPON, the 'port bitmap' is four bytes.             
+             Remote Unit service type is defined as follows:
+                 1  GPON
+                 2  EPON
+                 ...... 
+             "
+        ::= { zxAnRuSwUpdatingTaskEntry 10 }          
+        
+    zxAnRuSwUpdatingTaskAction   OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    abort(1),
+                    restart(2)                           
+        }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The action of the task." 
+        ::= {zxAnRuSwUpdatingTaskEntry 11 }              
+
+    zxAnRuSwUpdatingTaskFileName   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The version file used to update." 
+        ::= { zxAnRuSwUpdatingTaskEntry 12 }              
+        
+    zxAnRuSwUpdatingTaskStatus   OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    processing(1),           
+                    aborted(2), 
+                    finished(3)                                      
+        }
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The task status.
+            "      
+        ::= {zxAnRuSwUpdatingTaskEntry 14 }            
+        
+    zxAnRuSwUpdatingTaskRuAction   OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    update(1),
+                    updateAndReboot(2), 
+                    reboot(3),
+                    updateLinkup(4),
+                    updateAndCommit(5)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The Remote Unit updating action of software version." 
+        DEFVAL  { updateAndReboot }
+        ::= {zxAnRuSwUpdatingTaskEntry 15 }              
+
+    zxAnRuSwUpdatingTaskParallelLmt   OBJECT-TYPE
+        SYNTAX       Integer32(0..1024)
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION 
+            "The number of ONUs parallel limited in a remote unit software 
+            updating task. Value zero means no limit."
+        DEFVAL  { 64 }
+        ::= {zxAnRuSwUpdatingTaskEntry 16 }  
+
+    zxAnRuSwUpdatingTaskLinePrf   OBJECT-TYPE  
+        SYNTAX      DisplayString (SIZE(0..64))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The line proflie name of the remote unit bound.
+             An empty string means this attribute is invalid."
+        DEFVAL  { "" }             
+        ::= { zxAnRuSwUpdatingTaskEntry 17 }  
+
+    zxAnRuSwUpdatingTaskRemotePrf   OBJECT-TYPE  
+        SYNTAX      DisplayString (SIZE(0..64))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION 
+            "The remote proflie name of the remote unit bound.
+             An empty string means this attribute is invalid."
+        DEFVAL  { "" }                            
+        ::= { zxAnRuSwUpdatingTaskEntry 18 }  
+                        
+    zxAnRuSwUpdatingTaskFileLocation   OBJECT-TYPE     
+        SYNTAX  INTEGER {
+                    flash(1),
+                    remote(2),
+                    sdCard(3)        
+        } 
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The software file location. 
+             Location type is defined as following:
+               1: file comes from flash.
+               2: file comes from remote FTP server, and the
+                  following attributes are valid:
+                      zxAnRuSwUpdatingTaskFtpSvrProto, 
+                      zxAnRuSwUpdatingTaskFtpSvrIpType, 
+                      zxAnRuSwUpdatingTaskFtpSvrIpAddr, 
+                      zxAnRuSwUpdatingTaskFtpSvrUName, 
+                      zxAnRuSwUpdatingTaskFtpSvrUPwd, 
+                      zxAnRuSwUpdatingTaskFtpSvrPath,
+                      zxAnRuSwUpdatingTaskFtpSvrVrfNm. 
+               3: file comes from SD card."
+        DEFVAL  { flash }        
+        ::= { zxAnRuSwUpdatingTaskEntry 19 }
+                                        
+    zxAnRuSwUpdatingTaskFtpSvrProto    OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    ftp(1),
+                    sftp(2)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The FTP protocol." 
+        DEFVAL  { sftp } 
+        ::= {zxAnRuSwUpdatingTaskEntry 20 }
+        
+    zxAnRuSwUpdatingTaskFtpSvrIpType  OBJECT-TYPE 
+        SYNTAX          InetAddressType 
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION     
+            "The FTP server IP address type." 
+        DEFVAL  { ipv4 }        
+        ::= { zxAnRuSwUpdatingTaskEntry 21 }    
+        
+    zxAnRuSwUpdatingTaskFtpSvrIpAddr    OBJECT-TYPE     
+        SYNTAX          InetAddress
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION 
+            "The FTP server IP address."          
+        ::=  {  zxAnRuSwUpdatingTaskEntry 22 }
+
+    zxAnRuSwUpdatingTaskFtpSvrUName    OBJECT-TYPE 
+        SYNTAX          DisplayString(SIZE(0..32))
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION     
+            "The FTP server user name." 
+        DEFVAL  { "" }
+        ::= { zxAnRuSwUpdatingTaskEntry 23 }
+                
+    zxAnRuSwUpdatingTaskFtpSvrUPwd    OBJECT-TYPE     
+        SYNTAX          DisplayString(SIZE(0..32)) 
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     
+            "The FTP server user password."
+        DEFVAL  { "" }            
+        ::=  {  zxAnRuSwUpdatingTaskEntry  24  }
+                                                
+    zxAnRuSwUpdatingTaskFtpSvrPath    OBJECT-TYPE     
+        SYNTAX          DisplayString  (SIZE(0..80)) 
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     
+            "The software file FTP server path."
+        DEFVAL  { "" }    
+        ::=  {  zxAnRuSwUpdatingTaskEntry  25 }
+    
+    zxAnRuSwUpdatingTaskStorageDevId    OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The ID of the storage device.
+             The numbering rule is:                          
+             When zxAnRuSwManualUpdateFileLocation is flash(1),
+                the value is 1 and it indicates flash 1.
+             When zxAnRuSwManualUpdateFileLocation is sdCard(3),
+                the value is 2 and it indicates SD card 1.   
+             When zxAnRuSwManualUpdateFileLocation is remote(2),
+                the value is 3 and it indicates RAM.   
+             ..."     
+        DEFVAL  { 1 }    
+        ::=  { zxAnRuSwUpdatingTaskEntry  26 }
+        
+    zxAnRuSwUpdatingTaskFtpSvrVrfNm       OBJECT-TYPE     
+        SYNTAX          DisplayString (SIZE(0..33)) 
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     
+            "The FTP server VRF name. 
+             The empty string indicates no VRF instance.
+             This attribute is only supported by C600 serial."
+        ::= { zxAnRuSwUpdatingTaskEntry 27 }          
+                                   
+    zxAnRuSwUpdatingTaskRowStatus    OBJECT-TYPE 
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The row status of this entry."
+        ::= {zxAnRuSwUpdatingTaskEntry 50 }   
+                       
+------------------------------------------------------------------------------- 
+-- 5. Remote Unit Software Management: task statistics table
+-------------------------------------------------------------------------------   
+   zxAnRuSwTaskStatsTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnRuSwTaskStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+           "Remote Unit software update task statistics information table."
+        ::= { zxAnRuSwObjects 3 }
+
+    zxAnRuSwTaskStatsEntry   OBJECT-TYPE
+        SYNTAX      ZxAnRuSwTaskStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Remote Unit software update task statistics  information  entry."                      
+        INDEX   { zxAnRuSwUpdatingTaskName }
+        ::= { zxAnRuSwTaskStatsTable 1 }
+
+    ZxAnRuSwTaskStatsEntry ::= SEQUENCE {       
+        zxAnRuSwTaskStatsSuccesses  Integer32, 
+        zxAnRuSwTaskStatsFailures   Integer32, 
+        zxAnRuSwTaskStatsUpdatings  Integer32,
+        zxAnRuSwTaskStatsWaitings   Integer32
+        } 
+                                              
+    zxAnRuSwTaskStatsSuccesses   OBJECT-TYPE 
+        SYNTAX       Integer32
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION 
+            "The successful Remote Unit count of updating in a task."
+        ::= { zxAnRuSwTaskStatsEntry 1 }  
+        
+    zxAnRuSwTaskStatsFailures   OBJECT-TYPE 
+        SYNTAX       Integer32
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION 
+            "The failed Remote Unit count of updating in a task."
+        ::= { zxAnRuSwTaskStatsEntry 2 }  
+                
+    zxAnRuSwTaskStatsUpdatings   OBJECT-TYPE 
+        SYNTAX       Integer32
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION 
+            "The Remote Unit count of updating in progress in a task." 
+        ::= { zxAnRuSwTaskStatsEntry 3 }     
+
+    zxAnRuSwTaskStatsWaitings   OBJECT-TYPE 
+        SYNTAX       Integer32(0..255)
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION 
+            "The remote unit count of waiting in a task." 
+        ::= { zxAnRuSwTaskStatsEntry 4 }        
+           
+------------------------------------------------------------------------------- 
+-- 6. Remote Unit Software Management: update status table
+-------------------------------------------------------------------------------   
+   zxAnRuSwUpdateStatusTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnRuSwUpdateStatusEntry 
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+           " Remote Unit software version update status configuration 
+             information table.Each Remote Unit exists an item in this table,it 
+             records the result of updating Remote Unit version last time.If 
+             Remote Unit version updating is in process then can get the 
+             updating percent by reading this table."
+        ::= { zxAnRuSwObjects 4 }
+
+    zxAnRuSwUpdateStatusEntry   OBJECT-TYPE
+        SYNTAX      ZxAnRuSwUpdateStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Remote Unit software version updating status configuration 
+            information entry. "                     
+        INDEX   { zxAnRuSwRack,zxAnRuSwShelf, 
+                  zxAnRuSwSlot,zxAnRuSwPort,
+                  zxAnRuSwOnu }
+        ::= { zxAnRuSwUpdateStatusTable 1 }
+
+    ZxAnRuSwUpdateStatusEntry ::= SEQUENCE {
+        zxAnRuSwRack                             Integer32, 
+        zxAnRuSwShelf                            Integer32, 
+        zxAnRuSwSlot                             Integer32, 
+        zxAnRuSwPort                             Integer32, 
+        zxAnRuSwOnu                              Integer32, 
+        zxAnRuSwUpdateStatusServiceType          DisplayString,
+        zxAnRuSwUpdateStatusEquipType            DisplayString,
+        zxAnRuSwUpdateStatusFileName             DisplayString,
+        zxAnRuSwUpdateStatusResult               INTEGER, 
+        zxAnRuSwUpdateStatusFailReason           INTEGER, 
+        zxAnRuSwUpdateStatusProgress             INTEGER, 
+        zxAnRuSwUpdateStatusSource               INTEGER, 
+        zxAnRuSwUpdateStatusTaskName             DisplayString,
+        zxAnRuSwUpdateStatusModifyTime           DateAndTime,
+        zxAnRuSwUpdateStatusCurrVersion          DisplayString,
+        zxAnRuSwUpdateStatusLastVersion          DisplayString,
+        zxAnRuSwUpdateStatusFileLocation         INTEGER    
+        }
+
+    zxAnRuSwRack    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The rack No."        
+        ::= {zxAnRuSwUpdateStatusEntry 1 }
+        
+    zxAnRuSwShelf    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The shelf No."        
+        ::= {zxAnRuSwUpdateStatusEntry 2 }        
+        
+    zxAnRuSwSlot    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The slot No."        
+        ::= {zxAnRuSwUpdateStatusEntry 3 }     
+        
+    zxAnRuSwPort    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The port No."        
+        ::= {zxAnRuSwUpdateStatusEntry 4 }     
+        
+    zxAnRuSwOnu    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The ONU No,it is only valid for xPON CPE
+             ,if Remote Unit isn't xPON equment then the value is zero. 
+            "        
+        ::= {zxAnRuSwUpdateStatusEntry 5 }     
+                
+    zxAnRuSwUpdateStatusServiceType   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..8)) 
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION 
+            "The Remote Unit service type such as 'GPON', 'EPON', 'ADSL2',
+            'VDSL2' etc. "              
+        ::= { zxAnRuSwUpdateStatusEntry 6 }  
+        
+    zxAnRuSwUpdateStatusEquipType   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The Remote Unit equipment type such as 'F620', 'D420', 'F622' etc."
+        ::= { zxAnRuSwUpdateStatusEntry 7 }       
+        
+    zxAnRuSwUpdateStatusFileName   OBJECT-TYPE         
+        SYNTAX      DisplayString (SIZE (1..14))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The version file name."
+        ::= { zxAnRuSwUpdateStatusEntry 8 }                
+        
+    zxAnRuSwUpdateStatusResult   OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    notStarted(1),           
+                    inProgress(2),
+                    success(3), 
+                    failure(4),
+                    waiting(5)                                      
+        }
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The result status of updating version."      
+        ::= {zxAnRuSwUpdateStatusEntry 9 }     
+        
+    zxAnRuSwUpdateStatusFailReason   OBJECT-TYPE
+        SYNTAX  INTEGER (1..50) 
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The failure reason of updating version.
+             Some of reasons as following:
+              none(1), downloadErr(2), commitErr(3), activateErr(4), 
+              crcErr(5), validErr(6), useAbort(7), offline(8), 
+              sdNotSupported(21), sdOffline(22), sdDisabled(23), sdNoFile(24),
+              remoteNoFile(32)."              
+        ::= {zxAnRuSwUpdateStatusEntry 10 }        
+            
+    zxAnRuSwUpdateStatusProgress   OBJECT-TYPE
+        SYNTAX          INTEGER(0..100) 
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The percent of updating version."            
+        ::= {zxAnRuSwUpdateStatusEntry 11 }                          
+        
+    zxAnRuSwUpdateStatusSource   OBJECT-TYPE
+        SYNTAX  INTEGER {
+                    task(1),            
+                    manual(2)                                                   
+        }
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The source of updating version.
+             It includes two ways, one is task updating, the other is 
+             manual updating."               
+        ::= {zxAnRuSwUpdateStatusEntry 12 }
+              
+    zxAnRuSwUpdateStatusTaskName   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (0..64))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The updating task name.
+             When zxAnRuSwUpdateStatusSource is 'task' requires this attribute.
+             When zxAnRuSwUpdateStatusFileLocate is 'manual' then the 
+             size of the attribute is zero."
+        ::= { zxAnRuSwUpdateStatusEntry 13 }      
+                  
+              
+    zxAnRuSwUpdateStatusModifyTime   OBJECT-TYPE  
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The last modification time.
+             The format is yyyy-mm-dd HH:MM:SS.For example,
+             2001-01-01 02:22:33 ."
+        ::= { zxAnRuSwUpdateStatusEntry 14 }   
+        
+    zxAnRuSwUpdateStatusCurrVersion   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..14))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "This attribute identifies the now version of the software."
+        ::= { zxAnRuSwUpdateStatusEntry 15 } 
+        
+    zxAnRuSwUpdateStatusLastVersion   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..14))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "This attribute identifies the old version of the software."
+        ::= { zxAnRuSwUpdateStatusEntry 16 } 
+        
+    zxAnRuSwUpdateStatusFileLocation         OBJECT-TYPE     
+        SYNTAX  INTEGER {
+            flash(1),
+            remote(2),
+            sdCard(3)        
+        } 
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The software file location. 
+             Location type is defined as following:
+               1: file comes from flash.
+               2: file comes from remote FTP server.
+               3: file comes from SD card."
+        ::= { zxAnRuSwUpdateStatusEntry 17}
+ 
+------------------------------------------------------------------------------- 
+-- 7. Remote Unit Software Management: Image table
+-------------------------------------------------------------------------------   
+   zxAnRuSwImageTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnRuSwImageEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+           " Remote Unit software version information table.
+             Usually,two instances of the software image managed entity are 
+             contained in an instance of an Remote Unit or equipment managed 
+             entity whose software is independently managed."
+        ::= { zxAnRuSwObjects 5 }
+
+    zxAnRuSwImageEntry   OBJECT-TYPE
+        SYNTAX      ZxAnRuSwImageEntry 
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Remote Unit software version information   entry."                      
+        INDEX   { zxAnRuSwRack,zxAnRuSwShelf,zxAnRuSwSlot,
+                  zxAnRuSwPort,zxAnRuSwOnu,zxAnRuSwImageIndex }
+        ::= { zxAnRuSwImageTable 1 }
+
+    ZxAnRuSwImageEntry ::= SEQUENCE {
+        zxAnRuSwImageIndex          INTEGER,
+        zxAnRuSwImageVersion        DisplayString,
+        zxAnRuSwImageStatus         BITS       
+        }
+        
+            
+    zxAnRuSwImageIndex   OBJECT-TYPE 
+        SYNTAX       INTEGER(1..65535)
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION 
+            "This attribute provides a unique number for each instance of 
+             this managed entity. The number consists of a two-byte field.
+             The first field (MSB) identifies the ME  instance  
+             (Remote Unit (value 0x00) or circuit pack slot (value 0x01-0xFF) 
+             containing the associated software image ME. The second field
+             (LSB) distinguishes between the two (redundant) software image
+             ME instances (values 0x00 and 0x01)."
+        ::= { zxAnRuSwImageEntry 1 }   
+        
+    zxAnRuSwImageVersion   OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..14))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "This attribute identifies the version of the software."
+        ::= { zxAnRuSwImageEntry 2 }      
+        
+   zxAnRuSwImageStatus   OBJECT-TYPE         
+        SYNTAX  BITS {
+            isCommitted(0),
+            isActive(1),
+            isValid(2)          
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+           "Bit 0 indicates Whether the associated software image is 
+                 'committed'(1) or 'uncommitted'(0). 
+            Bit 1 indicates Whether the associated software image is 
+                 'active'(1) or 'inactive'(0).
+            Bit 2 indicates Whether the associated software image is 
+                 'valid'(1) or 'invalid'(0)."                                        
+        ::= { zxAnRuSwImageEntry 3 }                         
+        
+-------------------------------------------------------------------------------
+-- 20.zxAnRuSwUpdatedTrapGroup
+-------------------------------------------------------------------------------        
+    zxAnRuSwUpdated   NOTIFICATION-TYPE
+        OBJECTS {
+                 zxAnRuSwUpdateStatusServiceType,
+                 zxAnRuSwUpdateStatusEquipType,
+                 zxAnRuSwUpdateStatusFileName,
+                 zxAnRuSwUpdateStatusResult,
+                 zxAnRuSwUpdateStatusFailReason,
+                 zxAnRuSwUpdateStatusSource,
+                 zxAnRuSwUpdateStatusTaskName,         
+                 zxAnRuSwUpdateStatusCurrVersion,
+                 zxAnRuSwUpdateStatusLastVersion,
+                 zxAnRuSwUpdateStatusModifyTime,
+                 zxAnRuSwUpdateStatusFileLocation
+                 }
+        STATUS  current
+        DESCRIPTION
+            "A zxAnCpeVersionUpdateTrap trap is sent when the
+             version of Remote Unit software was updated."
+        ::= { zxAnRuSwNotifications 1 }
+        
+
+--------------------------------------------------------------------------------
+-- 31. zxAnRuSwConformance
+--------------------------------------------------------------------------------
+
+  zxAnRuSwCompliance MODULE-COMPLIANCE
+       STATUS current
+       DESCRIPTION 
+          "The compliance statement for SNMP entities which implement the
+            ZTE-AN-CPE-MGMT-MIB."
+        MODULE -- this module
+        
+            MANDATORY-GROUPS { 
+                       zxAnRuSwManualGroup,
+                       zxAnRuSwTaskGroup,
+                       zxAnRuSwTaskStatGroup,
+                       zxAnRuSwStatusGroup,
+                       zxAnRuSwImageGroup
+               }
+        ::= { zxAnRuSwCompliances 1 }
+        
+    zxAnRuSwManualGroup OBJECT-GROUP
+        OBJECTS { zxAnRuSwManualUpdateList, 
+                  zxAnRuSwManualUpdateAction, 
+                  zxAnRuSwManualUpdateFileName
+        }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to execute action 
+            according to 'zxAnRuSwManualUpdateList'.
+             Cpe which is offline will be filtrate by NE automatically"
+        ::= { zxAnRuSwGroups 1 }
+        
+    zxAnRuSwTaskGroup OBJECT-GROUP
+        OBJECTS { zxAnRuSwUpdatingTaskDesc, zxAnRuSwUpdatingTaskMode,
+                  zxAnRuSwUpdatingTaskServiceType, zxAnRuSwUpdatingTaskVendor, 
+                  zxAnRuSwUpdatingTaskEquipType, zxAnRuSwUpdatingTaskCrtrnType, 
+                  zxAnRuSwUpdatingTaskCrtrnVer, zxAnRuSwUpdatingTaskOperObjType,
+                  zxAnRuSwUpdatingTaskOperObjList, zxAnRuSwUpdatingTaskAction, 
+                  zxAnRuSwUpdatingTaskFileName, zxAnRuSwUpdatingTaskStatus, 
+                  zxAnRuSwUpdatingTaskRuAction, zxAnRuSwUpdatingTaskRowStatus
+        }
+        STATUS current
+        DESCRIPTION 
+             "The collection of objects which are used to configure Remote Unit 
+              software version update task.  
+              It will complete batch Remote Unit version upgrade of two 
+              scenarios, one is online, the other is offline(automatic upgrade."
+        ::= { zxAnRuSwGroups 2 }
+        
+    zxAnRuSwTaskStatGroup OBJECT-GROUP
+        OBJECTS { zxAnRuSwTaskStatsSuccesses, 
+                  zxAnRuSwTaskStatsFailures, 
+                  zxAnRuSwTaskStatsUpdatings,
+                  zxAnRuSwTaskStatsWaitings
+        }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to get Remote Unit 
+            software update task statistics information."
+        ::= { zxAnRuSwGroups 3 }
+        
+    zxAnRuSwStatusGroup OBJECT-GROUP
+        OBJECTS { zxAnRuSwUpdateStatusServiceType, zxAnRuSwUpdateStatusEquipType, 
+                  zxAnRuSwUpdateStatusFileName, zxAnRuSwUpdateStatusResult, 
+                  zxAnRuSwUpdateStatusFailReason, zxAnRuSwUpdateStatusProgress, 
+                  zxAnRuSwUpdateStatusSource, zxAnRuSwUpdateStatusTaskName,
+                  zxAnRuSwUpdateStatusModifyTime, 
+                  zxAnRuSwUpdateStatusCurrVersion, 
+                  zxAnRuSwUpdateStatusLastVersion,
+                  zxAnRuSwUpdateStatusFileLocation
+        }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to get Remote Unit 
+             software version update status. Each Remote Unit exists an item in 
+             this table,it records the result of updating Remote Unit version 
+             last time. If Remote Unit version updating is in process then can 
+             get the updating percent."
+        ::= { zxAnRuSwGroups 4 }
+
+    zxAnRuSwImageGroup OBJECT-GROUP
+        OBJECTS {zxAnRuSwImageVersion, zxAnRuSwImageStatus
+        }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to get Remote Unit 
+            software version information.
+            Usually,two instances of the software image managed entity are 
+            contained in an instance of an Remote Unit or equipment managed 
+            entity whose software is independently managed."
+        ::= { zxAnRuSwGroups 5 }
+                
+END 

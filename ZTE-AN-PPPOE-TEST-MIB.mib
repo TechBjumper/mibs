@@ -1,0 +1,316 @@
+ZTE-AN-PPPOE-TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE,enterprises,Integer32
+            FROM SNMPv2-SMI
+        TEXTUAL-CONVENTION, RowStatus,DisplayString,MacAddress
+            FROM SNMPv2-TC
+        InetAddressType, InetAddress, InetAddressPrefixLength
+            FROM INET-ADDRESS-MIB
+        MODULE-COMPLIANCE, OBJECT-GROUP
+            FROM SNMPv2-CONF
+        ifIndex                                     FROM IF-MIB
+        zxAnServiceSecurity                         FROM ZTE-AN-SMI
+        zxAnSubIfIndex                              FROM ZTE-AN-IF-MIB;
+
+    zxAnPppoeTestMib MODULE-IDENTITY
+        LAST-UPDATED "201410200000Z"
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO
+            "Ye Mao  ZTE Corporation
+            Mail: ye.mao@zte.com.cn
+            Tel : +86-21-68897487"
+        DESCRIPTION
+            "The MIB module for the management of PPPoE test."
+        ::= { zxAnServiceSecurity 56}
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1. zxAnPppoeTestGlobalObjects
+-- 2. zxAnPppoeTestObjects
+-- 2.1. zxAnPppoeTestIfConfTable
+-- 2.2. zxAnPppoeTestIfStatusTable
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1. zxAnPppoeTestGlobalObjects
+--------------------------------------------------------------------------------
+    zxAnPppoeTestGlobalObjects     OBJECT IDENTIFIER ::= {zxAnPppoeTestMib 1}
+--------------------------------------------------------------------------------
+    zxAnPppoeTestCapabilities OBJECT-TYPE
+        SYNTAX     BITS {
+            notSupportPppoeTestIfUserVid(0),
+            supportPppoeTestIfUserMacAddress(1)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The PPPoE test compatibility.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             bit 0: value 1 means not supporting zxAnPppoeTestIfUserVid in
+             zxAnPppoeTestIfConfTable.
+             bit 1: value 1 means supporting zxAnPppoeTestIfUserMacAddress in
+             zxAnPppoeTestIfConfTable.
+             NOTE: No recommended to display it in NMS."
+        ::= { zxAnPppoeTestGlobalObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2. zxAnPppoeTestObjects
+--------------------------------------------------------------------------------
+    zxAnPppoeTestObjects        OBJECT IDENTIFIER ::= {zxAnPppoeTestMib 2}
+--------------------------------------------------------------------------------
+-- 2.1. zxAnPppoeTestIfConfTable
+--------------------------------------------------------------------------------
+    zxAnPppoeTestIfConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPppoeTestIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PPPoE test interface configuration table."
+        ::= { zxAnPppoeTestObjects 2 }
+
+    zxAnPppoeTestIfConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnPppoeTestIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnPppoeTestIfConfTable entry."
+        INDEX       { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnPppoeTestIfConfTable 1 }
+
+    ZxAnPppoeTestIfConfEntry ::= SEQUENCE {
+        zxAnPppoeTestIfUserVid             Integer32,
+        zxAnPppoeTestIfPppUserName         DisplayString,
+        zxAnPppoeTestIfPppPassword         DisplayString,
+        zxAnPppoeTestIfAuthMode            INTEGER,
+        zxAnPppoeTestIfTimeout             Integer32,
+        zxAnPppoeTestIfUserMacAddress      MacAddress,
+        zxAnIfPppoeTestIfRowStatus         RowStatus
+    }
+
+    zxAnPppoeTestIfUserVid OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The user VLAN of the interface which will be used in the testing 
+             datagram.
+
+             0 means that test will use the PVID of interface.
+             Non-zero value must be within the tagged VLAN list of interface. If
+             the VLAN cannot be found in the tagged VLAN list of interface, test
+             should fail."
+        DEFVAL { 0 }
+        ::= { zxAnPppoeTestIfConfEntry 1 }
+
+    zxAnPppoeTestIfPppUserName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (1..64))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "User name for PPP authentication."
+        ::= { zxAnPppoeTestIfConfEntry 2 }
+
+    zxAnPppoeTestIfPppPassword OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (1..16))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Password for PPP authentication."
+        ::= { zxAnPppoeTestIfConfEntry 3 }
+
+    zxAnPppoeTestIfAuthMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+            auto(1),
+            pap(2),
+            chap(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The protocol for user authentication.
+
+             Possible values are:
+             auto(1)    - Assigned automatically.
+             pap(2)     - Performing PAP authentication in PPPoE test.
+             chap(3)    - Performing CHAP authentication in PPPoE test."
+        DEFVAL { auto }
+        ::= { zxAnPppoeTestIfConfEntry 4 }
+
+    zxAnPppoeTestIfTimeout OBJECT-TYPE
+        SYNTAX      Integer32(0|10..65535)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PPPoE test timeout value, in seconds.
+             Value 0 means no timeout."
+    DEFVAL { 60 }
+        ::= { zxAnPppoeTestIfConfEntry 5 }
+
+    zxAnPppoeTestIfUserMacAddress OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PPPoE test user MAC address."
+        ::= { zxAnPppoeTestIfConfEntry 6 }
+
+    zxAnIfPppoeTestIfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object is used to create a new row or delete an existing row
+            in this table. Only 'createAndGo' and 'destroy' need to be
+            supported. If test is in progress, agent should reject the 'destroy'
+            request from manager.
+
+            'createAndGo' means creating an entry.
+            'destroy' means deleting an entry."
+        ::= { zxAnPppoeTestIfConfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.2. zxAnPppoeTestIfStatusTable
+--------------------------------------------------------------------------------
+    zxAnPppoeTestIfStatusTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPppoeTestIfStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PPPoE test interface status table."
+        ::= { zxAnPppoeTestObjects 3}
+
+    zxAnPppoeTestIfStatusEntry OBJECT-TYPE
+        SYNTAX      ZxAnPppoeTestIfStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnPppoeTestIfStatusTable entry."
+        INDEX       { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnPppoeTestIfStatusTable 1 }
+
+    ZxAnPppoeTestIfStatusEntry ::= SEQUENCE {
+        zxAnPppoeTestIfStatus             INTEGER,
+        zxAnPppoeTestIfFailReason         INTEGER,
+        zxAnPppoeTestIfBasMac             MacAddress,
+        zxAnPppoeTestIfRemotePeerIpType   InetAddressType,
+        zxAnPppoeTestIfRemotePeerIpAddr   InetAddress,
+        zxAnPppoeTestIfClientIpType       InetAddressType,
+        zxAnPppoeTestIfClientIpAddr       InetAddress,
+        zxAnPppoeTestIfPppoeSessionId     Integer32,
+        zxAnPppoeTestIfBasDelay           Integer32
+        }
+
+    zxAnPppoeTestIfStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+            notStarted(1),
+            inProgress(2),
+            success(3),
+            failed(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "PPPoE test status.
+             Agent need keep this parameter updated so that
+             manager can get the latest status of test by polling.
+
+             Possible values are:
+             notStarted(1) - PPPoE test is not started.
+             inProgress(2) - PPPoE test is in progress.
+             success(3)    - PPPoE test is completed successfully.
+             failed(4)     - PPPoE test failed."
+        ::= { zxAnPppoeTestIfStatusEntry 1 }
+
+    zxAnPppoeTestIfFailReason OBJECT-TYPE
+        SYNTAX      INTEGER {
+            none(1),
+            unknownError(2),
+            hardwareNotSupport(3),
+            vlanNotFound(4),
+            padiTimeout(5),
+            padrTimeout(6),
+            lcpNegotiationFail(7),
+            userAuthFail(8),
+            ipNegotiationFail(9),
+            pppoeTestTimeout(10)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Failed reason for PPPoE test.
+
+             Possible values are:
+             none(1)               - No Error
+             unknownError(2)       - Unknown Error
+             hardwareNotSupport(3) - Hardware Not Supported
+             vlanNotFound(4)       - VLAN Not Found
+             padiTimeout(5)        - PADI Request Timeout
+             padrTimeout(6)        - PADR Request Timeout
+             lcpNegotiationFail(7) - LCP Negotiation Failed
+             userAuthFail(8)       - Incorrect User Name or Password 
+             ipNegotiationFail(9)  - IP Negotiation Failed
+             pppoeTestTimeout(10)  - PPPoE Test Timeout"
+        ::= { zxAnPppoeTestIfStatusEntry 2 }
+   
+    zxAnPppoeTestIfBasMac OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "MAC address of BAS."
+        ::= { zxAnPppoeTestIfStatusEntry 3 }
+
+    zxAnPppoeTestIfRemotePeerIpType OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "IP address type of the remote peer."
+        ::= { zxAnPppoeTestIfStatusEntry 4 }
+
+    zxAnPppoeTestIfRemotePeerIpAddr OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "IP address of the remote peer."
+        ::= { zxAnPppoeTestIfStatusEntry 5 }
+
+    zxAnPppoeTestIfClientIpType OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Client IP address type."
+        ::= { zxAnPppoeTestIfStatusEntry 6 }
+
+    zxAnPppoeTestIfClientIpAddr OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The IP address that is distributed by BAS."
+        ::= { zxAnPppoeTestIfStatusEntry 7 }
+
+
+        
+    zxAnPppoeTestIfPppoeSessionId  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "PPPoE session ID."
+        ::= { zxAnPppoeTestIfStatusEntry 8 }
+
+    zxAnPppoeTestIfBasDelay OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Milliseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "BAS delay.
+             Value 0 means that the device is disconnected to BAS."
+        ::= { zxAnPppoeTestIfStatusEntry 9 }
+END

@@ -1,0 +1,349 @@
+                         --  Protocol private MIB Definitions
+--  if compiles this mib with mg-soft, there must be mpls-vpn.mib and zxr10.mib files and rfc1213.mib in
+--  the same director.
+         
+         
+    ZXR10-HQOS-MIB DEFINITIONS ::= BEGIN
+    
+    IMPORTS		
+		MODULE-IDENTITY,
+		enterprises,
+		OBJECT-TYPE,
+		Integer32,
+		Counter64
+			FROM SNMPv2-SMI
+			
+		DisplayString         
+			FROM SNMPv2-TC;
+	
+--  begin of path	
+	zxr10RosngMIB MODULE-IDENTITY
+    LAST-UPDATED "201101101200Z"
+    ORGANIZATION "ZTE Co."
+    CONTACT-INFO ""
+    DESCRIPTION  
+        "This mib defines management information objects for Rosng"
+    ::= { zxr10 6000 } 
+
+    zte            OBJECT IDENTIFIER ::= { enterprises 3902 }
+    zxr10          OBJECT IDENTIFIER ::= { zte 3} 
+    zxr10QosMIBs   OBJECT IDENTIFIER ::= { zxr10RosngMIB 30} 
+    zxr10hqos      OBJECT IDENTIFIER ::= { zxr10QosMIBs 1}
+	zxr10hqosStatisticsMIB   OBJECT IDENTIFIER ::= { zxr10hqos 5} 		
+-- end of path	
+	
+                   
+-- begin for data type definition 
+
+	HQosIfDirect ::= INTEGER
+		{
+			invalid(0),
+			ingress(1),
+			egress(2)			
+		} 
+	
+-- end for data type definition   
+
+-- The follow part defined some objects which will be used in this qos mib file later    
+
+-- Show qos-statistics Table  
+
+     zxr10hqosStatisticsTable  OBJECT-TYPE
+              SYNTAX  SEQUENCE OF Zxr10hqosStatisticsEntry
+              MAX-ACCESS  not-accessible
+              STATUS  current
+              DESCRIPTION
+                      ""
+               ::= { zxr10hqosStatisticsMIB 1 }
+
+     zxr10hqosStatisticsEntry  OBJECT-TYPE
+              SYNTAX  Zxr10hqosStatisticsEntry
+              MAX-ACCESS  not-accessible
+              STATUS  current
+              DESCRIPTION
+                      "The key of show qos-statistics."
+              INDEX  { zxr10hqosStatisticsInterfaceName,
+                       zxr10hqosStatisticsInterfaceDirection,				   
+                       zxr10hqosStatisticsNodeDepth,
+                       zxr10hqosStatisticsPolicyNameL0,
+                       zxr10hqosStatisticsPolicyNameL1,
+                       zxr10hqosStatisticsPolicyNameL2,
+                       zxr10hqosStatisticsPolicyNameL3,
+                       zxr10hqosStatisticsPolicyNameL4,
+					   zxr10hqosStatisticsClassNameL0,
+					   zxr10hqosStatisticsClassNameL1,
+					   zxr10hqosStatisticsClassNameL2,
+					   zxr10hqosStatisticsClassNameL3,
+					   zxr10hqosStatisticsClassNameL4,
+					   zxr10hqosStatisticsCurOrHistory					   
+                      }
+              ::= { zxr10hqosStatisticsTable 1 }
+
+     Zxr10hqosStatisticsEntry ::=
+              SEQUENCE {
+              			   zxr10hqosStatisticsInterfaceName
+              			   		DisplayString,
+              			   zxr10hqosStatisticsInterfaceIndex
+              			        Integer32,
+	                       zxr10hqosStatisticsInterfaceDirection
+	                       		HQosIfDirect,
+	                       zxr10hqosStatisticsNodeDepth
+	                       		Integer32,
+	                       zxr10hqosStatisticsPolicyNameL0
+	                       		DisplayString,
+	                       zxr10hqosStatisticsPolicyNameL1
+	                       		DisplayString,
+	                       zxr10hqosStatisticsPolicyNameL2
+	                        	DisplayString,
+	                       zxr10hqosStatisticsPolicyNameL3
+	                       		DisplayString,
+	                       zxr10hqosStatisticsPolicyNameL4
+	                       		DisplayString,
+	                       zxr10hqosStatisticsClassNameL0
+	                       		DisplayString,
+	                       zxr10hqosStatisticsClassNameL1
+	                       		DisplayString,
+	                       zxr10hqosStatisticsClassNameL2
+	                       		DisplayString,
+	                       zxr10hqosStatisticsClassNameL3
+	                       		DisplayString,
+	                       zxr10hqosStatisticsClassNameL4
+	                       		DisplayString,	  
+	                       zxr10hqosStatisticsCurOrHistory
+	                       		INTEGER,                      
+	                       zxr10hqosStatisticsTotalPacketsIn
+	                       		Counter64,
+	                       zxr10hqosStatisticsTotalPacketsOut
+	                       		Counter64,
+	                       zxr10hqosStatisticsTotalPacketsDrop
+	                       		Counter64,
+	                       zxr10hqosStatisticsTotalBytesIn
+	                       		Counter64,
+	                       zxr10hqosStatisticsTotalBytesOut
+	                       		Counter64,
+	                       zxr10hqosStatisticsTotalBytesDrop
+	                       		Counter64,
+	                       zxr10hqosStatisticsBytesInRate
+	                       		Counter64,
+	                       zxr10hqosStatisticsBytesOutRate
+	                       		Counter64,
+	                       zxr10hqosStatisticsBytesDropRate
+	                       		Counter64,
+	                       zxr10hqosStatisticsQueueMaxDepth
+	                       		Counter64,
+	                       zxr10hqosStatisticsQueueCurDepth	
+	                       		Counter64	                                                                        
+                	   }
+
+      
+	 zxr10hqosStatisticsInterfaceName  OBJECT-TYPE
+  			SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 1 }   
+              
+	 zxr10hqosStatisticsInterfaceIndex  OBJECT-TYPE
+       		SYNTAX  Integer32
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 2 } 
+              
+     zxr10hqosStatisticsInterfaceDirection  OBJECT-TYPE
+     		SYNTAX  HQosIfDirect
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 3 }      
+              
+     zxr10hqosStatisticsNodeDepth  OBJECT-TYPE     		
+     		SYNTAX  Integer32
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 4 } 
+              
+     zxr10hqosStatisticsPolicyNameL0  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 5 } 
+     		
+     zxr10hqosStatisticsPolicyNameL1  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 6 } 
+              
+     zxr10hqosStatisticsPolicyNameL2  OBJECT-TYPE
+      	    SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 7 } 
+              
+     zxr10hqosStatisticsPolicyNameL3  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 8 } 
+              
+     zxr10hqosStatisticsPolicyNameL4  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 9 } 
+              
+     zxr10hqosStatisticsClassNameL0  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 10 }
+     		
+     zxr10hqosStatisticsClassNameL1  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 11 }
+            
+     zxr10hqosStatisticsClassNameL2  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 12 }
+            
+     zxr10hqosStatisticsClassNameL3  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 13 }
+            
+     zxr10hqosStatisticsClassNameL4  OBJECT-TYPE
+     		SYNTAX  DisplayString
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 14 }    
+            
+     zxr10hqosStatisticsCurOrHistory  OBJECT-TYPE     		
+     		SYNTAX  INTEGER
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 15 }
+                   
+     zxr10hqosStatisticsTotalPacketsIn  OBJECT-TYPE     		
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 16 }
+            
+     zxr10hqosStatisticsTotalPacketsOut  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 17 }
+
+     zxr10hqosStatisticsTotalPacketsDrop  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 18 }
+
+     zxr10hqosStatisticsTotalBytesIn  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 19 }
+
+     zxr10hqosStatisticsTotalBytesOut  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 20 }
+
+     zxr10hqosStatisticsTotalBytesDrop  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 21 }
+
+     zxr10hqosStatisticsBytesInRate  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 22 }
+
+     zxr10hqosStatisticsBytesOutRate  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 23 }
+
+     zxr10hqosStatisticsBytesDropRate  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 24 }
+
+     zxr10hqosStatisticsQueueMaxDepth  OBJECT-TYPE
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 25 }
+
+     zxr10hqosStatisticsQueueCurDepth  OBJECT-TYPE	
+     		SYNTAX  Counter64
+            MAX-ACCESS  read-only 
+            STATUS  current
+            DESCRIPTION
+                    ""
+            ::= { zxr10hqosStatisticsEntry 26 }
+	                     		
+-- Show qos-statistics Table Ends
+
+END

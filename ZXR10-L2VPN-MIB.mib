@@ -1,0 +1,1600 @@
+-- *****************************************************************
+-- ZXR10_L2VPN_MIB.mib 
+-- MPLS Layer 2 Virtual Private Networks MIB Definitions  
+-- yaojie10102482
+-- 2010-05-12
+--
+-- Copyright (c) 1985-2010 by ZTE Corp.
+-- All rights reserved.
+-- *****************************************************************
+--
+
+ZXR10-L2VPN-MIB DEFINITIONS ::= BEGIN  
+     
+IMPORTS
+       OBJECT-TYPE,MODULE-IDENTITY,             
+       Integer32,Counter32,Unsigned32,enterprises,
+       IpAddress
+                                           FROM SNMPv2-SMI
+       DisplayString,TEXTUAL-CONVENTION
+                                           FROM SNMPv2-TC; 
+             
+zte MODULE-IDENTITY
+         LAST-UPDATED "201005170000Z" 
+         ORGANIZATION "ZTE Corporation"
+         CONTACT-INFO
+             "ZTE Corporation
+              Nanjing Institute of ZTE Corporation
+
+              No.68 Zijinghua Rd. Yuhuatai District, Nanjing, China
+
+              Tel: +86-25-52870000"
+			  
+         DESCRIPTION
+             "This MIB contains managed object definitions for the ZXROSng L2vpn"
+			 
+			 
+         ::= { enterprises 3902 }      
+
+      zxr10 OBJECT IDENTIFIER ::= { zte 3} 
+      zxr10l2vpn OBJECT IDENTIFIER ::= { zxr10 104}  
+      zxr10l2vpnObjects OBJECT IDENTIFIER ::= { zxr10l2vpn 10} 
+      zxr10l2vpnGlobalPara OBJECT IDENTIFIER ::= { zxr10l2vpnObjects 10}
+      
+      
+L2vpnPWType ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d"
+        STATUS       current
+        DESCRIPTION
+            "L2vpn PW Type. Assigned values are specified in 'IANA Allocations 
+             for Pseudowire Edge to Edge Emulation (PWE3)"
+        SYNTAX INTEGER {
+		    unknown(0),
+            fr-dlci-martini(1),
+            aal5-sdu(2),
+            atm-cell(3),
+            vlan(4),
+            ethernet(5),
+            hdlc(6),
+            ppp(7),
+            sdh-cesom(8),
+            atm-vccn(9),
+            atm-vpcn(10),
+            ip(11),
+            atm-vcc1(12),
+            atm-vpc1(13),
+            aal5-pdu(14),
+            fr-port(15),
+            sdh-ceop(16),
+            e1(17),
+            t1-ds1(18),
+            e3(19),
+            t3-ds3(20),
+            cesopsn(21),
+            tdm-aal1(22),
+            tdm-with-cas(23),
+            tdm-aal2(24),
+            fr-dlct(25)            
+         }     
+         
+L2vpnVplsPolicy ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d"
+        STATUS       current
+        DESCRIPTION
+            "L2vpn Vpls Policy."
+        SYNTAX INTEGER {
+		    tunnelling(1),
+		    discarding(2),
+		    terminating(3),
+		    tunnellingMonitor(4)            
+         }
+
+--********************************************         
+--definition of tables::  
+--********************************************    
+--*************zxr10L2vpnGlobalPwPara*************** 
+zxr10L2vpnGlobalPWCapatity OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                " The summary information about max_num of PWs'configuration."
+            ::= { zxr10l2vpnGlobalPara 1 }   
+                 
+zxr10L2vpnGlobalPWUsed OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)    
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The summary information about current_num of PWs'configuration."
+            ::= { zxr10l2vpnGlobalPara 2 } 
+                       
+--*************zxr10L2vpnEnable*************** 
+zxr10L2vpnEnable OBJECT-TYPE
+            SYNTAX INTEGER {
+            disable(0),
+            enable(1)           
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "Enable L2VPN service."
+            ::= { zxr10l2vpnObjects 20 }    
+                       
+--*************zxr10L2vpnSduTable*************** 
+zxr10L2vpnSduTable OBJECT-TYPE
+            SYNTAX     SEQUENCE OF Zxr10L2vpnSduEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "Sdu Table. This table contains
+                 one entry per sdu table."        
+            ::= { zxr10l2vpnObjects 1 }
+
+zxr10L2vpnSduEntry OBJECT-TYPE
+            SYNTAX     Zxr10L2vpnSduEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "The parameter of a Sdu entity containing "
+            INDEX { zxr10L2vpnSduServiceName, zxr10L2vpnSduName }
+            ::= { zxr10L2vpnSduTable 1 }
+
+Zxr10L2vpnSduEntry ::= SEQUENCE {
+            zxr10L2vpnSduServiceName                DisplayString,
+            zxr10L2vpnSduName                       DisplayString,
+            zxr10L2vpnSduServiceType                INTEGER,
+            zxr10L2vpnSduRedandancyMgrName          DisplayString,
+            zxr10L2vpnSduRedundancyPrimaryPwPeer    IpAddress,
+            zxr10L2vpnSduRedundancyPrimaryPwVcid    Unsigned32,
+            zxr10L2vpnSduRedundancyPrimaryPwVcType  L2vpnPWType,
+            zxr10L2vpnSduRedundancyBackupPwPeer     IpAddress,
+            zxr10L2vpnSduRedundancyBackupPwVcid     Unsigned32,
+            zxr10L2vpnSduRedundancyBackupPwVcType   L2vpnPWType
+            }
+
+zxr10L2vpnSduServiceName OBJECT-TYPE
+            SYNTAX       DisplayString
+            MAX-ACCESS   read-only
+            STATUS       current
+            DESCRIPTION 
+                "The name of the service instance.It consists 
+                of 'Forwarder' modules connected by pseudowires
+                 and Attach Circuit."
+            ::= { zxr10L2vpnSduEntry 1 }
+
+zxr10L2vpnSduName OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The name of Service Distribution Unit (SDU)."
+            ::= { zxr10L2vpnSduEntry 2 }
+
+zxr10L2vpnSduServiceType OBJECT-TYPE
+            SYNTAX INTEGER {
+            unknown(0),
+            vpls(1),
+            vpws(2),
+            mspw(3),
+            enhanced-vpws(6)            
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The type of service instance.There are several 
+                 types of L2VPNs:(1)Virtual Private LAN Service(VPLS),
+                 and (2)Ethernet over PW,and (3)Multi-segment Pseudowire(MSPW),
+                 and (4)Enhanced-Ethernet over Pseudowire"
+            ::= { zxr10L2vpnSduEntry 3 }
+            
+zxr10L2vpnSduRedandancyMgrName OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The name of  Redundency-manager."
+            ::= { zxr10L2vpnSduEntry 4 } 
+ 
+zxr10L2vpnSduRedundancyPrimaryPwPeer OBJECT-TYPE
+            SYNTAX      IpAddress
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The PW's remote endpoint address."
+            ::= { zxr10L2vpnSduEntry 5 }
+            
+zxr10L2vpnSduRedundancyPrimaryPwVcid OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A non-zero 32-bit connection ID that, together 
+                 with the PW type, identifies a particular PW.  
+                 Note that the PW ID and the PW type MUST be the 
+                 same at both endpoints."
+            ::= { zxr10L2vpnSduEntry 6 }  
+            
+zxr10L2vpnSduRedundancyPrimaryPwVcType OBJECT-TYPE
+            SYNTAX L2vpnPWType
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A 15-bit quantity containing a value that represents 
+                 the type of PW. Assigned values are specified in 'IANA 
+                 Allocations for Pseudowire Edge to Edge Emulation (PWE3)'."
+            ::= { zxr10L2vpnSduEntry 7 }  
+            
+zxr10L2vpnSduRedundancyBackupPwPeer OBJECT-TYPE
+            SYNTAX      IpAddress
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The PW's remote endpoint address."
+            ::= { zxr10L2vpnSduEntry 8 }
+
+zxr10L2vpnSduRedundancyBackupPwVcid OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A non-zero 32-bit connection ID that, together with the PW type, 
+                 identifies a particular PW.  Note that the PW ID and the PW type 
+                 MUST be the same at both endpoints."
+            ::= { zxr10L2vpnSduEntry 9 }
+
+zxr10L2vpnSduRedundancyBackupPwVcType OBJECT-TYPE
+            SYNTAX L2vpnPWType
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A 15-bit quantity containing a value that represents the type of PW.
+                 Assigned values are specified in 'IANA Allocations for Pseudowire Edge 
+                 to Edge Emulation (PWE3)'."
+            ::= { zxr10L2vpnSduEntry 10 }
+
+--*************zxr10L2vpnSacTable*************** 
+zxr10L2vpnSacTable OBJECT-TYPE
+            SYNTAX     SEQUENCE OF Zxr10L2vpnSacEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "Sac Table. This table contains
+                 one entry per Sac table."        
+            ::= { zxr10l2vpnObjects 2 }
+
+zxr10L2vpnSacEntry OBJECT-TYPE
+            SYNTAX     Zxr10L2vpnSacEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "The parameter of a Sac entity containing "
+            INDEX { zxr10L2vpnSacServiceName, zxr10L2vpnSacName }
+            ::= { zxr10L2vpnSacTable 1 }
+
+Zxr10L2vpnSacEntry ::= SEQUENCE {
+            zxr10L2vpnSacServiceName                DisplayString,
+            zxr10L2vpnSacName                       DisplayString,
+            zxr10L2vpnSacServiceType                INTEGER,
+            zxr10L2vpnSacServiceDefine              INTEGER,
+            zxr10L2vpnSacEthSwitchSplitHorizone     INTEGER,            
+            zxr10L2vpnSacEthIngressAdjustType       INTEGER,
+            zxr10L2vpnSacEthPushedTag               Integer32,
+            zxr10L2vpnSacEthRewriteTargetTag        Integer32,
+            zxr10L2vpnSacTdmJitterBuffer            Integer32,
+            zxr10L2vpnSacTdmDistributePeriod        Integer32,
+            zxr10L2vpnSacTdmTimeslots               Unsigned32,
+            zxr10L2vpnSacTdmStructureType           INTEGER,
+            zxr10L2vpnSacEthSwitchGroupID           Integer32,
+	    zxr10L2vpnSacInterworking               INTEGER,
+	    zxr10L2vpnSacInterworkingIpLocalCeMac   DisplayString
+            }
+
+zxr10L2vpnSacServiceName OBJECT-TYPE
+            SYNTAX       DisplayString
+            MAX-ACCESS   read-only
+            STATUS       current
+            DESCRIPTION 
+                "The name of the service instance.It consists of 
+                'Forwarder' modules connected by pseudowires and Attach Circuit."
+            ::= { zxr10L2vpnSacEntry 1 }
+
+zxr10L2vpnSacName OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The name of Service Attachment Circuit(SAC)."
+            ::= { zxr10L2vpnSacEntry 2 }
+
+zxr10L2vpnSacServiceType OBJECT-TYPE
+            SYNTAX INTEGER {
+            unknown(0),
+            vpls(1),
+            vpws(2),
+            vlss(4),
+            enhanced-vpws(6)            
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The type of service instance.There are several 
+                types of L2VPNs:(1)Virtual Private LAN Service(VPLS),
+                and (2)Virtual Private Wire Service(VPWS),and 
+                (3)Virtual Local Switching Service(VLSS),and 
+                (4)Enhanced-Virtual Private Wire Service(Enhanced-VPWS) ;"
+            ::= { zxr10L2vpnSacEntry 3 }
+
+zxr10L2vpnSacServiceDefine OBJECT-TYPE
+            SYNTAX INTEGER { 
+            ethernt(1),
+            tdm(2),
+            ppp(3),
+            hdlc(4),
+            fr(5)
+            }
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The parameter of service accesse.There are several 
+                 parameters of service accesse:(1)ethernt,(2)tdm,
+                 (3)ppp,(4)hdlc,(5)fr."
+            ::= { zxr10L2vpnSacEntry 4 } 
+
+zxr10L2vpnSacEthSwitchSplitHorizone OBJECT-TYPE
+            SYNTAX INTEGER { 
+            null(0),
+            on(1),
+            off(2)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "Split-horizon attribute which used in E-tree service 
+                 includes two types client/server "
+            ::= { zxr10L2vpnSacEntry 5 }
+
+zxr10L2vpnSacEthIngressAdjustType OBJECT-TYPE
+            SYNTAX INTEGER {
+            unknown(0),
+            needless(1),
+            push(2),
+            pop-outermost(3),
+            rewrite(4)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The Type of VLAN tag ingress-adjustment.It consists 
+                 of (1)needless,(2)push,(3)pop-outermost,(4)rewrite"
+            ::= { zxr10L2vpnSacEntry 20 }
+
+zxr10L2vpnSacEthPushedTag OBJECT-TYPE
+            SYNTAX      Integer32(0..4094)            
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A service-delimiting tag which pushed onto the incoming packets."
+            ::= { zxr10L2vpnSacEntry 21 } 
+            
+zxr10L2vpnSacEthRewriteTargetTag OBJECT-TYPE
+            SYNTAX      Integer32(1..4094)            
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A VLAN tag which rewirted to replace the service-delimiting tags."
+            ::= { zxr10L2vpnSacEntry 22 }
+
+zxr10L2vpnSacTdmJitterBuffer OBJECT-TYPE
+            SYNTAX      Integer32(2..64)            
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The jitter-buffer size of TDM emulation."
+            ::= { zxr10L2vpnSacEntry 23 }   
+
+zxr10L2vpnSacTdmDistributePeriod OBJECT-TYPE
+            SYNTAX      Integer32(1..64)            
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "Tthe period of distributing TDM packets to remote end-point."
+            ::= { zxr10L2vpnSacEntry 24 } 
+
+zxr10L2vpnSacTdmTimeslots OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)            
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The time of TDM slots."
+            ::= { zxr10L2vpnSacEntry 25 }                                      
+
+zxr10L2vpnSacTdmStructureType OBJECT-TYPE
+            SYNTAX INTEGER {
+            aware(1),
+            agnostic(2),
+            aware-with-cas(3)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The structure type of TDM emulation."
+            ::= { zxr10L2vpnSacEntry 26 }   
+
+zxr10L2vpnSacEthSwitchGroupID OBJECT-TYPE
+            SYNTAX      Integer32(0..64)            
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "Split-horizon-Group attribute. "
+            ::= { zxr10L2vpnSacEntry 27 }    
+            
+zxr10L2vpnSacInterworking OBJECT-TYPE
+            SYNTAX       INTEGER{ 
+            none(0),
+            ip(1),
+            ethernet(2)
+            }            
+            MAX-ACCESS   read-only
+            STATUS       current
+            DESCRIPTION 
+                "The name of SacInterworking."
+            ::= { zxr10L2vpnSacEntry 28 }    
+
+zxr10L2vpnSacInterworkingIpLocalCeMac OBJECT-TYPE
+            SYNTAX       DisplayString
+            MAX-ACCESS   read-only
+            STATUS       current
+            DESCRIPTION 
+                "The LocalCeMac of SacInterworking."
+            ::= { zxr10L2vpnSacEntry 29 } 			
+			
+--*************zxr10L2vpnRedundancyTable*************** 
+zxr10L2vpnRedundancyTable OBJECT-TYPE
+            SYNTAX     SEQUENCE OF Zxr10L2vpnRedundancyEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "Redundancy Table. This table contains
+                 one entry per Redundancy table."        
+            ::= { zxr10l2vpnObjects 3 }
+
+zxr10L2vpnRedundancyEntry OBJECT-TYPE
+            SYNTAX     Zxr10L2vpnRedundancyEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "The parameter of a Redundancy entity containing "
+            INDEX { zxr10L2vpnRedundancyName }
+            ::= { zxr10L2vpnRedundancyTable 1 }
+
+Zxr10L2vpnRedundancyEntry ::= SEQUENCE { 
+            zxr10L2vpnRedundancyName               DisplayString,
+            zxr10L2vpnRedundancySduName            DisplayString,
+            zxr10L2vpnRedundancyProtectMode        INTEGER,
+            zxr10L2vpnRedundancyPfsNegoMode        INTEGER,
+            zxr10L2vpnRedundancyProtectPolicy      INTEGER,
+            zxr10L2vpnRedundancyProtectDelayTime   Integer32,
+            zxr10L2vpnRedundancyRevertPolicy       INTEGER,
+            zxr10L2vpnRedundancyRevertDelayTime    Integer32,
+            zxr10L2vpnRedundancyActivePWs          INTEGER,
+            zxr10L2vpnRedundancyStandbyPWs         INTEGER,
+            zxr10L2vpnRedundancyInvalidPWs         INTEGER,
+            zxr10L2vpnRedundancyProtectionCount    Counter32,
+            zxr10L2vpnRedundancyLastProtectionTime Unsigned32
+            }
+
+zxr10L2vpnRedundancyName OBJECT-TYPE
+            SYNTAX       DisplayString
+            MAX-ACCESS   read-only
+            STATUS       current
+            DESCRIPTION 
+                "The name of redundency-management."
+            ::= { zxr10L2vpnRedundancyEntry 1 }
+
+zxr10L2vpnRedundancySduName OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The name of Service Distribution Unit (SDU) 
+                belongs to the exact redundency-management instance."
+            ::= { zxr10L2vpnRedundancyEntry 2 }
+
+zxr10L2vpnRedundancyProtectMode OBJECT-TYPE
+            SYNTAX INTEGER {
+            oneByOne(1),
+            onePlusOne(2)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The protectmode of redundency-management instance. 
+                 There are two modes: (1)oneByOne, (2)onePlusOne"
+            ::= { zxr10L2vpnRedundancyEntry 3 }
+            
+zxr10L2vpnRedundancyPfsNegoMode OBJECT-TYPE
+            SYNTAX INTEGER {
+            unsupported(1),
+            independent(2),
+            master(3),
+            slave(4)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "Configure the negotiation mode which include four 
+                 modes :(1) unsupported, (2)independent, (3)master, (4)slave."
+            ::= { zxr10L2vpnRedundancyEntry 4 } 
+
+zxr10L2vpnRedundancyProtectPolicy OBJECT-TYPE
+            SYNTAX INTEGER {
+            immediately(1),
+            delayed(2)            
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The protect-policy of transforming primary-pw 
+                 into backup-pw.There are two policies:(1)immediately, (2)delayed."
+            ::= { zxr10L2vpnRedundancyEntry 5 }
+
+zxr10L2vpnRedundancyProtectDelayTime OBJECT-TYPE
+            SYNTAX      Integer32(10..180)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The time of transforming primary-pw  into backup-pw."
+            ::= { zxr10L2vpnRedundancyEntry 6 }  
+
+zxr10L2vpnRedundancyRevertPolicy OBJECT-TYPE
+            SYNTAX INTEGER {
+            immediately(1),
+            delayed(2),
+            never(3)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The protectpolicy of transforming primary-pw 
+                 from backup-pw. There are two policies:(1)immediately, (2)delayed."
+            ::= { zxr10L2vpnRedundancyEntry 7 }
+
+zxr10L2vpnRedundancyRevertDelayTime OBJECT-TYPE
+            SYNTAX      Integer32(10..180)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The time of transforming primary-pw from backup-pw."
+            ::= { zxr10L2vpnRedundancyEntry 8 }
+
+zxr10L2vpnRedundancyActivePWs OBJECT-TYPE
+            SYNTAX INTEGER {
+            primary(1),
+            backup(2),
+            none(3)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The statues of current active-pws.There are 
+                  three statues:(1)primary,(2)backup,(3)none."
+            ::= { zxr10L2vpnRedundancyEntry 9 }
+
+zxr10L2vpnRedundancyStandbyPWs OBJECT-TYPE
+            SYNTAX INTEGER {
+            primary(1),
+            backup(2),
+            none(3)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The statues of current standby-pws.There are 
+                  three statues:(1)primary,(2)backup,(3)none."
+            ::= { zxr10L2vpnRedundancyEntry 10 } 
+
+zxr10L2vpnRedundancyInvalidPWs OBJECT-TYPE
+            SYNTAX INTEGER {
+            primary(1),
+            backup(2),
+            none(3)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The statues of current invalid-pws.There are
+                  three statues:(1)primary,(2)backup,(3)none."
+            ::= { zxr10L2vpnRedundancyEntry 11 }
+			
+zxr10L2vpnRedundancyProtectionCount OBJECT-TYPE
+            SYNTAX      Counter32
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The total  number of the pws switchover.
+                 Transforming primary-pw into backup-pw or 
+                 transforming primary-pw from backup-pw means one."
+            ::= { zxr10L2vpnRedundancyEntry 12 }
+			
+zxr10L2vpnRedundancyLastProtectionTime OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The time of the last switchover, which 
+                 ransform primary-pw into backup-pw or 
+                 transform primary-pw from backup-pw."
+            ::= { zxr10L2vpnRedundancyEntry 13 }
+
+--*************zxr10L2vpnPwTable*************** 
+zxr10L2vpnPwTable OBJECT-TYPE
+            SYNTAX     SEQUENCE OF Zxr10L2vpnPwEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "Pw Table. This table contains
+                 one entry per pw table."        
+            ::= { zxr10l2vpnObjects 4 }
+
+zxr10L2vpnPwEntry OBJECT-TYPE
+            SYNTAX     Zxr10L2vpnPwEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "The parameter of a pw entity containing statistics 
+                information about a particular PW."
+            INDEX { zxr10L2vpnPwPeer, zxr10L2vpnPwVcid, zxr10L2vpnPwVcType }
+            ::= { zxr10L2vpnPwTable 1 }
+
+Zxr10L2vpnPwEntry ::= SEQUENCE {
+            zxr10L2vpnPwPeer              IpAddress,
+            zxr10L2vpnPwVcid              Unsigned32,
+            zxr10L2vpnPwVcType            L2vpnPWType,
+            zxr10L2vpnPwSduName           DisplayString,
+            zxr10L2vpnPwServiceName       DisplayString,
+            zxr10L2vpnPwServiceType       INTEGER,
+            zxr10L2vpnPwIsMspwSegment     INTEGER,
+            zxr10L2vpnPwLocalLabel        Integer32,
+            zxr10L2vpnPwRemoteLabel       Integer32,
+            zxr10L2vpnPwSignalType        INTEGER,	
+        	zxr10L2vpnPwLocalGroupId	  Integer32,
+        	zxr10L2vpnPwLocalCbit	      INTEGER,
+        	zxr10L2vpnPwLocalMTU	      Integer32,
+        	zxr10L2vpnPwLocalDescription  DisplayString,
+        	zxr10L2vpnPwLocalStatusWord	  Unsigned32,
+        	zxr10L2vpnPwLocalStatusSignalAbility INTEGER,  
+            zxr10L2vpnPwRemoteGroupId     Integer32,
+        	zxr10L2vpnPwRemoteCbit        INTEGER,
+        	zxr10L2vpnPwRemoteMTU         Integer32,
+        	zxr10L2vpnPwRemoteDescription DisplayString,
+         	zxr10L2vpnPwRemoteStatusWord  Unsigned32,
+        	zxr10L2vpnPwRemoteStatusSignalAbility INTEGER, 
+        	zxr10L2vpnPwNegoedCbit        INTEGER,
+        	zxr10L2vpnPwNegoedMTU         Integer32,
+        	zxr10L2vpnPwNegoedStatusSignalAbility   INTEGER,
+        	zxr10L2vpnPwSignalState       INTEGER,     
+        	zxr10L2vpnPwVccvLocalParas    Unsigned32, 
+        	zxr10L2vpnPwVccvRemoteParas   Unsigned32,
+        	zxr10L2vpnPwVccvNegoedParas   Unsigned32,			
+            zxr10L2vpnPwPsnOutLabelDepth  Integer32,
+            zxr10L2vpnPwPsnOutLabel1      Integer32,
+            zxr10L2vpnPwPsnOutLabel2      Integer32,
+            zxr10L2vpnPwPsnOutLabel3      Integer32,
+            zxr10L2vpnPwPsnTunnelType     INTEGER,
+            zxr10L2vpnPwPsnTunnelId       Integer32,
+            zxr10L2vpnPwSwitchMacWithdraw INTEGER,
+            zxr10L2vpnPwServiceState      INTEGER,
+            zxr10L2vpnPwWorkState         INTEGER,
+	    zxr10L2vpnPwSwitchSplitHorizone   INTEGER,
+            zxr10L3vpnPwSwitchGroupID     Integer32
+            }
+
+zxr10L2vpnPwPeer OBJECT-TYPE
+            SYNTAX      IpAddress
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The PW's remote endpoint address."
+            ::= { zxr10L2vpnPwEntry 1 }
+			
+zxr10L2vpnPwVcid OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A non-zero 32-bit connection ID that, together 
+                 with the PW type, identifies a particular PW.  
+                 Note that the PW ID and the PW type MUST be the 
+                 same at both endpoints."
+            ::= { zxr10L2vpnPwEntry 2 }
+
+zxr10L2vpnPwVcType OBJECT-TYPE
+            SYNTAX   L2vpnPWType
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                "A 15-bit quantity containing a value that represents
+                 the type of PW. Assigned values are specified in 'IANA 
+                 Allocations for Pseudowire Edge to Edge Emulation (PWE3)'."
+            ::= { zxr10L2vpnPwEntry 3 }			
+			
+zxr10L2vpnPwSduName OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The name of Service Distribution Unit (SDU)."
+            ::= { zxr10L2vpnPwEntry 4 } 
+
+zxr10L2vpnPwServiceName OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The name of the service instance.It consists 
+                 of 'Forwarder' modules connected by pseudowires 
+                 and Attach Circuit."
+            ::= { zxr10L2vpnPwEntry 5 }
+
+zxr10L2vpnPwServiceType OBJECT-TYPE
+            SYNTAX      INTEGER{
+            unknown(0),
+            vpls(1),
+            vpws(2),
+            mspw(3),
+            vlss(4),
+            enhanced-vpws(6)            
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The type of service instance.There are several 
+                 types of L2VPNs:(1)Virtual Private LAN Service(VPLS),
+                 and (2)Ethernet over PW,and (3)Multi-segment Pseudowire(MSPW),
+                 and (4)Virtual Local Switching Service(VLSS),and 
+                 (5)Enhanced-Ethernet over Pseudowire"
+            ::= { zxr10L2vpnPwEntry 6 }  
+
+zxr10L2vpnPwIsMspwSegment OBJECT-TYPE
+            SYNTAX      INTEGER{
+            first(1),
+            second(2),
+            none(3)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The MSPW's ability  weather the PW is MSPW's member."
+            ::= { zxr10L2vpnPwEntry 7 }  
+
+zxr10L2vpnPwLocalLabel OBJECT-TYPE
+            SYNTAX      Integer32(16..1048575)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The PW's local label.When egress LER receives a packet 
+                 over a pseudowire,the PW's local label must be able to 
+                 determine that the packet was in fact  received over a 
+                 pseudowire associate with a particular pseudowire,
+                 and disposites the packet.In an MPLS-enabled IP network,
+                 a PW local label is an MPLS label used to identify packet 
+                 with a PW that belongs to a particular Virtual Private Network."
+            ::= { zxr10L2vpnPwEntry 8 }
+
+zxr10L2vpnPwRemoteLabel OBJECT-TYPE
+            SYNTAX      Integer32(16..1048575)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The PW's remote label.When ingress LER sends a Layer 2 PDU 
+                 to remote egress LER,it creates an MPLS packets by adding 
+                 the PW's remote label to the packet,thus creating the first 
+                 entry of the label stack.The PW's remote label is not visible 
+                 again until the MPLS packet reaches the egress LER."
+            ::= { zxr10L2vpnPwEntry 9 }
+
+zxr10L2vpnPwSignalType OBJECT-TYPE
+            SYNTAX    INTEGER { 
+            static(1),
+            fec128(2),
+            fec129(3)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The type of signaling,including (1)static PW,and (2) the 
+                 Pwid FEC Element(FEC type 128),and the Generlized Pwid FEC 
+                 Element(FEC type 129)."
+            ::= { zxr10L2vpnPwEntry 10 }
+			
+zxr10L2vpnPwLocalGroupId OBJECT-TYPE
+            SYNTAX   Integer32(0..65535)
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's local GroupId value.It is an arbitrary 32-bit value that 
+                 represents a group of PWs that is used to create groups in the PW 
+                 space.The group ID is intended to be used as a port index, or a 
+                 virtual tunnel index.To simplify configuration, a particular PW ID 
+                 at ingress could be part of the virtual tunnel for transport to the 
+                 egress router The Group ID is very useful for sending wild card 
+                 label withdrawals, or PW wild card status notification messages to
+                 remote PEs upon physical port failure."
+            ::= { zxr10L2vpnPwEntry 11 } 
+
+zxr10L2vpnPwLocalCbit OBJECT-TYPE
+            SYNTAX     	INTEGER{
+            off(0),
+            on(1)    
+            }
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's local ability weather it is supporting CBit.
+                  The bit (C) is used to flag the presence of a control
+                  word as follows:C = 1  Control word present on this PW.
+                  C = 0  No control word present on this PW."
+            ::= { zxr10L2vpnPwEntry 12 }
+            
+zxr10L2vpnPwLocalMTU OBJECT-TYPE
+            SYNTAX     	Integer32(0..65535)
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's local MTU value.This is the Maximum Transmission Unit,
+                  excluding encapsulation overhead, of the egresspacket interface 
+                  that will be transmitting the decapsulated PDUthat is received 
+                  from the MPLS-enabled network.  This parameter is applicable 
+                  only to PWs transporting packets and is REQUIRED for these PW types.
+                  If this parameter does not match in both directions of a specific PW, 
+                  that PW MUST NOT be enabled."
+            ::= { zxr10L2vpnPwEntry 13 }  
+            
+zxr10L2vpnPwLocalDescription OBJECT-TYPE
+            SYNTAX     	DisplayString
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's local descripton. This arbitrary, and OPTIONAL, 
+                 interface description string is used to send a human-readable 
+                 administrative string describing the interface to the remote.  
+                 This parameter is OPTIONAL and is applicable to all PW types.
+                 The interface description parameter string length is variable 
+                 and can be from 0 to 80 octets.  Human-readable text MUST be 
+                 provided in the UTF-8 charset using the Default Language."
+            ::= { zxr10L2vpnPwEntry 14 }  
+            
+zxr10L2vpnPwLocalStatusWord OBJECT-TYPE
+            SYNTAX     	Unsigned32(0..4294967295)
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's local status value. Each bit in the status code field
+                 can be used to indicate a single failure or an event. When a PW 
+                 is first set up, the PEs MUST attempt to negotiate the usage of 
+                 the PW status TLV."
+            ::= { zxr10L2vpnPwEntry 15 }
+
+zxr10L2vpnPwLocalStatusSignalAbility OBJECT-TYPE
+            SYNTAX     	INTEGER{
+            osbits(1),
+            pfsbit(2),
+            rssbit(3),
+            none(4)
+            }
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's local status signal ability.
+                  Osbits represents support pw operational status notification,
+                  PFSbit represents support preferred forwarding status notification,
+                  RSSbit represents support requested switchover status notification,
+                  None represents do not support any pw status notification."
+            ::= { zxr10L2vpnPwEntry 16 }
+
+zxr10L2vpnPwRemoteGroupId OBJECT-TYPE
+            SYNTAX     	Integer32(0..65535)
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's remote GroupId value.It is an arbitrary 32-bit value that 
+                 represents a group of PWs that is used to create groups in the PW 
+                 space.The group ID is intended to be used as a port index, or a 
+                 virtual tunnel index.To simplify configuration, a particular PW ID 
+                 at ingress could be part of the virtual tunnel for transport to the 
+                 egress router The Group ID is very useful for sending wild card 
+                 label withdrawals, or PW wild card status notification messages to
+                 remote PEs upon physical port failure."
+            ::= { zxr10L2vpnPwEntry 17 }
+
+zxr10L2vpnPwRemoteCbit OBJECT-TYPE
+            SYNTAX        INTEGER { 
+            off(0),
+            on(1)}  
+            MAX-ACCESS    read-only
+            STATUS        current
+            DESCRIPTION
+                 "The PW's remote ability weather it is supporting CBit.
+                  The bit (C) is used to flag the presence of a control
+                  word as follows:C = 1  Control word present on this PW.
+                  C = 0  No control word present on this PW."
+            ::= { zxr10L2vpnPwEntry 18 }
+            
+zxr10L2vpnPwRemoteMTU OBJECT-TYPE
+            SYNTAX        Integer32(0..65535)
+            MAX-ACCESS    read-only
+            STATUS        current          
+            DESCRIPTION
+                 "The PW's remote MTU value.This is the Maximum Transmission Unit,
+                  excluding encapsulation overhead, of the egresspacket interface 
+                  that will be transmitting the decapsulated PDUthat is received 
+                  from the MPLS-enabled network.  This parameter is applicable 
+                  only to PWs transporting packets and is REQUIRED for these PW types.
+                  If this parameter does not match in both directions of a specific PW, 
+                  that PW MUST NOT be enabled."
+            ::= { zxr10L2vpnPwEntry 19 }
+
+zxr10L2vpnPwRemoteDescription OBJECT-TYPE             
+            SYNTAX        DisplayString
+            MAX-ACCESS    read-only
+            STATUS        current                
+            DESCRIPTION
+                 "The PW's remote descripton. This arbitrary, and OPTIONAL, 
+                 interface description string is used to send a human-readable 
+                 administrative string describing the interface to the remote.  
+                 This parameter is OPTIONAL and is applicable to all PW types.
+                 The interface description parameter string length is variable 
+                 and can be from 0 to 80 octets.  Human-readable text MUST be 
+                 provided in the UTF-8 charset using the Default Language."
+            ::= { zxr10L2vpnPwEntry 20 }
+            
+ zxr10L2vpnPwRemoteStatusWord OBJECT-TYPE
+            SYNTAX     	Unsigned32(0..4294967295)
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's remote status value. Each bit in the status code field
+                 can be used to indicate a single failure or an event. When a PW 
+                 is first set up, the PEs MUST attempt to negotiate the usage of 
+                 the PW status TLV."
+            ::= { zxr10L2vpnPwEntry 21 }
+
+zxr10L2vpnPwRemoteStatusSignalAbility OBJECT-TYPE
+            SYNTAX     	INTEGER{
+            osbits(1),
+            pfsbit(2),
+            rssbit(3),
+            none(4)
+            }
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's remote status signal ability.
+                  Osbits represents support pw operational status notification,
+                  PFSbit represents support preferred forwarding status notification,
+                  RSSbit represents support requested switchover status notification,
+                  None represents do not support any pw status notification."
+            ::= { zxr10L2vpnPwEntry 22 } 
+            
+zxr10L2vpnPwNegoedCbit OBJECT-TYPE      
+            SYNTAX     	INTEGER{
+            off(0),
+            on(1)}
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's negotiated ability weather it is supporting CBit.
+                  The bit (C) is used to flag the presence of a control
+                  word as follows:C = 1  Control word present on this PW.
+                  C = 0  No control word present on this PW."
+            ::= { zxr10L2vpnPwEntry 23 }   
+            
+zxr10L2vpnPwNegoedMTU OBJECT-TYPE
+            SYNTAX        Integer32(0..65535)
+            MAX-ACCESS    read-only
+            STATUS        current          
+            DESCRIPTION
+                 "The PW's negotiated MTU value.This is the Maximum Transmission Unit,
+                  excluding encapsulation overhead, of the egresspacket interface 
+                  that will be transmitting the decapsulated PDUthat is received 
+                  from the MPLS-enabled network.  This parameter is applicable 
+                  only to PWs transporting packets and is REQUIRED for these PW types.
+                  If this parameter does not match in both directions of a specific PW, 
+                  that PW MUST NOT be enabled."
+            ::= { zxr10L2vpnPwEntry 24 }  
+            
+zxr10L2vpnPwNegoedStatusSignalAbility OBJECT-TYPE
+            SYNTAX     	INTEGER{
+            osbits(1),
+            pfsbit(2),
+            rssbit(3),
+            none(4)
+            }
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's negotiated status signal ability.
+                  Osbits represents support pw operational status notification,
+                  PFSbit represents support preferred forwarding status notification,
+                  RSSbit represents support requested switchover status notification,
+                  None represents do not support any pw status notification."
+            ::= { zxr10L2vpnPwEntry 25 }  
+            
+zxr10L2vpnPwSignalState OBJECT-TYPE
+            SYNTAX     	INTEGER{
+            down(0),
+            up(1)
+            }
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's signal state on protocol level."
+            ::= { zxr10L2vpnPwEntry 26 }    
+            
+ zxr10L2vpnPwVccvLocalParas OBJECT-TYPE
+            SYNTAX     	Unsigned32(0..4294967295)
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's local VCCV value. This VCCV capability information indicates to the
+                  receiving PE which combinations of Control Channel (CC) andConnectivity 
+                  Verification (CV) Types it is capable of receiving. Ifthe receiving PE 
+                  agrees to establish the PW, it will return its capabilities in the subsequent 
+                  signaling message to indicate which CC and CV Types it is capable of processing."
+            ::= { zxr10L2vpnPwEntry 27 }  
+            
+ zxr10L2vpnPwVccvRemoteParas OBJECT-TYPE
+            SYNTAX     	Unsigned32(0..4294967295)
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's remote VCCV value. This VCCV capability information indicates to the
+                  receiving PE which combinations of Control Channel (CC) andConnectivity 
+                  Verification (CV) Types it is capable of receiving. Ifthe receiving PE 
+                  agrees to establish the PW, it will return its capabilities in the subsequent 
+                  signaling message to indicate which CC and CV Types it is capable of processing."
+            ::= { zxr10L2vpnPwEntry 28 } 
+            
+ zxr10L2vpnPwVccvNegoedParas OBJECT-TYPE
+            SYNTAX     	Unsigned32(0..4294967295)
+            MAX-ACCESS 	read-only
+            STATUS     	current
+            DESCRIPTION
+                 "The PW's negotiated VCCV value. This VCCV capability information indicates to the
+                  receiving PE which combinations of Control Channel (CC) andConnectivity 
+                  Verification (CV) Types it is capable of receiving. Ifthe receiving PE 
+                  agrees to establish the PW, it will return its capabilities in the subsequent 
+                  signaling message to indicate which CC and CV Types it is capable of processing."
+            ::= { zxr10L2vpnPwEntry 29 }                       
+			
+
+zxr10L2vpnPwPsnOutLabelDepth OBJECT-TYPE
+            SYNTAX        Integer32(0..3)
+            MAX-ACCESS    read-only
+            STATUS        current
+            DESCRIPTION
+                 "The layer of MPLS label in the packet when 
+                 it crosses Core Network."
+            ::= { zxr10L2vpnPwEntry 30 }
+
+zxr10L2vpnPwPsnOutLabel1 OBJECT-TYPE
+            SYNTAX        Integer32(0..1048575)
+            MAX-ACCESS    read-only
+            STATUS        current          
+            DESCRIPTION
+                 "A 20-bit quantity containing a value that represents 
+                 the botton of MPLS label stack.In L2VPN network,
+                 this label means the VC label."
+            ::= { zxr10L2vpnPwEntry 31 } 
+
+zxr10L2vpnPwPsnOutLabel2 OBJECT-TYPE
+            SYNTAX        Integer32(0..1048575)
+            MAX-ACCESS    read-only
+            STATUS        current          
+            DESCRIPTION
+                 "A 20-bit quantity containing a value that represents 
+                 the second layer of MPLS label stack from the bottom 
+                 of MPLS label."
+            ::= { zxr10L2vpnPwEntry 32 }
+
+zxr10L2vpnPwPsnOutLabel3 OBJECT-TYPE
+            SYNTAX        Integer32(0..1048575)
+            MAX-ACCESS    read-only
+            STATUS        current          
+            DESCRIPTION
+                 "A 20-bit quantity containing a value that represents 
+                 the third layer of MPLS label stack from the bottom 
+                 of MPLS label."
+            ::= { zxr10L2vpnPwEntry 33 }
+            
+
+zxr10L2vpnPwPsnTunnelType OBJECT-TYPE             
+            SYNTAX        INTEGER{
+            ldp(1),
+            te(2),
+            bgp(3)
+            }
+            MAX-ACCESS    read-only
+            STATUS        current                
+            DESCRIPTION
+                 "The tunnel type of Core Network,including 
+                 (1)LDP label (2)TE label,and (3)BGP label."
+            ::= { zxr10L2vpnPwEntry 34 }
+            
+zxr10L2vpnPwPsnTunnelId OBJECT-TYPE
+            SYNTAX      Integer32(0..65535)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The tunnel ID number of Core Network."
+            ::= { zxr10L2vpnPwEntry 35 }
+
+zxr10L2vpnPwSwitchMacWithdraw OBJECT-TYPE
+            SYNTAX      INTEGER{
+            on(1),
+            off(0)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The PW's local ability,whether the PW can send 
+                 Mac-withdraw message.The bit is used to flag 
+                 the presence as follows:Switch = 1  can send 
+                 mac-withdraw message on this PW. Switch = 0  
+                 can't sent mac-withdraw message on this PW."
+            ::= { zxr10L2vpnPwEntry 36 } 
+
+zxr10L2vpnPwServiceState OBJECT-TYPE
+            SYNTAX      INTEGER{
+            unknown(0),
+            down(1),
+            up(2)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The service-state of PW ,including (1)down,
+                  and (2) up,and (3)unknown."
+            ::= { zxr10L2vpnPwEntry 37 }   
+            
+zxr10L2vpnPwWorkState OBJECT-TYPE
+            SYNTAX      INTEGER{
+            unknown(0),
+            active(1),
+            standby(2),
+            down(3)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The work-state of PW ,including (1)down,
+                  and (2) active,and (3)standby,and (4)unknown."
+            ::= { zxr10L2vpnPwEntry 38 } 
+
+zxr10L2vpnPwSwitchSplitHorizone	OBJECT-TYPE
+            SYNTAX      INTEGER{
+            null(0),
+            on(1),
+            off(2)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "Split-horizon attribute which used in E-tree 
+                   service includes two types on/off "
+            ::= { zxr10L2vpnPwEntry 39 } 
+            
+zxr10L3vpnPwSwitchGroupID OBJECT-TYPE
+            SYNTAX      Integer32(0..64)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "Split-horizon-Group attribute ."
+            ::= { zxr10L2vpnPwEntry 40 }
+		
+                       
+--*************zxr10L2vpnServiceTable*************** 
+zxr10L2vpnServiceTable OBJECT-TYPE
+            SYNTAX     SEQUENCE OF Zxr10L2vpnServiceEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "Service Table. This table contains
+                 one entry per Service table."        
+            ::= { zxr10l2vpnObjects 5 }
+
+zxr10L2vpnServiceEntry OBJECT-TYPE
+            SYNTAX     Zxr10L2vpnServiceEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "The parameter of a Service entity containing "
+            INDEX { zxr10L2vpnServiceName,zxr10L2vpnServiceType }
+            ::= { zxr10L2vpnServiceTable 1 }
+
+Zxr10L2vpnServiceEntry ::= SEQUENCE { 
+            zxr10L2vpnServiceName        DisplayString,
+            zxr10L2vpnServiceType        INTEGER,
+            zxr10L2vpnServiceSac1Name    DisplayString,
+            zxr10L2vpnServiceSac2Name    DisplayString,
+            zxr10L2vpnServiceSdu1Name    DisplayString,
+            zxr10L2vpnServiceSdu2Name    DisplayString,
+            zxr10L2vpnServiceMTU         Integer32,
+            zxr10L2vpnServiceMspwFirstPwPeer    IpAddress,
+            zxr10L2vpnServiceMspwFirstPwVcid    Unsigned32,
+            zxr10L2vpnServiceMspwFirstPWVcType  L2vpnPWType,
+            zxr10L2vpnServiceMspwSecondPwPeer   IpAddress,
+            zxr10L2vpnServiceMspwSecondPwVcid   Unsigned32,
+            zxr10L2vpnServiceMspwSecondPwVcType L2vpnPWType
+            }
+
+zxr10L2vpnServiceName OBJECT-TYPE
+            SYNTAX       DisplayString
+            MAX-ACCESS   read-only
+            STATUS       current
+            DESCRIPTION 
+                "The name of the service instance.It consists 
+                 of 'Forwarder' modules connected by pseudowires 
+                 and Attach Circuit."
+            ::= { zxr10L2vpnServiceEntry 1 }
+
+zxr10L2vpnServiceType OBJECT-TYPE
+            SYNTAX INTEGER {
+            unknown(0),
+            vpls(1),
+            vpws(2),
+            mspw(3),
+            vlss(4),
+            enhanced-vpws(6)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The type of service instance.There are several
+                 types of L2VPNs:(1)Virtual Private LAN Service(VPLS),
+                 and (2)Virtual Private Wire Service(VPWS) 
+                 (3)Multi-segment Pseudowire(MSPW),and (4)Virtual 
+                 Local Switching Service(VLSS),and (5)Enhanced-Virtual 
+                 Private Wire Service(Enhanced-VPWS) "
+            ::= { zxr10L2vpnServiceEntry 2 }
+
+zxr10L2vpnServiceSac1Name OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The first name of Service Attachment Circuit(SAC)."
+            ::= { zxr10L2vpnServiceEntry 3 } 
+
+zxr10L2vpnServiceSac2Name OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The second name of Service Attachment Circuit(SAC)."
+            ::= { zxr10L2vpnServiceEntry 4 }
+
+zxr10L2vpnServiceSdu1Name OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The first name of Service Distribution Unit (SDU)."
+            ::= { zxr10L2vpnServiceEntry 5 } 
+
+zxr10L2vpnServiceSdu2Name OBJECT-TYPE
+            SYNTAX      DisplayString
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The second name of Service Distribution Unit (SDU)."
+            ::= { zxr10L2vpnServiceEntry 6 }   
+            
+zxr10L2vpnServiceMTU OBJECT-TYPE
+            SYNTAX      Integer32(68..9216)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The VPLS's MTU value.This is the Maximum 
+                 Transmission Unit,excluding encapsulation overhead, 
+                 of the egresspacket interface that will be 
+                 transmitting the decapsulated PDUthat is received 
+                 from the MPLS-enabled network.  This parameter is 
+                 applicable only to PWs transporting packets and is 
+                 REQUIRED for these PW types.If this parameter does 
+                 not match in both directions of a specific PW, that 
+                 PW MUST NOT be enabled."
+            ::= { zxr10L2vpnServiceEntry 7 }                         
+
+zxr10L2vpnServiceMspwFirstPwPeer OBJECT-TYPE
+            SYNTAX      IpAddress
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The PW's remote endpoint address."
+            ::= { zxr10L2vpnServiceEntry 8 }
+            
+zxr10L2vpnServiceMspwFirstPwVcid  OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A non-zero 32-bit connection ID that, together 
+                 with the PW type, identifies a particular PW.  
+                 Note that the PW ID and the PW type MUST be the 
+                 same at both endpoints."
+            ::= { zxr10L2vpnServiceEntry 9 }  
+            
+zxr10L2vpnServiceMspwFirstPWVcType OBJECT-TYPE
+            SYNTAX      L2vpnPWType
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A 15-bit quantity containing a value that represents 
+                 the type of PW. Assigned values are specified in 'IANA 
+                 Allocations for Pseudowire Edge to Edge Emulation (PWE3)'."
+            ::= { zxr10L2vpnServiceEntry 10 }  
+            
+zxr10L2vpnServiceMspwSecondPwPeer OBJECT-TYPE
+            SYNTAX      IpAddress
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The PW's remote endpoint address."
+            ::= { zxr10L2vpnServiceEntry 11 }
+
+zxr10L2vpnServiceMspwSecondPwVcid OBJECT-TYPE
+            SYNTAX      Unsigned32(0..4294967295)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A non-zero 32-bit connection ID that, together with the PW type, 
+                 identifies a particular PW.  Note that the PW ID and the PW type 
+                 MUST be the same at both endpoints."
+            ::= { zxr10L2vpnServiceEntry 12 }
+
+zxr10L2vpnServiceMspwSecondPwVcType OBJECT-TYPE
+            SYNTAX      L2vpnPWType
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "A 15-bit quantity containing a value that represents the type of PW.
+                 Assigned values are specified in 'IANA Allocations for Pseudowire Edge 
+                 to Edge Emulation (PWE3)'."
+            ::= { zxr10L2vpnServiceEntry 13 }
+                       
+
+--*************zxr10L2vpnVplsTable*************** 
+zxr10L2vpnVplsTable OBJECT-TYPE
+            SYNTAX     SEQUENCE OF Zxr10L2vpnVplsEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "Vpls Table. This table contains
+                 one entry per Vpls table."        
+            ::= { zxr10l2vpnObjects 6 }
+
+zxr10L2vpnVplsEntry OBJECT-TYPE
+            SYNTAX     Zxr10L2vpnVplsEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "The parameter of a Vpls entity containing "
+            INDEX { zxr10L2vpnVplsName }
+            ::= { zxr10L2vpnVplsTable 1 }
+
+Zxr10L2vpnVplsEntry ::= SEQUENCE {
+            zxr10L2vpnVplsName          	DisplayString,
+            zxr10L2vpnVplsApplication   	INTEGER,
+            zxr10L2vpnVplsModelType     	INTEGER,
+            zxr10L2vpnVplsServiceMTU    	Integer32,
+            zxr10L2vpnVplsSwitchMacLearning INTEGER,
+			zxr10L2vpnVplsSwitchMacAging    INTEGER,
+			zxr10L2vpnVplsSwitchStatistics  INTEGER,
+			zxr10L2vpnVplsSwitchMacWithdraw INTEGER,
+			zxr10L2vpnVplsTimerMacAging     Integer32,
+			zxr10L2vpnVplsAntimovePolicy    INTEGER,
+			zxr10L2vpnVplsL2ptPolicyLACP    L2vpnVplsPolicy,
+			zxr10L2vpnVplsL2ptPolicyDot1X   L2vpnVplsPolicy,
+			zxr10L2vpnVplsL2ptPolicyGARP    L2vpnVplsPolicy,
+			zxr10L2vpnVplsL2ptPolicySTP     L2vpnVplsPolicy,
+			zxr10L2vpnVplsL2ptPolicyLLDP    L2vpnVplsPolicy,
+			zxr10L2vpnVplsL2ptPolicyDot3X	L2vpnVplsPolicy,		
+			zxr10L2vpnVplsL2ptPolicyALL     L2vpnVplsPolicy,
+			zxr10L2vpnVplsL2ptPolicyAllBridgeMulticast  L2vpnVplsPolicy,
+			zxr10L2vpnVplsL2ptPolicyZDPZTP	L2vpnVplsPolicy	
+            }
+
+zxr10L2vpnVplsName OBJECT-TYPE
+            SYNTAX       DisplayString
+            MAX-ACCESS   read-only
+            STATUS       current
+            DESCRIPTION 
+                "The name of VPLS instance."
+            ::= { zxr10L2vpnVplsEntry 1 }
+
+zxr10L2vpnVplsApplication OBJECT-TYPE
+            SYNTAX      INTEGER {
+            unknown(0),
+            vpls(1),
+            enhanced-vpls(5),
+            enhanced-vpws(6)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION 
+                "The type of service instance.There are several 
+                types of L2VPNs:(1)Virtual Private LAN Service(VPLS),
+                and (2)Enhanced-Virtual Private LAN Service(Enhanced-VPLS),
+                and (3)Enhanced-Virtual Private Wire Service(Enhanced-VPWS) "
+            ::= { zxr10L2vpnVplsEntry 2 }
+
+zxr10L2vpnVplsModelType OBJECT-TYPE
+            SYNTAX      INTEGER {
+            rfc4664model2(0),
+            rfc4664model3(1)
+            }
+
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The model of the instance.It consists of 
+                 (1)rfc4447model2(0) and (2)rfc4447model3(1)."
+            ::= { zxr10L2vpnVplsEntry 3 } 
+
+zxr10L2vpnVplsServiceMTU OBJECT-TYPE
+            SYNTAX      Integer32(68..9216)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "The VPLS's MTU value.This is the Maximum 
+                 Transmission Unit,excluding encapsulation overhead, 
+                 of the egresspacket interface that will be 
+                 transmitting the decapsulated PDUthat is received 
+                 from the MPLS-enabled network.  This parameter is 
+                 applicable only to PWs transporting packets and is 
+                 REQUIRED for these PW types.If this parameter does 
+                 not match in both directions of a specific PW, that 
+                 PW MUST NOT be enabled."
+            ::= { zxr10L2vpnVplsEntry 4 } 
+
+zxr10L2vpnVplsSwitchMacLearning OBJECT-TYPE
+            SYNTAX      INTEGER {
+            on(1),
+            off(0)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS MAC learning switch."
+            ::= { zxr10L2vpnVplsEntry 5 } 
+			
+zxr10L2vpnVplsSwitchMacAging OBJECT-TYPE
+            SYNTAX      INTEGER {
+            on(1),
+            off(0)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS MAC aging time switch."
+            ::= { zxr10L2vpnVplsEntry 6 } 
+			
+zxr10L2vpnVplsSwitchStatistics OBJECT-TYPE
+            SYNTAX      INTEGER {
+            on(1),
+            off(0)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS MAC statistics time switch."
+            ::= { zxr10L2vpnVplsEntry 7 } 
+			
+zxr10L2vpnVplsSwitchMacWithdraw OBJECT-TYPE
+            SYNTAX      INTEGER {
+            on(1),
+            off(0)
+            }
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS MAC withdraw time switch."
+            ::= { zxr10L2vpnVplsEntry 8 } 
+			
+zxr10L2vpnVplsTimerMacAging OBJECT-TYPE
+			SYNTAX      Integer32(60..630)
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS MAC aging timer."
+            ::= { zxr10L2vpnVplsEntry 9 } 
+			
+zxr10L2vpnVplsAntimovePolicy OBJECT-TYPE
+            SYNTAX      INTEGER {
+            unfixed(0),
+            local-fixed(1),
+            remote-fixed(2)
+            } 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS anitmove policy."
+            DEFVAL { 0 }
+            ::= { zxr10L2vpnVplsEntry 10 } 
+			
+zxr10L2vpnVplsL2ptPolicyLACP OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for LACP."
+            ::= { zxr10L2vpnVplsEntry 11 } 
+			
+zxr10L2vpnVplsL2ptPolicyDot1X OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for Dot1x."
+            ::= { zxr10L2vpnVplsEntry 12 } 
+
+zxr10L2vpnVplsL2ptPolicyGARP OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for GARP."
+            ::= { zxr10L2vpnVplsEntry 13 } 
+
+zxr10L2vpnVplsL2ptPolicySTP OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for STP."
+            ::= { zxr10L2vpnVplsEntry 14 } 	
+
+zxr10L2vpnVplsL2ptPolicyLLDP OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for LLDP."
+            ::= { zxr10L2vpnVplsEntry 15 } 	
+
+zxr10L2vpnVplsL2ptPolicyDot3X OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for Dot3X."
+            ::= { zxr10L2vpnVplsEntry 16 } 	
+
+zxr10L2vpnVplsL2ptPolicyALL OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for ALL."
+            ::= { zxr10L2vpnVplsEntry 17 } 	
+
+zxr10L2vpnVplsL2ptPolicyAllBridgeMulticast OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for AllBridgeMulticast."
+            ::= { zxr10L2vpnVplsEntry 18 }
+
+zxr10L2vpnVplsL2ptPolicyZDPZTP OBJECT-TYPE
+            SYNTAX      L2vpnVplsPolicy 
+            MAX-ACCESS  read-only
+            STATUS      current
+            DESCRIPTION
+                 "L2vpn VPLS L2pt policy for ZDPZTP."
+            ::= { zxr10L2vpnVplsEntry 19 } 			
+
+END
+

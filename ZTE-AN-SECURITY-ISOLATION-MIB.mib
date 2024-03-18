@@ -1,0 +1,262 @@
+
+--------------------------------------------------------------------------------
+-- File Name : ZTE-AN-SECURITY-ISOLATION-MIB.mib
+-- Date      : 2011-05-31
+-- Author    : ZTE Nms dept.
+
+--
+-- Zte Interface Mib for Access Node
+-- 
+-- 
+--------------------------------------------------------------------------------
+
+
+ZTE-AN-SECURITY-ISOLATION-MIB    DEFINITIONS ::= BEGIN
+    IMPORTS     
+        TEXTUAL-CONVENTION,RowStatus                    FROM SNMPv2-TC
+        MODULE-IDENTITY,  OBJECT-TYPE,Integer32, 
+        NOTIFICATION-TYPE                               FROM SNMPv2-SMI
+        ifIndex                                         FROM IF-MIB
+        VlanId                                          FROM ZTE-AN-TC-MIB
+        zxAnServiceSecurity                             FROM ZTE-AN-SMI
+        zxAnSubIfIndex                                  FROM ZTE-AN-IF-MIB;
+        
+    zxAnSecurityIsolationMib    MODULE-IDENTITY
+        LAST-UPDATED    "201105311500Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Zhang WeiPing
+                        Mail: zhang.weiping@zte.com.cn
+                        Tel : 021-68896470"
+        DESCRIPTION     "This MIB defines ZTE Access Node security isolation 
+                        managed objects."
+        ::=  {  zxAnServiceSecurity  30  }  
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1 Security Isolation Global Objects
+-- 2 Security Protection Objects
+--   2.1 Security Global Protection Objects
+--   2.2 Security Uplink Port Protection Table
+-- 3 Security Vlan Isolation Objects
+--   3.1 Security Global Vlan Isolation Objects
+--   3.2 Security VLAN Communication Table
+-- 4 Security UpLink Isolation Objects
+--   4.1 Security UpLink Isolation Table
+--------------------------------------------------------------------------------
+    
+    zxAnSecIsolationGlobalObjects 
+                            OBJECT IDENTIFIER ::= { zxAnSecurityIsolationMib 1 }
+                            
+    zxAnSecIsolationObjects 
+                            OBJECT IDENTIFIER ::= { zxAnSecurityIsolationMib 2 }
+
+--------------------------------------------------------------------------------
+-- 1 Security Isolation Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecIsolationEnable  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the ethernet switch port isolation."
+        DEFVAL  { enabled }
+        ::= { zxAnSecIsolationGlobalObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2 Security Protection Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecProtectionObjects          
+                             OBJECT IDENTIFIER ::= { zxAnSecIsolationObjects 2 }
+--------------------------------------------------------------------------------
+--   2.1 Security Global Protection Objects
+--------------------------------------------------------------------------------       
+
+--------------------------------------------------------------------------------
+--   2.2 Security Uplink Port Protection Table
+--------------------------------------------------------------------------------   
+    
+    zxAnSecUplinkProtectionTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecUplinkProtectionEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Uplink port protection table."
+        ::= { zxAnSecProtectionObjects 2 }
+         
+    zxAnSecUplinkProtectionEntry OBJECT-TYPE
+        SYNTAX      ZxAnSecUplinkProtectionEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A entry of zxAnSecUplinkProtectionTable."
+        INDEX  { ifIndex }
+        ::= { zxAnSecUplinkProtectionTable 1 }
+         
+    ZxAnSecUplinkProtectionEntry ::= SEQUENCE {    
+        zxAnSecUplinkProtectionEnable    INTEGER
+        }
+
+    zxAnSecUplinkProtectionEnable OBJECT-TYPE
+        SYNTAX      INTEGER 
+        {
+            enabled(1),  
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the uplink port protection."
+        ::= { zxAnSecUplinkProtectionEntry 1 }
+         
+--------------------------------------------------------------------------------
+-- 3 Security Vlan Isolation Objects
+--------------------------------------------------------------------------------   
+
+    zxAnSecVlanIsolationObjects       
+                             OBJECT IDENTIFIER ::= { zxAnSecIsolationObjects 3 }
+
+--------------------------------------------------------------------------------
+--   3.1 Security Global Vlan Isolation Objects
+--------------------------------------------------------------------------------  
+
+    zxAnSecVlanIsolationGlbObjects   
+                         OBJECT IDENTIFIER ::= { zxAnSecVlanIsolationObjects 1 }
+
+    zxAnSecGlbVlanIsolationEnable   OBJECT-TYPE 
+        SYNTAX      INTEGER
+        {
+            enable(1),
+            disable(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "Enable/disalbe the global VLAN isolation."        
+        ::= { zxAnSecVlanIsolationGlbObjects 1 }
+        
+--------------------------------------------------------------------------------
+--   3.2 Security VLAN Communication Table
+-------------------------------------------------------------------------------- 
+    
+    zxAnSecVlanCommunicateTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecVlanCommunicateEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "When the value of 'zxAnSecGlbVlanIsolationEnable' is enabled, the 
+             table allowed be created, deleted, or the table can not be created 
+             and deleted."
+        ::= { zxAnSecVlanIsolationObjects  2 }
+
+    zxAnSecVlanCommunicateEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSecVlanCommunicateEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnSecVlanCommunicateTable."
+        INDEX 
+        {
+            zxAnSecVlanCommunicateSVid,
+            zxAnSecVlanCommunicateCVid
+        }
+        ::= { zxAnSecVlanCommunicateTable 1 }
+
+    ZxAnSecVlanCommunicateEntry  ::=  SEQUENCE {
+        zxAnSecVlanCommunicateSVid         VlanId,
+        zxAnSecVlanCommunicateCVid         Integer32,
+        zxAnSecVlanCommunicateRowStatus    RowStatus
+        }
+
+    zxAnSecVlanCommunicateSVid  OBJECT-TYPE 
+        SYNTAX      VlanId         
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This object indicates SVLAN ID."                 
+        ::= { zxAnSecVlanCommunicateEntry 1 }
+        
+    zxAnSecVlanCommunicateCVid  OBJECT-TYPE 
+        SYNTAX      Integer32(0..4094)    
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This object indicates CVLAN ID.
+             0 indicated communication only based on SVLAN ID."
+        ::= { zxAnSecVlanCommunicateEntry 2 }        
+        
+    zxAnSecVlanCommunicateRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus         
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnSecVlanCommunicateEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."     
+        ::= { zxAnSecVlanCommunicateEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 4 Security UpLink Isolation Objects
+--------------------------------------------------------------------------------   
+    
+    zxAnSecUplinkIsolationObjects     
+                             OBJECT IDENTIFIER ::= { zxAnSecIsolationObjects 4 }
+    
+--------------------------------------------------------------------------------
+--   4.1 Security UpLink Isolation Table
+--------------------------------------------------------------------------------         
+     
+    zxAnSecUplinkIsolationTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecUplinkIsolationEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Uplink isolation table."
+        ::= { zxAnSecUplinkIsolationObjects 2 }
+         
+    zxAnSecUplinkIsolationEntry OBJECT-TYPE
+        SYNTAX      ZxAnSecUplinkIsolationEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A entry of zxAnSecUplinkIsolationTable."
+        INDEX  { ifIndex }
+        ::= { zxAnSecUplinkIsolationTable 1 }
+         
+    ZxAnSecUplinkIsolationEntry ::= SEQUENCE {    
+        zxAnSecUplinkIsolateEnable    INTEGER
+        }
+
+    zxAnSecUplinkIsolateEnable OBJECT-TYPE
+        SYNTAX      INTEGER  
+        { 
+            enabled(1), 
+            disabled(2) 
+        } 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the uplink port isolation.
+             enabled(1): The port is added to the isolation group. All the ports 
+             in the isolation group are isolated from each other in layer 2, but
+             they are not isolated from the ports not in the isolation group.
+             disabled(2): The port is removed from the isolation group."
+        DEFVAL  { disabled }
+        ::= { zxAnSecUplinkIsolationEntry 1 }
+
+END

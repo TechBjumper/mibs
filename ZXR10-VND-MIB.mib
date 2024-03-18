@@ -1,0 +1,713 @@
+ZXR10-VND-MIB DEFINITIONS ::= BEGIN
+
+   IMPORTS
+       MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY, enterprises,
+       Integer32                                         FROM SNMPv2-SMI
+       DisplayString, DateAndTime, RowStatus             FROM SNMPv2-TC 
+       zxUPN                                             FROM ZXR10-PROJECT-MIB;
+ 
+    zxr10VndMIB MODULE-IDENTITY
+        LAST-UPDATED    "202003020000Z"  
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Liang ZiYuan
+                         Mail: liang.ziyuan@zte.com.cn       
+                         Tel: +86-25-52870000"
+        DESCRIPTION     "The MIB module for the management of the virtual 
+                         network device."  
+        REVISION        "202003020000Z" 
+        DESCRIPTION
+            "Add zxr10VndSysOperObjects. "  
+        REVISION        "202002070000Z" 
+        DESCRIPTION
+            "Add zxr10VndSharedVlanBatchNew and zxr10VndSharedVlanBatchDelete. "  
+        REVISION        "201803230000Z"  
+        DESCRIPTION
+            "Add onu mode to zxr10VndConfAssignMode. "                           
+        REVISION        "201801020000Z"  
+        DESCRIPTION
+            "New zxr10VndBatchAssignObjects for batch interface assignment. "                         
+        REVISION        "201705120000Z"
+        DESCRIPTION
+            "Initial revision"
+    ::= { zxUPN 9 }
+    
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. Virtual Network Device Global Objects
+-- 2. Virtual Network Device Objects
+-- 2.1 Virtual Network Device Configuration table
+-- 2.2 Virtual Network Device MPU Deployment Table
+-- 2.3 Virtual Network Device Interface Assignment Table
+-- 2.4 Virtual Network Device Interface Configuration Table
+-- 2.5 Virtual Network Device Card Assignment Table
+-- 2.6 Virtual Network Device Card Configuration Table
+-- 2.7 Virtual Network Device Batch Interface Assignment Objects
+-- 2.8 Virtual Network Device Interface VLAN Assignment Table
+-- 2.9 Virtual Network Device Interface VLAN Information Table
+-- 2.10 Virtual Network Device Shared VLAN Objects 
+-- 2.11 Virtual Network Device System Operation Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1. Virtual Network Device Global Objects
+--------------------------------------------------------------------------------
+    zxr10VndGlobalObjects    OBJECT IDENTIFIER ::= {zxr10VndMIB 1}
+
+    zxr10VndSupportedMpuList OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION   
+            "The MPU list of the equipment, which can be deployed to the VND.
+             The MPUs are seperated by comma, such as
+             MPU-0/20/0,MPU-0/21/0,MPU-1/20/0."
+        ::= { zxr10VndGlobalObjects 2 } 
+
+--------------------------------------------------------------------------------
+-- 2. Virtual Network Device Objects
+--------------------------------------------------------------------------------
+    zxr10VndObjects    OBJECT IDENTIFIER ::= {zxr10VndMIB 2}
+        
+--------------------------------------------------------------------------------
+-- 2.1 Virtual Network Device Configuration table
+--------------------------------------------------------------------------------                                            
+    zxr10VndConfTable OBJECT-TYPE   
+        SYNTAX      SEQUENCE OF Zxr10VndConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device configuration table.
+             VND0 supports read-create access.
+             VNDx supports read access."
+        ::= { zxr10VndObjects 2 }
+                            
+    zxr10VndConfEntry OBJECT-TYPE   
+        SYNTAX      Zxr10VndConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device configuration entry."
+        INDEX {zxr10VndConfName}
+        ::= { zxr10VndConfTable 1 }
+                        
+    Zxr10VndConfEntry ::= SEQUENCE {
+        zxr10VndConfName              DisplayString,
+        zxr10VndConfId                Integer32,
+        zxr10VndConfAssignMode        INTEGER, 
+        zxr10VndConfOperStatus        INTEGER,
+        zxr10VndConfDeployedMpuList   DisplayString, 
+        zxr10VndConfDescription       DisplayString, 
+        zxr10VndConfStartAction       INTEGER,          
+        zxr10VndConfRowStatus         RowStatus             
+        }                               
+                              
+    zxr10VndConfName OBJECT-TYPE   
+        SYNTAX      DisplayString(SIZE(1..31))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The name of the VND."
+        ::= { zxr10VndConfEntry 1 }   
+
+    zxr10VndConfId  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The identification of the VND."  
+    ::= { zxr10VndConfEntry 2 }
+
+    zxr10VndConfAssignMode  OBJECT-TYPE  
+        SYNTAX      INTEGER {
+            mixed(1), 
+            port(2), 
+            card(3),
+            onu(4)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The assignment mode of the VND.
+             mixed(1)   --  the card and interface can be assigned to the VND.
+             port(2)    --  only the interface can be exclusive assigned to the 
+                            VND.
+             card(3)    --  only the card can be assigned to the VND.
+             onu(4)     --  the ONU mode supports the following scenes:
+                            --(1)the port can be shared assigned to the VND.
+                            --(2)the ONU can be exclusive assigned to the VND." 
+        DEFVAL  { mixed }
+    ::= { zxr10VndConfEntry 3 }
+
+    zxr10VndConfOperStatus  OBJECT-TYPE  
+        SYNTAX    INTEGER {
+            running(1), 
+            stopped(2), 
+            noLicense(3)
+        }
+        MAX-ACCESS read-only
+        STATUS     current
+        DESCRIPTION
+            "The operational status of the VND." 
+        DEFVAL  { stopped }
+    ::= { zxr10VndConfEntry 4 }
+
+    zxr10VndConfDeployedMpuList  OBJECT-TYPE   
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The deployed MPU of the VND.
+             The MPUs are seperated by comma, such as
+             MPU-0/20/0,MPU-0/21/0." 
+    ::= { zxr10VndConfEntry 5 }
+
+    zxr10VndConfDescription  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(0..127))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The description of the VND." 
+    ::= { zxr10VndConfEntry 6 }
+    
+    zxr10VndConfStartAction  OBJECT-TYPE  
+        SYNTAX      INTEGER {
+            start(1), 
+            stop(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Start or stop the VND. 
+             Starting the VND, the operational status will be running. 
+             Stopping the VND, the operational status will be stopped." 
+    ::= { zxr10VndConfEntry 7 }
+        
+    zxr10VndConfRowStatus OBJECT-TYPE   
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4).
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxr10VndConfEntry 50 }  
+
+--------------------------------------------------------------------------------
+-- 2.2 Virtual Network Device MPU Deployment Table
+--------------------------------------------------------------------------------                
+    zxr10VndDeployMpuTable OBJECT-TYPE   
+        SYNTAX      SEQUENCE OF Zxr10VndDeployMpuEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device MPU deployment table."
+        ::= { zxr10VndObjects 3 }  
+        
+    zxr10VndDeployMpuEntry  OBJECT-TYPE   
+        SYNTAX      Zxr10VndDeployMpuEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device MPU deployment entry."  
+        INDEX {zxr10VndConfName, zxr10VndDeployMpuName}
+    ::= { zxr10VndDeployMpuTable 1 }
+
+    Zxr10VndDeployMpuEntry ::= SEQUENCE {
+        zxr10VndDeployMpuName       DisplayString,
+        zxr10VndDeployMpuRowStatus  RowStatus                             
+        }
+
+    zxr10VndDeployMpuName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..28))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The MPU name deployed to the VND."  
+    ::= { zxr10VndDeployMpuEntry 1 }
+
+    zxr10VndDeployMpuRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4).
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."   
+    ::= { zxr10VndDeployMpuEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.3 Virtual Network Device Interface Assignment Table
+--------------------------------------------------------------------------------
+    zxr10VndAssignInterfaceTable  OBJECT-TYPE  
+        SYNTAX      SEQUENCE OF Zxr10VndAssignInterfaceEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device interface assignment table.
+             VND0 supports read-create access.
+             VNDx supports read access."  
+    ::= { zxr10VndObjects 4 }
+
+    zxr10VndAssignInterfaceEntry  OBJECT-TYPE 
+        SYNTAX      Zxr10VndAssignInterfaceEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device interface assignment entry.
+             The interface assignment need to follow the following principles:
+             1. If the physical interface has been assigned to a VND, 
+                the subinterface can not be assigned to another VND.
+             2. If the subinterface has been assigned to a VND, 
+                the physical interface can not be assigned to another VND."  
+        INDEX {zxr10VndConfName, zxr10VndAssignInterfaceName}
+    ::= { zxr10VndAssignInterfaceTable 1 }
+
+    Zxr10VndAssignInterfaceEntry ::= SEQUENCE {
+        zxr10VndAssignInterfaceName         DisplayString,
+        zxr10VndAssignInterfaceMode         INTEGER,
+        zxr10VndAssignInterfaceRowStatus    RowStatus                        
+        }
+
+    zxr10VndAssignInterfaceName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..31))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The interface name assigned to the VND."   
+    ::= { zxr10VndAssignInterfaceEntry 1 }
+        
+    zxr10VndAssignInterfaceMode  OBJECT-TYPE 
+        SYNTAX      INTEGER {
+            shared(1), 
+            exclusive(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The assignment mode of the interface."   
+    ::= { zxr10VndAssignInterfaceEntry 2 }
+
+    zxr10VndAssignInterfaceRowStatus   OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4).
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)." 
+    ::= { zxr10VndAssignInterfaceEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.4 Virtual Network Device Interface Configuration Table
+--------------------------------------------------------------------------------        
+    zxr10VndInterfaceConfTable OBJECT-TYPE  
+        SYNTAX      SEQUENCE OF Zxr10VndInterfaceConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device interface configuration table." 
+    ::= { zxr10VndObjects 5 }
+
+    zxr10VndInterfaceConfEntry  OBJECT-TYPE 
+        SYNTAX      Zxr10VndInterfaceConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device interface configuration entry."   
+        INDEX {zxr10VndInterfaceName}
+        ::= { zxr10VndInterfaceConfTable 1 }
+
+    Zxr10VndInterfaceConfEntry ::= SEQUENCE {
+        zxr10VndInterfaceName               DisplayString,
+        zxr10VndInterfaceAssignedVndName    DisplayString, 
+        zxr10VndInterfaceAssignStatus       INTEGER,  
+        zxr10VndInterfaceAssignMode         INTEGER             
+        }
+
+    zxr10VndInterfaceName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..31))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The name of the interface."     
+    ::= { zxr10VndInterfaceConfEntry 1 }
+
+    zxr10VndInterfaceAssignedVndName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The VND name of the interface assigned to.
+             If the assignment mode of the interface is shared, the VND 
+             names are seperated by comma, such as 'vnd1,vnd2'."      
+    ::= { zxr10VndInterfaceConfEntry 2 }
+
+    zxr10VndInterfaceAssignStatus  OBJECT-TYPE  
+        SYNTAX      INTEGER{
+            assigned(1), 
+            assigning(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The assignment status of the interface." 
+    ::= { zxr10VndInterfaceConfEntry 3 }
+        
+    zxr10VndInterfaceAssignMode  OBJECT-TYPE 
+        SYNTAX      INTEGER {
+            shared(1), 
+            exclusive(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The assignment mode of the interface."     
+    ::= { zxr10VndInterfaceConfEntry 4 }
+
+--------------------------------------------------------------------------------
+-- 2.5 Virtual Network Device Card Assignment Table
+--------------------------------------------------------------------------------
+    zxr10VndAssignCardTable  OBJECT-TYPE  
+        SYNTAX      SEQUENCE OF Zxr10VndAssignCardEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device card assignment table.
+             VND0 supports read-create access.
+             VNDx supports read access."
+    ::= { zxr10VndObjects 6 }
+
+    zxr10VndAssignCardEntry  OBJECT-TYPE 
+        SYNTAX      Zxr10VndAssignCardEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device card assignment entry."  
+        INDEX {zxr10VndConfName, zxr10VndAssignCardName}
+    ::= { zxr10VndAssignCardTable 1 }
+
+    Zxr10VndAssignCardEntry ::= SEQUENCE {
+        zxr10VndAssignCardName          DisplayString,
+        zxr10VndAssignCardRowStatus     RowStatus                        
+        }
+
+    zxr10VndAssignCardName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..19))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The card name assigned to the VND."   
+    ::= { zxr10VndAssignCardEntry 1 }
+
+    zxr10VndAssignCardRowStatus   OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4).
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)." 
+    ::= { zxr10VndAssignCardEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.6 Virtual Network Device Card Configuration Table
+--------------------------------------------------------------------------------        
+    zxr10VndCardConfTable OBJECT-TYPE  
+        SYNTAX      SEQUENCE OF Zxr10VndCardConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device card configuration table." 
+    ::= { zxr10VndObjects 7 }
+
+    zxr10VndCardConfEntry  OBJECT-TYPE 
+        SYNTAX      Zxr10VndCardConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device card configuration entry."   
+        INDEX {zxr10VndCardName}
+        ::= { zxr10VndCardConfTable 1 }
+
+    Zxr10VndCardConfEntry ::= SEQUENCE {
+        zxr10VndCardName                DisplayString,
+        zxr10VndCardAssignedVndName     DisplayString,
+        zxr10VndCardAssignStatus        INTEGER         
+        }
+
+    zxr10VndCardName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..19))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The name of the card."     
+    ::= { zxr10VndCardConfEntry 1 }
+
+    zxr10VndCardAssignedVndName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..31))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The VND name of the card assigned to."     
+    ::= { zxr10VndCardConfEntry 2 }
+
+    zxr10VndCardAssignStatus  OBJECT-TYPE  
+        SYNTAX      INTEGER{
+            assigned(1), 
+            assigning(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The assignment status of the card." 
+    ::= { zxr10VndCardConfEntry 3 }
+
+--------------------------------------------------------------------------------
+-- 2.7 Virtual Network Device Batch Interface Assignment Objects
+--  Batch assignment supports the following scenes:
+--  (1) Assigning the multiple VPorts of all ONUs in batch, such as:
+--      interface name is gpon_olt-1/2/1, VPort list is 1,3,5-8.
+--  (2) Assigning the multiple ONUs in batch, such as:
+--      interface name is gpon_olt-1/2/1, ONU list is 1,3,5-8.
+--  (3) Assigning the multiple VPorts of multiple ONUs in batch, such as:
+--      interface name is gpon_olt-1/2/1, ONU list is 1,3,5-8,
+--      VPort list is 1,3,5-8.
+--  The same as batch recovery.
+--------------------------------------------------------------------------------
+
+    zxr10VndBatchAssignIfObjects      OBJECT IDENTIFIER ::= {zxr10VndObjects 8}
+    zxr10VndBatchAssignIfGlbObjects   OBJECT IDENTIFIER ::= 
+        {zxr10VndBatchAssignIfObjects 1}
+    
+    zxr10VndBatchAssignIfGlbVndName OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..31))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION   
+            "The VND name of the interface assigned to."
+        ::= { zxr10VndBatchAssignIfGlbObjects 1 } 
+                
+    zxr10VndBatchAssignIfGlbPonName OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..31))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION   
+            "The interface name of the PON port."
+        ::= { zxr10VndBatchAssignIfGlbObjects 2 }
+                
+    zxr10VndBatchAssignIfGlbOnuLst OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION   
+            "The ONU ID list assigned to the VND in batch. 
+             The format of the value is as follows: '1,3,5-8'."
+        ::= { zxr10VndBatchAssignIfGlbObjects 3 } 
+                
+    zxr10VndBatchAssignIfGlbVportLst OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION   
+            "The VPort ID list assigned to the VND in batch. 
+             The format of the value is as follows: '1,3,5-8'."
+        ::= { zxr10VndBatchAssignIfGlbObjects 4 }
+                
+    zxr10VndBatchAssignIfGlbType OBJECT-TYPE 
+        SYNTAX      INTEGER{
+            assign(1), 
+            recovery(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION   
+            "The type of the batch assignment. 
+             Assigning the interface to VND, or recovery to VND0."
+        ::= { zxr10VndBatchAssignIfGlbObjects 5 }
+
+--------------------------------------------------------------------------------
+-- 2.8 Virtual Network Device Interface VLAN Assignment Table
+--------------------------------------------------------------------------------        
+    zxr10VndIfVlanAssignTable OBJECT-TYPE  
+        SYNTAX      SEQUENCE OF Zxr10VndIfVlanAssignEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device interface VLAN assignment table.
+             This table is valid only in VND 0." 
+    ::= { zxr10VndObjects 9 }
+
+    zxr10VndIfVlanAssignEntry  OBJECT-TYPE 
+        SYNTAX      Zxr10VndIfVlanAssignEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device interface VLAN assignment entry."   
+        INDEX {zxr10VndConfName, zxr10VndAssignInterfaceName}
+        ::= { zxr10VndIfVlanAssignTable 1 }
+
+    Zxr10VndIfVlanAssignEntry ::= SEQUENCE {
+        zxr10VndIfVlanAssignVlanRange          DisplayString,
+        zxr10VndIfVlanRangeAssign              DisplayString,
+        zxr10VndIfVlanRangeRecover             DisplayString
+        }
+
+    zxr10VndIfVlanAssignVlanRange  OBJECT-TYPE  
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The VLAN range of the interface.
+             The format of the value is as follows: '1,2-6,8,100-200'."
+    ::= { zxr10VndIfVlanAssignEntry 1 }
+    
+    zxr10VndIfVlanRangeAssign  OBJECT-TYPE  
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Assign VLAN to the shared uplink port.
+             If it is read, an empty string will be returned.
+             If an empty string is written, nothing changes.
+             The format of the value is as follows: '1,2-6,8,100-200'."
+    ::= { zxr10VndIfVlanAssignEntry 2 }
+    
+    zxr10VndIfVlanRangeRecover  OBJECT-TYPE  
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Recover VLAN from the shared uplink port.
+             If it is read, an empty string will be returned.
+             If an empty string is written, nothing changes.
+             The format of the value is as follows: '1,2-6,8,100-200'."
+    ::= { zxr10VndIfVlanAssignEntry 3 }
+
+--------------------------------------------------------------------------------
+-- 2.9 Virtual Network Device Interface VLAN Information Table
+--------------------------------------------------------------------------------        
+    zxr10VndIfVlanInfoTable OBJECT-TYPE  
+        SYNTAX      SEQUENCE OF Zxr10VndIfVlanInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device interface VLAN information table.
+             This table is valid in every VND." 
+    ::= { zxr10VndObjects 10 }
+
+    zxr10VndIfVlanInfoEntry  OBJECT-TYPE 
+        SYNTAX      Zxr10VndIfVlanInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device interface VLAN information entry."   
+        INDEX {zxr10VndInterfaceName}
+        ::= { zxr10VndIfVlanInfoTable 1 }
+
+    Zxr10VndIfVlanInfoEntry ::= SEQUENCE {
+        zxr10VndIfVlanRange        DisplayString            
+        }
+
+    zxr10VndIfVlanRange  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The VLAN range of the interface.
+             The format of the value is as follows: '1,2-6,8,100-200'."
+    ::= { zxr10VndIfVlanInfoEntry 1 }
+    
+--------------------------------------------------------------------------------
+-- 2.10 Virtual Network Device Shared VLAN Objects 
+--------------------------------------------------------------------------------
+ 
+    zxr10VndSharedVlanObjects      OBJECT IDENTIFIER ::= {zxr10VndObjects 11}
+    zxr10VndSharedVlanGlobalObjects   OBJECT IDENTIFIER ::= 
+        {zxr10VndSharedVlanObjects 1}
+
+    zxr10VndSharedVlanBatchNew OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION   
+            "New shared VLAN in batches.
+             The format of the value is as follows: '1,2-6,8'.
+             This is valid in VND 0."
+        ::= { zxr10VndSharedVlanGlobalObjects 1 }
+
+    zxr10VndSharedVlanBatchDelete OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(1..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION   
+            "Delete shared VLAN in batches.
+             The format of the value is as follows: '1,2-6,8'.
+             This is valid in VND 0."
+        ::= { zxr10VndSharedVlanGlobalObjects 2 }
+
+    zxr10VndSharedVlanRange OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(0..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION   
+            "The shared VLAN range.
+             The format of the value is as follows: '1,2-6,8'.
+             This is valid in every VND."
+        ::= { zxr10VndSharedVlanGlobalObjects 3 }
+
+--------------------------------------------------------------------------------
+-- 2.11 Virtual Network Device System Operation Objects
+--------------------------------------------------------------------------------
+
+    zxr10VndSysOperObjects          OBJECT IDENTIFIER ::= {zxr10VndObjects 12}
+
+    zxr10VndSysOperGlobalObjects    OBJECT IDENTIFIER
+    ::= {zxr10VndSysOperObjects 1}
+
+    zxr10VndSysOperRestartAction    OBJECT-TYPE
+        SYNTAX      INTEGER {
+            restart(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Restart VNDx except VND0."
+    ::= { zxr10VndSysOperGlobalObjects 1 }
+
+END

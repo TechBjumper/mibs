@@ -1,0 +1,659 @@
+ZTE-AN-MAC-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, Integer32,
+        Counter32, NOTIFICATION-TYPE                FROM SNMPv2-SMI
+        ifIndex                                     FROM IF-MIB
+        MacAddress,RowStatus,DateAndTime            FROM SNMPv2-TC
+        VlanId                                      FROM ZTE-AN-TC-MIB
+        zxAnBridge                                  FROM ZTE-AN-SMI
+        zxAnSubIfIndex                              FROM ZTE-AN-IF-MIB
+        OBJECT-GROUP, NOTIFICATION-GROUP,MODULE-COMPLIANCE
+                                                    FROM SNMPv2-CONF;  
+
+    zxAnMacMib MODULE-IDENTITY
+        LAST-UPDATED    "201404090000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Huang XuRui  ZTE Corporation
+                         Mail: huang.xurui@zte.com.cn
+                         Tel : +86-21-68897477
+                  
+                         Kong WenHui ZTE Corporation
+                         Mail: kong.wenhui@zte.com.cn
+                         Tel : +86-21-68897477"
+        DESCRIPTION
+            "This MIB defines MAC forwarding managed objects of zte
+             Access Node."
+        REVISION        "201404090000Z"
+        DESCRIPTION     
+            "The modification of this mib file is following:
+               - add the mac type 'static(3)' for zxAnMacFwdAddrStatus."
+        REVISION        "201109170000Z"
+        DESCRIPTION
+            "The modification of this mib file is following:
+               - modify the description of some variables."
+        REVISION        "201108170000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."   
+        ::= {zxAnBridge 10}         
+------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 2. zxAnMacObjects
+-- 2.1 zxAnMacTableObjects
+-- 2.1.1 zxAnMacTableGlobalObjects
+-- 2.1.2 zxAnMacFwdTable
+-- 2.1.3 zxAnMacFwdVlanStatsTable
+-- 2.1.4 zxAnMacFwdVlanConfTable
+-- 2.1.5 zxAnMacFwdVlanMacTable
+-- 2.3 zxAnMacFtpObjects
+-- 2.3.2 zxAnMacFtpSnapCollectGlbObjects
+-- 2.3.3 zxAnMacFtpAccCollectGlbObjects
+
+-- Following notification objects are defined.
+-- 3.1 zxAnMacTableTraps
+
+-- Following conformance information is defined.
+-- 31. zxAnMacConformance
+------------------------------------------------------------------------------ 
+    zxAnMacObjects          OBJECT IDENTIFIER  ::=  { zxAnMacMib 2 }
+    zxAnMacNotifications    OBJECT IDENTIFIER  ::=  { zxAnMacMib 3 }
+    
+    zxAnMacTableObjects     OBJECT IDENTIFIER  ::=  { zxAnMacObjects 1 }
+    zxAnMacFtpObjects       OBJECT IDENTIFIER  ::=  { zxAnMacObjects 3 }
+    zxAnMacFtpSnapCollectGlbObjects
+                            OBJECT IDENTIFIER  ::=  { zxAnMacFtpObjects 2 }
+    zxAnMacFtpAccCollectGlbObjects
+                            OBJECT IDENTIFIER  ::=  { zxAnMacFtpObjects 3 }
+    
+    zxAnMacTableTraps       OBJECT IDENTIFIER  ::=  { zxAnMacNotifications 1 }
+
+------------------------------------------------------------------------------
+-- 2.1.1 zxAnMacTableGlobalObjects
+------------------------------------------------------------------------------
+    
+    zxAnMacTableGlobalObjects   OBJECT IDENTIFIER ::= {zxAnMacTableObjects 1} 
+
+    zxAnMacAgingTime    OBJECT-TYPE 
+        SYNTAX      Integer32 (10..1000000)
+        UNITS       "second"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The timeout period in seconds for aging out
+             dynamically learned forwarding information.
+             802.1D-1990 recommends a default of 300 seconds."
+        REFERENCE
+                "IEEE 802.1D-1990: Section 6.7.1.1.3"
+        DEFVAL { 300 }        
+        ::= { zxAnMacTableGlobalObjects 1 }
+        
+    zxAnMacTableCapacity   OBJECT-TYPE     
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The capacity of the MAC forwarding table." 
+        ::=  {  zxAnMacTableGlobalObjects  2  }    
+
+    zxAnMacTableMonitorInterval   OBJECT-TYPE     
+        SYNTAX      Integer32 ( 5..1440 )
+        UNITS       "minute"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The interval to monitor the max utilization of the MAC forwarding
+             table." 
+        DEFVAL { 10 }              
+        ::=  {  zxAnMacTableGlobalObjects  3  }   
+
+    zxAnMacTableMonitorElapsedTime   OBJECT-TYPE     
+        SYNTAX      Integer32 
+        UNITS       "second"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The elapsed time of this monitoring period." 
+        ::=  {  zxAnMacTableGlobalObjects  4  }    
+
+    zxAnMacTableCurrUtilization   OBJECT-TYPE     
+        SYNTAX      Integer32
+        UNITS       "percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The current utilization of the MAC forwarding table." 
+        ::=  {  zxAnMacTableGlobalObjects  5  }
+
+    zxAnMacTableCurrMaxUtilization   OBJECT-TYPE     
+        SYNTAX      Integer32
+        UNITS       "percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The max utilization of the MAC forwarding table in current
+             monitoring period." 
+        ::=  {  zxAnMacTableGlobalObjects  6  }
+
+    zxAnMacTableHisMaxUtilization   OBJECT-TYPE     
+        SYNTAX      Integer32
+        UNITS       "percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The max utilization of the MAC forwarding table from system
+             startup." 
+        ::=  {  zxAnMacTableGlobalObjects  7  }        
+        
+    zxAnMacTableUtilizationThreshold   OBJECT-TYPE     
+        SYNTAX      Integer32 ( 1..100 )
+        UNITS       "percent"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The utilization threshold of the MAC forwarding table. The
+             zxAnMacTableUtilOverThresh trap should be generated when it
+             is exceeded." 
+        DEFVAL { 70 }              
+        ::=  {  zxAnMacTableGlobalObjects  8  }    
+        
+    zxAnMacTableCurrTotalMacAddress   OBJECT-TYPE 
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The current total MAC address number of the MAC forwarding table.
+             The value will be updated in each 5 seconds." 
+        ::=  { zxAnMacTableGlobalObjects  9 }
+
+    zxAnMacTableUtilOverReportMode   OBJECT-TYPE 
+        SYNTAX   INTEGER {
+            alarm(1),
+            notification(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "A trap reporting mode when the current utilization exceeds the 
+             threshold.
+             - alarm(1):
+               An alarm trap should be generated when the utilization exceeds 
+               the threshold.
+             - notification(2):
+               A notification trap should be generated when the utilization 
+               exceeds the threshold.
+               Only supports C6XX, not supports C3XX."
+        DEFVAL { notification }
+        ::=  { zxAnMacTableGlobalObjects  10 }
+
+    zxAnMacTableUtilAlmClrThresh   OBJECT-TYPE     
+        SYNTAX      Integer32 ( 1..100 )
+        UNITS       "percent"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The utilization alarm cleared threshold.
+             Only supports C6XX, not supports C3XX."
+        DEFVAL { 65 }
+        ::=  {  zxAnMacTableGlobalObjects  11 }
+
+------------------------------------------------------------------------------
+-- 2.1.2 zxAnMacFwdTable
+------------------------------------------------------------------------------
+  
+    zxAnMacFwdTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF ZxAnMacFwdEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "This table contains information about unicast entries for which
+             the bridge has forwarding and/or filtering information. This
+             information is used by the transparent bridging function in
+             determining how to propagate a received frame."
+        ::= { zxAnMacTableObjects  2 }
+    
+    zxAnMacFwdEntry OBJECT-TYPE
+        SYNTAX  ZxAnMacFwdEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "Information about a specific unicast MAC address for which the
+             bridge has some forwarding and/or filtering information."
+        INDEX   {   zxAnMacFwdAddrStatus,
+                    ifIndex,
+                    zxAnSubIfIndex,
+                    zxAnMacFwdVid,
+                    zxAnMacFwdMacAddr }
+        ::= { zxAnMacFwdTable 1 }
+    
+    ZxAnMacFwdEntry ::= SEQUENCE {
+        zxAnMacFwdAddrStatus     INTEGER,
+        zxAnMacFwdVid            Integer32,
+        zxAnMacFwdMacAddr        MacAddress,
+        zxAnMacFwdConfRowStatus  RowStatus
+        }
+
+
+    zxAnMacFwdAddrStatus OBJECT-TYPE
+        SYNTAX  INTEGER {
+            dynamic(1),
+            permanent(2),
+            static(3)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A MAC address status to forward and/or filter.             
+             The following is the explanation of each value of variable 
+             zxAnMacFwdAddrStatus.
+             - dynamic(1):
+               The type of MAC forwarding table is dynamic.The dynamic
+               mac table will generate when a port receive frames and
+               can be aging out.               
+             - permanent(2):
+               The type of MAC forwarding table is permanent.It can
+               be configured or delete by manually. The permenent MAC address 
+               should be saved.
+             - static(3):
+               The type of MAC forwarding table is static. It can be configured 
+               or deleted by other protocols automatically. The MAC address 
+               could not be saved."
+        ::= { zxAnMacFwdEntry 1 }
+
+    zxAnMacFwdVid OBJECT-TYPE
+        SYNTAX  Integer32 ( 0..4095 )
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "The vlan id of mac forwarding entry.This value may be 0 as
+            some user-cards don't support to learn vlanId of the MAC table."
+        ::= { zxAnMacFwdEntry 2 }        
+                    
+    zxAnMacFwdMacAddr OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "An unicast MAC address for which the bridge has forwarding
+             and/or filtering information."
+        REFERENCE
+            "IEEE 802.1D-1990: Section 3.9.1, 3.9.2"
+        ::= { zxAnMacFwdEntry 3 }  
+          
+    zxAnMacFwdConfRowStatus  OBJECT-TYPE 
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+             The state of this conceptual row only support 
+             'not exist' and  'active'.
+             The action of this conceptual row only support
+             'createAndGo' and 'destroy'.
+             The dynamic MAC table is read-only,don't support to create or
+             delete.
+             The permanent MAC table support to create or delete.
+             To create a permanent MAC table, a manager must set this object
+             as createAndGo(4).    
+             To delete a permanent MAC table, a manager must set this object
+             as destroy(6).
+             To query this object when a MAC table is existed, it always
+             returns active(1).
+             To query this object when a MAC table isn't existed, it always
+             returns no such instance."
+        ::=  {  zxAnMacFwdEntry 50 }  
+
+--------------------------------------------------------------------------------
+-- 2.1.3 zxAnMacFwdVlanStatsTable
+--------------------------------------------------------------------------------
+    zxAnMacFwdVlanStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMacFwdVlanStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MAC statistics table based on VLAN.
+             This table includes statistical information of numbers of unicast 
+             MAC addresses for all the bridges on the device that have
+             forwarding and/or filtering information."
+        ::= { zxAnMacTableObjects 3 }
+
+    zxAnMacFwdVlanStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnMacFwdVlanStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MAC statistics entry based on VLAN."
+        INDEX { zxAnMacFwdVlanStatsVid }
+        ::= { zxAnMacFwdVlanStatsTable 1 }
+
+    ZxAnMacFwdVlanStatsEntry  ::= SEQUENCE {
+        zxAnMacFwdVlanStatsVid          VlanId,
+        zxAnMacFwdVlanStatsMacs         Counter32
+        }
+
+    zxAnMacFwdVlanStatsVid  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The VLAN ID of MAC forwarding entry."
+        ::= { zxAnMacFwdVlanStatsEntry 1 }
+
+    zxAnMacFwdVlanStatsMacs  OBJECT-TYPE 
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of MAC forwarding entries on the specified VLAN."
+        ::= { zxAnMacFwdVlanStatsEntry 2 }
+
+------------------------------------------------------------------------------
+-- 2.1.4 zxAnMacFwdVlanConfTable
+------------------------------------------------------------------------------
+    zxAnMacFwdVlanConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMacFwdVlanConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table containing MAC forwarding configuration based on VLAN.
+             Only supports C6XX, not supports C3XX."
+        ::= { zxAnMacTableObjects 4 }
+
+    zxAnMacFwdVlanConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMacFwdVlanConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Entry for zxAnMacFwdVlanConfTable."
+        INDEX   { zxAnMacFwdVlanConfVid }
+        ::= { zxAnMacFwdVlanConfTable 1 }
+
+    ZxAnMacFwdVlanConfEntry ::= SEQUENCE {
+        zxAnMacFwdVlanConfVid       VlanId,
+        zxAnMacFwdVlanConfAgingTime Integer32,
+        zxAnMacFwdVlanConfRowStatus RowStatus
+        }
+
+    zxAnMacFwdVlanConfVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "The VLAN ID of MAC forwarding configuration."
+        ::= { zxAnMacFwdVlanConfEntry 1 }
+
+    zxAnMacFwdVlanConfAgingTime  OBJECT-TYPE
+        SYNTAX      Integer32 (10..1000000)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The MAC aging time based on VLAN."
+        DEFVAL      { 300 }
+        ::= { zxAnMacFwdVlanConfEntry 2 }
+
+    zxAnMacFwdVlanConfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnMacFwdVlanConfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6). 
+
+             To get this object, the agent always returns 1."
+        ::= { zxAnMacFwdVlanConfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.1.5 zxAnMacFwdVlanMacTable
+--------------------------------------------------------------------------------
+    zxAnMacFwdVlanMacTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF ZxAnMacFwdVlanMacEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A table containing MAC address based on VLAN.
+             Only supports C6XX, not supports C3XX."
+        ::= { zxAnMacTableObjects  5 }
+
+    zxAnMacFwdVlanMacEntry OBJECT-TYPE
+        SYNTAX  ZxAnMacFwdVlanMacEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "Entry for zxAnMacFwdVlanMacTable."
+        INDEX   {   zxAnMacFwdVid,
+                    ifIndex,
+                    zxAnSubIfIndex,
+                    zxAnMacFwdAddrStatus,
+                    zxAnMacFwdMacAddr }
+        ::= { zxAnMacFwdVlanMacTable 1 }
+
+     ZxAnMacFwdVlanMacEntry ::= SEQUENCE {
+         zxAnMacFwdVlanMacAddr        MacAddress
+         }
+
+     zxAnMacFwdVlanMacAddr OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "An unicast MAC address for which the VLAN has forwarding
+             and/or filtering information."
+        REFERENCE
+            "IEEE 802.1D-1990: Section 3.9.1, 3.9.2"
+        ::= { zxAnMacFwdVlanMacEntry 1 }
+
+------------------------------------------------------------------------------
+-- 2.3.2 zxAnMacFtpSnapCollectGlbObjects
+------------------------------------------------------------------------------
+    zxAnMacFtpSnapCollectEnable    OBJECT-TYPE 
+        SYNTAX          INTEGER {
+            enabled(1),
+            disabled(2)
+        }    
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "Enables and disables MAC snapshot collecting function.
+             MAC snapshot collecting is a function that generates csv files 
+             periodically containing snapshot information about unicast entries
+             for all the bridges on the device that have forwarding and/or 
+             filtering information."
+        DEFVAL  { disabled }     
+        ::= { zxAnMacFtpSnapCollectGlbObjects 1 }
+        
+    zxAnMacFtpSnapCollectStartTime       OBJECT-TYPE 
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The starting time of periodical MAC snapshot collecting."
+        ::=  {  zxAnMacFtpSnapCollectGlbObjects 2 }
+     
+    zxAnMacFtpSnapCollectInterval   OBJECT-TYPE 
+        SYNTAX          Integer32(2..1440)
+        UNITS           "Hours"   
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION 
+            "The interval of periodical MAC snapshot collecting." 
+        DEFVAL    { 24 }      
+        ::=  { zxAnMacFtpSnapCollectGlbObjects 3}
+        
+------------------------------------------------------------------------------
+-- 2.3.3 zxAnMacFtpAccCollectGlbObjects
+------------------------------------------------------------------------------
+    zxAnMacFtpAccCollectEnable    OBJECT-TYPE 
+        SYNTAX          INTEGER {
+            enabled(1),
+            disabled(2)
+        }       
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "Enables and disables MAC accumulation collecting function.
+             MAC accumulation collecting is a function which is similar to MAC 
+             snapshot collecting, except that the collected unicast entries are 
+             not a snapshot but are accumulative between the two collecting 
+             times."
+        DEFVAL  { disabled }     
+        ::= { zxAnMacFtpAccCollectGlbObjects 1 }
+        
+    zxAnMacFtpAccCollectStartTime    OBJECT-TYPE 
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The starting time of periodical MAC accumulation collecting."        
+        ::=  { zxAnMacFtpAccCollectGlbObjects 2 }
+     
+    zxAnMacFtpAccCollectInterval    OBJECT-TYPE 
+        SYNTAX          Integer32(2..1440)
+        UNITS           "Hours"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION 
+            "The interval of periodical MAC accumulation collecting." 
+        DEFVAL    { 24 }
+        ::=  { zxAnMacFtpAccCollectGlbObjects 3}
+    
+------------------------------------------------------------------------------
+-- 3.1 zxAnMacTableTraps
+------------------------------------------------------------------------------
+
+    zxAnMacTableUtilOverThresh      NOTIFICATION-TYPE
+        OBJECTS { zxAnMacTableCurrUtilization,
+                  zxAnMacTableUtilizationThreshold  }
+        STATUS  current
+        DESCRIPTION
+            "When the current utilization exceeds the threshold in a 
+             monitoring period, then a notification is generated. In one
+             monitoring period the system may generate only one 
+             notification at most."
+        ::= { zxAnMacTableTraps 1 }
+                  
+
+------------------------------------------------------------------------------
+-- 31. zxAnMacConformance
+------------------------------------------------------------------------------
+
+zxAnMacConformance      OBJECT IDENTIFIER ::= {zxAnMacMib 4}
+
+zxAnMacCompliances      OBJECT IDENTIFIER ::= { zxAnMacConformance 1 }
+zxAnMacGroups           OBJECT IDENTIFIER ::= { zxAnMacConformance 2 }
+
+    zxAnMacCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-MAC-MIB.
+             only C3XX support,C6XX not support anymore."
+        MODULE -- this module        
+            MANDATORY-GROUPS {
+                zxAnMacTableGlobalObjectsGroup,
+                zxAnMacFwdTableGroup,
+                zxAnMacTableUsageTrapsGroup,
+                zxAnMacFwdVlanStatsGroup,
+                zxAnMacFwdVlanConfGroup,
+                zxAnMacFwdVlanMacTableGroup,
+                zxAnMacFtpSnapCollectGlbGroup,
+                zxAnMacFtpAccCollectGlbGroup
+            }
+        ::= { zxAnMacCompliances 1 } 
+
+    zxAnMacTableGlobalObjectsGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMacAgingTime,
+            zxAnMacTableCapacity,
+            zxAnMacTableMonitorInterval,
+            zxAnMacTableMonitorElapsedTime,
+            zxAnMacTableCurrUtilization,
+            zxAnMacTableCurrMaxUtilization,
+            zxAnMacTableHisMaxUtilization,
+            zxAnMacTableUtilizationThreshold,
+            zxAnMacTableCurrTotalMacAddress,
+            zxAnMacTableUtilOverReportMode,
+            zxAnMacTableUtilAlmClrThresh
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing mac table global information."
+        ::= { zxAnMacGroups 1 }
+       
+    zxAnMacFwdTableGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMacFwdConfRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "Information about unicast entry in mac forwarding table."
+        ::= { zxAnMacGroups 2 }
+        
+    zxAnMacFwdVlanStatsGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMacFwdVlanStatsMacs
+        }
+        STATUS current
+        DESCRIPTION
+            "Information about mac amounts of vlan."
+        ::= { zxAnMacGroups 3 }
+        
+    zxAnMacFwdVlanConfGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMacFwdVlanConfAgingTime,
+            zxAnMacFwdVlanConfRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "Information about mac aging time of vlan."
+        ::= { zxAnMacGroups 4 }
+
+    zxAnMacFwdVlanMacTableGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMacFwdVlanMacAddr
+        }
+        STATUS current
+        DESCRIPTION
+            "Information about vlan mac table."
+        ::= { zxAnMacGroups 5 }
+
+    zxAnMacFtpSnapCollectGlbGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMacFtpSnapCollectEnable,
+            zxAnMacFtpSnapCollectStartTime,
+            zxAnMacFtpSnapCollectInterval
+        }
+        STATUS current
+        DESCRIPTION
+            "Information about mac ftp snapCollect."
+        ::= { zxAnMacGroups 7 }
+        
+    zxAnMacFtpAccCollectGlbGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMacFtpAccCollectEnable,
+            zxAnMacFtpAccCollectStartTime,
+            zxAnMacFtpAccCollectInterval
+        }
+        STATUS current
+        DESCRIPTION
+            "Information about mac ftp accCollect."
+        ::= { zxAnMacGroups 8 }
+        
+    zxAnMacTableUsageTrapsGroup NOTIFICATION-GROUP
+        NOTIFICATIONS {
+            zxAnMacTableUtilOverThresh
+        }
+        STATUS current
+        DESCRIPTION
+            "The notifications which entities are required to implement."
+        ::= { zxAnMacGroups 50 }
+END
+    

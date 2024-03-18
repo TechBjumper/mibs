@@ -1,0 +1,3588 @@
+ZTE-AN-INTERFACE-STATS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
+    Integer32, Gauge32, Counter64, Counter32        FROM SNMPv2-SMI
+    RowStatus, DisplayString, TruthValue,
+    TEXTUAL-CONVENTION, DateAndTime                 FROM SNMPv2-TC
+    MODULE-COMPLIANCE, OBJECT-GROUP                 FROM SNMPv2-CONF
+    ifIndex                                         FROM IF-MIB
+    VlanId                                          FROM ZTE-AN-TC-MIB
+    zxAnInterface                                   FROM ZTE-AN-SMI
+    HCPerfCurrentCount                              FROM HC-PerfHist-TC-MIB
+    zxAnSubIfIndex                                  FROM ZTE-AN-IF-MIB;
+zxAnInterfaceStatsMib MODULE-IDENTITY
+    LAST-UPDATED    "201510200000Z"
+    ORGANIZATION    "ZTE Corporation"
+    CONTACT-INFO    "
+                     Zhang Weiping   ZTE Corporation
+                     Mail: zhang.weiping@zte.com.cn
+                     Tel : 021-68896470
+
+                     Chen Aimin      ZTE Corporation.
+                     Mail: chen.aimin@zte.com.cn
+                     Tel : 021-68897128
+                     "
+    DESCRIPTION     "The MIB module for the Performance Management of ZTE Access
+                     Node interface."
+
+    REVISION        "201510200000Z"
+    DESCRIPTION     "Add the object: zxAnEthIfLinkStatusChanges."
+    
+    REVISION        "201509060000Z"
+    DESCRIPTION     "Add the object: zxAnPvcIfStatsGlobalMode."
+
+    REVISION        "201107021400Z"
+    DESCRIPTION     "Initial version of this MIB module."
+    ::= {zxAnInterface 31}
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1. Global Objects
+-- 2. Interface Performance Objects
+-- 2.1 Ethernet Port Statistics
+-- 2.2 Bridge Port Statistics
+-- 2.3 LAG Interface Statistics
+-- 2.4 Interface Rate Statistics
+-- 2.5 Interface Bandwidth Using
+-- 2.6 Interface Number Statistics
+-- 2.7 Interface VLAN Statistics
+-- 2.8 Interface VLAN Rate Statistics
+-- 2.9 Interface SVLAN and CVLAN Statistics
+-- 2.10 Bridge Port Current Performance Statistics
+-- 2.11 Interface SVLAN and CVLAN Current Performance Statistics
+-- 2.12 VND0 Ethernet Port Statistics
+-- 2.13 VND0 LAG Interface Statistics
+
+-- Following notification objects are defined.
+-- 3. Interface Notifications Definations
+
+-- Following conformance information is defined.
+-- 4. zxAnIfPerfConformance
+--------------------------------------------------------------------------------
+
+    zxAnIfPerfGlobalObjects    OBJECT IDENTIFIER ::= { zxAnInterfaceStatsMib 1 }
+    zxAnIfPerfObjects          OBJECT IDENTIFIER ::= { zxAnInterfaceStatsMib 2 }
+    zxAnIfPerfNotifications    OBJECT IDENTIFIER ::= { zxAnInterfaceStatsMib 3 }
+    zxAnIfPerfConformance      OBJECT IDENTIFIER ::= { zxAnInterfaceStatsMib 4 }
+
+    zxAnIfPerfCompliances      OBJECT IDENTIFIER ::= { zxAnIfPerfConformance 1 }
+    zxAnIfPerfGroups           OBJECT IDENTIFIER ::= { zxAnIfPerfConformance 2 }
+
+--------------------------------------------------------------------------------
+-- 1. Global Objects
+--------------------------------------------------------------------------------
+    
+    zxAnPvcIfStatsGlobalMode OBJECT-TYPE 
+        SYNTAX INTEGER {           
+           allStarted(1),
+           allStopped(2),
+           invalid(3)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The global mode of PVC interface statistics.              
+             allStarted(1): Statistics of all the PVC interfaces are started.
+             allStopped(2): Statistics of all the PVC interfaces are stopped.
+             invalid(3): The global mode is invalid. Only statistics of the PVC 
+             interfaces in zxAnPvcIfCurrStatsTable are started."
+        DEFVAL  { invalid } 
+        ::=  { zxAnIfPerfGlobalObjects 1 }
+    
+--------------------------------------------------------------------------------
+-- 2. Interface Performance Objects
+--------------------------------------------------------------------------------
+    
+--------------------------------------------------------------------------------
+-- 2.1 Ethernet Port Statistics
+--------------------------------------------------------------------------------
+    zxAnEthIfCurrStatsTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data table of interfaces."
+        ::= { zxAnIfPerfObjects 2 }
+
+
+    zxAnEthIfCurrStatsEntry    OBJECT-TYPE
+        SYNTAX      ZxAnEthIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data entry of interfaces."
+        INDEX   { ifIndex}
+        ::= { zxAnEthIfCurrStatsTable 1 }
+
+    ZxAnEthIfCurrStatsEntry ::= SEQUENCE {
+        zxAnEthIfInOctets                   Counter64,
+        zxAnEthIfInPkts                     Counter64,
+        zxAnEthIfInUcastPkts                Counter64,
+        zxAnEthIfInMcastPkts                Counter64,
+        zxAnEthIfInBcastPkts                Counter64,
+        zxAnEthIfInOversizedPkts            Counter64,
+        zxAnEthIfInUndersizedPkts           Counter64,
+        zxAnEthIfOutOctets                  Counter64,
+        zxAnEthIfOutPkts                    Counter64,
+        zxAnEthIfOutUcastPkts               Counter64,
+        zxAnEthIfOutMcastPkts               Counter64,
+        zxAnEthIfOutBcastPkts               Counter64,
+        zxAnEthIfOutPausePkts               Counter64,
+        zxAnEthIfOutDiscardPkts             Counter64,
+        zxAnEthIfOutCollisions              Counter64,
+        zxAnEthIfSingleCollisions           Counter64,
+        zxAnEthIfMultipleCollisions         Counter64,
+        zxAnEthIfFcsErrors                  Counter64,
+        zxAnEthIfAlignmentErrors            Counter64,
+        zxAnEthIfInCrcErrPkts               Counter64,
+        zxAnEthIfInDiscardPkts              Counter64,
+        zxAnEthIfInErrPkts                  Counter64,
+        zxAnEthIfOutErrPkts                 Counter64,
+        zxAnEthIfLinkStatusChanges          Counter32,
+        zxAnEthIfInDropEvents               Counter64,
+        zxAnEthIfOutDropEvents              Counter64,
+        zxAnEthIfOutCrcErrPkts              Counter64,
+        zxAnEthIfOutOversizedPkts           Counter64,
+        zxAnEthIfOutUndersizedPkts          Counter64,
+        zxAnEthIfInFragments                Counter64,
+        zxAnEthIfOutFragments               Counter64,
+        zxAnEthIfInJabbers                  Counter64,
+        zxAnEthIfOutJabbers                 Counter64,
+        zxAnEthIfInPkts64Octets             Counter64,
+        zxAnEthIfOutPkts64Octets            Counter64,
+        zxAnEthIfInPkts65to127Octets        Counter64,
+        zxAnEthIfOutPkts65to127Octets       Counter64,
+        zxAnEthIfInPkts128to255Octets       Counter64,
+        zxAnEthIfOutPkts128to255Octets      Counter64,
+        zxAnEthIfInPkts256to511Octets       Counter64,
+        zxAnEthIfOutPkts256to511Octets      Counter64,
+        zxAnEthIfInPkts512to1023Octets      Counter64,
+        zxAnEthIfOutPkts512to1023Octets     Counter64,
+        zxAnEthIfInPkts1024to1518Octets     Counter64,
+        zxAnEthIfOutPkts1024to1518Octets    Counter64,        
+        zxAnEthIfReset                  INTEGER
+        }
+
+    zxAnEthIfInOctets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of octets received on the interface,
+            including framing characters.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 1 }
+
+    zxAnEthIfInPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received on the interface,
+            including framing characters.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 2 }
+
+    zxAnEthIfInUcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were not addressed to a multicast
+            or broadcast address at this sub-layer.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 3 }
+
+    zxAnEthIfInMcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a multicast
+            address at this sub-layer.  For a MAC layer protocol, this
+            includes both Group and Functional addresses.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 4 }
+
+    zxAnEthIfInBcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a broadcast
+            address at this sub-layer.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 5 }
+
+    zxAnEthIfInOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed."
+        ::= { zxAnEthIfCurrStatsEntry 6 }
+
+    zxAnEthIfInUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets long (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed."
+        ::= { zxAnEthIfCurrStatsEntry 7 }
+
+    zxAnEthIfOutOctets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of octets transmitted out of the interface,
+            including framing characters."
+        ::= { zxAnEthIfCurrStatsEntry 8 }
+
+    zxAnEthIfOutPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted out of the interface,
+            including framing characters."
+        ::= { zxAnEthIfCurrStatsEntry 9 }
+
+    zxAnEthIfOutUcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were not addressed to a
+            multicast or broadcast address at this sub-layer, including
+            those that were discarded or not sent.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 10 }
+
+    zxAnEthIfOutMcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            multicast address at this sub-layer, including those that
+            were discarded or not sent.  For a MAC layer protocol, this
+            includes both Group and Functional addresses.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime"
+        ::= { zxAnEthIfCurrStatsEntry 11 }
+
+    zxAnEthIfOutBcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            broadcast address at this sub-layer, including those that
+            were discarded or not sent.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 12 }
+
+    zxAnEthIfOutPausePkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of MAC Control frames transmitted on
+             this interface with an opcode indicating the
+             PAUSE operation.
+
+             This counter does not increment when the
+             interface is operating in half-duplex mode.
+
+             For interfaces operating at 10 Gb/s, this
+             counter can roll over in less than 5 minutes if
+             it is incrementing at its maximum rate.  Since
+             that amount of time could be less than a
+             management station's poll cycle time, in order
+             to avoid a loss of information, a management
+             station is advised to poll the
+             dot3HCOutPauseFrames object for 10 Gb/s or
+             faster interfaces.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 13 }
+
+    zxAnEthIfOutDiscardPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of outbound packets which were chosen to be
+            discarded even though no errors had been detected to prevent
+            their being transmitted.  One possible reason for discarding
+            such a packet could be to free up buffer space.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 14 }
+
+    zxAnEthIfOutCollisions    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames that are involved in out collision and
+             are subsequently transmitted successfully.
+
+             A frame that is counted by an instance of this
+             object is also counted by the corresponding
+             instance of either the ifOutUcastPkts,
+             ifOutMulticastPkts, or ifOutBroadcastPkts,
+             and is not counted by the corresponding
+             instance of the dot3StatsSingleCollisionFrames
+             object.
+
+             This counter does not increment when the
+             interface is operating in full-duplex mode.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 15 }
+
+    zxAnEthIfSingleCollisions    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames that are involved in a single
+             collision, and are subsequently transmitted
+             successfully.
+
+             A frame that is counted by an instance of this
+             object is also counted by the corresponding
+             instance of either the ifOutUcastPkts,
+             ifOutMulticastPkts, or ifOutBroadcastPkts,
+             and is not counted by the corresponding
+             instance of the dot3StatsMultipleCollisionFrames
+             object.
+
+             This counter does not increment when the
+             interface is operating in full-duplex mode.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 16 }
+
+    zxAnEthIfMultipleCollisions    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames that are involved in more
+             than one collision and are subsequently
+             transmitted successfully.
+
+             A frame that is counted by an instance of this
+             object is also counted by the corresponding
+             instance of either the ifOutUcastPkts,
+             ifOutMulticastPkts, or ifOutBroadcastPkts,
+             and is not counted by the corresponding
+             instance of the dot3StatsSingleCollisionFrames
+             object.
+
+             This counter does not increment when the
+             interface is operating in full-duplex mode.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 17 }
+
+    zxAnEthIfFcsErrors    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames received on a particular
+             interface that are an integral number of octets
+             in length but do not pass the FCS check.  This
+             count does not include frames received with
+             frame-too-long or frame-too-short error.
+
+             The count represented by an instance of this
+             object is incremented when the frameCheckError
+             status is returned by the MAC service to the
+             LLC (or other MAC user). Received frames for
+             which multiple error conditions pertain are,
+             according to the conventions of IEEE 802.3
+             Layer Management, counted exclusively according
+             to the error status presented to the LLC.
+
+             Note:  Coding errors detected by the physical
+             layer for speeds above 10 Mb/s will cause the
+             frame to fail the FCS check.
+
+             For interfaces operating at 10 Gb/s, this
+             counter can roll over in less than 5 minutes if
+             it is incrementing at its maximum rate.  Since
+             that amount of time could be less than a
+             management station's poll cycle time, in order
+             to avoid a loss of information, a management
+             station is advised to poll the
+             dot3HCStatsFCSErrors object for 10 Gb/s or
+             faster interfaces.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 18 }
+
+    zxAnEthIfAlignmentErrors    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames received on a particular
+             interface that are not an integral number of
+             octets in length and do not pass the FCS check.
+
+             The count represented by an instance of this
+             object is incremented when the alignmentError
+             status is returned by the MAC service to the
+             LLC (or other MAC user). Received frames for
+             which multiple error conditions pertain are,
+             according to the conventions of IEEE 802.3
+             Layer Management, counted exclusively according
+             to the error status presented to the LLC.
+
+             This counter does not increment for group
+             encoding schemes greater than 4 bits per group.
+
+             For interfaces operating at 10 Gb/s, this
+             counter can roll over in less than 5 minutes if
+             it is incrementing at its maximum rate.  Since
+             that amount of time could be less than a
+             management station's poll cycle time, in order
+             to avoid a loss of information, a management
+             station is advised to poll the
+             dot3HCStatsAlignmentErrors object for 10 Gb/s
+             or faster interfaces.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnEthIfCurrStatsEntry 19 }
+
+
+    zxAnEthIfInCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets received on the interface."
+        ::= { zxAnEthIfCurrStatsEntry 20 }
+        
+        
+    zxAnEthIfInDiscardPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of discarded packets received on the interface."
+        ::= { zxAnEthIfCurrStatsEntry 21 }
+        
+    zxAnEthIfInErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of errored packets received on the interface."
+        ::= { zxAnEthIfCurrStatsEntry 22 }
+        
+        
+    zxAnEthIfOutErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of errored packets that could not be transmitted 
+             from the interface because of errors."
+        ::= { zxAnEthIfCurrStatsEntry 23 }
+    
+    zxAnEthIfLinkStatusChanges OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the interface.
+             The total number starts from zero and is increased when the link
+             status changes from up to down, or from down to up."
+        ::= { zxAnEthIfCurrStatsEntry 24 }
+        
+    zxAnEthIfInDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets received were 
+             dropped by the probe due to lack of resources.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfCurrStatsEntry 25 }
+        
+    zxAnEthIfOutDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets transmitted were 
+             dropped by the probe due to lack of resources.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfCurrStatsEntry 26 }
+        
+    zxAnEthIfOutCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets transmitted out of the 
+             interface."
+        ::= { zxAnEthIfCurrStatsEntry 27 }
+        
+    zxAnEthIfOutOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed."
+        ::= { zxAnEthIfCurrStatsEntry 28 }
+
+    zxAnEthIfOutUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 
+             64 octets long (excluding framing bits, but including FCS 
+             octets) and were otherwise well formed."
+        ::= { zxAnEthIfCurrStatsEntry 29 }
+        
+    zxAnEthIfInFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with 
+             an integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error)."
+        ::= { zxAnEthIfCurrStatsEntry 30 }
+
+    zxAnEthIfOutFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with an 
+             integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error)."
+        ::= { zxAnEthIfCurrStatsEntry 31 }
+        
+    zxAnEthIfInJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error).
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfCurrStatsEntry 32 }
+
+    zxAnEthIfOutJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error).
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfCurrStatsEntry 33 }
+        
+    zxAnEthIfInPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 34 }
+
+    zxAnEthIfOutPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 35 }
+        
+    zxAnEthIfInPkts65to127Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 36 }
+
+    zxAnEthIfOutPkts65to127Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 37 }
+        
+    zxAnEthIfInPkts128to255Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 38 }
+
+    zxAnEthIfOutPkts128to255Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 39 }
+        
+    zxAnEthIfInPkts256to511Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 40 }
+
+    zxAnEthIfOutPkts256to511Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 41 }
+        
+    zxAnEthIfInPkts512to1023Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 42 }
+
+    zxAnEthIfOutPkts512to1023Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 43 }
+        
+    zxAnEthIfInPkts1024to1518Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 44 }
+
+    zxAnEthIfOutPkts1024to1518Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets)."
+        ::= { zxAnEthIfCurrStatsEntry 45 }
+        
+    zxAnEthIfReset OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                perfReset(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Clear all the current performance variables. When get this 
+             When get this variable, always return 1."
+        ::= { zxAnEthIfCurrStatsEntry 100 }
+        
+--------------------------------------------------------------------------------
+-- 2.2 Bridge Port Statistics
+--------------------------------------------------------------------------------
+    zxAnBrgIfCurrStatsTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnBrgIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data table of interfaces."
+        ::= { zxAnIfPerfObjects 3 }
+
+
+    zxAnBrgIfCurrStatsEntry    OBJECT-TYPE
+        SYNTAX      ZxAnBrgIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data entry of interfaces."
+        INDEX   { ifIndex, zxAnSubIfIndex}
+        ::= { zxAnBrgIfCurrStatsTable 1 }
+
+    ZxAnBrgIfCurrStatsEntry ::= SEQUENCE {
+        zxAnBrgIfInOctets               Counter64,
+        zxAnBrgIfInUcastPkts            Counter64,
+        zxAnBrgIfInMcastPkts            Counter64,
+        zxAnBrgIfInBcastPkts            Counter64,
+        zxAnBrgIfOutOctets              Counter64,
+        zxAnBrgIfOutUcastPkts           Counter64,
+        zxAnBrgIfOutMcastPkts           Counter64,
+        zxAnBrgIfOutBcastPkts           Counter64,
+        zxAnBrgIfInDiscardPkts          Counter64,
+        zxAnBrgIfOutDiscardPkts         Counter64,
+        zxAnBrgIfReset                  INTEGER
+        }
+
+    zxAnBrgIfInOctets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of octets received on the interface,
+            including framing characters.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnBrgIfCurrStatsEntry 1 }
+
+    zxAnBrgIfInUcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were not addressed to a multicast
+            or broadcast address at this sub-layer.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnBrgIfCurrStatsEntry 2 }
+
+    zxAnBrgIfInMcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a multicast
+            address at this sub-layer.  For a MAC layer protocol, this
+            includes both Group and Functional addresses.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnBrgIfCurrStatsEntry 3 }
+
+    zxAnBrgIfInBcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a broadcast
+            address at this sub-layer.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnBrgIfCurrStatsEntry 4 }
+
+    zxAnBrgIfOutOctets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of octets transmitted out of the interface,
+            including framing characters."
+        ::= { zxAnBrgIfCurrStatsEntry 5 }
+
+    zxAnBrgIfOutUcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were not addressed to a
+            multicast or broadcast address at this sub-layer, including
+            those that were discarded or not sent.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnBrgIfCurrStatsEntry 6 }
+
+    zxAnBrgIfOutMcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            multicast address at this sub-layer, including those that
+            were discarded or not sent.  For a MAC layer protocol, this
+            includes both Group and Functional addresses.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime"
+        ::= { zxAnBrgIfCurrStatsEntry 7 }
+
+    zxAnBrgIfOutBcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            broadcast address at this sub-layer, including those that
+            were discarded or not sent.
+
+            Discontinuities in the value of this counter can occur at
+            re-initialization of the management system, and at other
+            times as indicated by the value of
+            ifCounterDiscontinuityTime."
+        ::= { zxAnBrgIfCurrStatsEntry 8 }
+
+    zxAnBrgIfInDiscardPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of received discarded packets."
+        ::= { zxAnBrgIfCurrStatsEntry 9 }
+
+    zxAnBrgIfOutDiscardPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of transmitted discarded packets."
+        ::= { zxAnBrgIfCurrStatsEntry 10 }
+
+    zxAnBrgIfReset OBJECT-TYPE
+        SYNTAX      INTEGER {
+            perfReset(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Clear all the current performance variables.
+             When get this variable, always return 1."
+        ::= { zxAnBrgIfCurrStatsEntry 100 }
+
+--------------------------------------------------------------------------------
+-- 2.3 LAG Interface Statistics
+--------------------------------------------------------------------------------
+    zxAnLagIfCurrStatsTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnLagIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data table of LAG."
+        ::= { zxAnIfPerfObjects 4 }
+
+    zxAnLagIfCurrStatsEntry    OBJECT-TYPE
+        SYNTAX      ZxAnLagIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data entry of LAG."
+        INDEX   { ifIndex }
+        ::= { zxAnLagIfCurrStatsTable 1 }
+
+    ZxAnLagIfCurrStatsEntry ::= SEQUENCE {
+        zxAnLagIfInPkts                     Counter64,
+        zxAnLagIfOutPkts                    Counter64,
+        zxAnLagIfInOctets                   Counter64,
+        zxAnLagIfOutOctets                  Counter64,
+        zxAnLagIfInUcastPkts                Counter64,
+        zxAnLagIfOutUcastPkts               Counter64,
+        zxAnLagIfInMcastPkts                Counter64,
+        zxAnLagIfOutMcastPkts               Counter64,
+        zxAnLagIfInBcastPkts                Counter64,
+        zxAnLagIfOutBcastPkts               Counter64,
+        zxAnLagIfInErrPkts                  Counter64,
+        zxAnLagIfOutErrPkts                 Counter64,
+        zxAnLagIfInPkts64Octets             Counter64,
+        zxAnLagIfOutPkts64Octets            Counter64,
+        zxAnLagIfInPkts65to127Octets        Counter64,
+        zxAnLagIfOutPkts65to127Octets       Counter64,
+        zxAnLagIfInPkts128to255Octets       Counter64,
+        zxAnLagIfOutPkts128to255Octets      Counter64,
+        zxAnLagIfInPkts256to511Octets       Counter64,
+        zxAnLagIfOutPkts256to511Octets      Counter64,
+        zxAnLagIfInPkts512to1023Octets      Counter64,
+        zxAnLagIfOutPkts512to1023Octets     Counter64,
+        zxAnLagIfInPkts1024to1518Octets     Counter64,
+        zxAnLagIfOutPkts1024to1518Octets    Counter64,        
+        zxAnLagIfInOversizedPkts            Counter64,
+        zxAnLagIfOutOversizedPkts           Counter64,
+        zxAnLagIfInUndersizedPkts           Counter64,
+        zxAnLagIfOutUndersizedPkts          Counter64,
+        zxAnLagIfInDiscardPkts              Counter64,
+        zxAnLagIfOutDiscardPkts             Counter64,
+        zxAnLagIfInCrcErrPkts               Counter64,
+        zxAnLagIfOutCrcErrPkts              Counter64,
+        zxAnLagIfInDropEvents               Counter64,
+        zxAnLagIfOutDropEvents              Counter64,
+        zxAnLagIfInFragments                Counter64,
+        zxAnLagIfOutFragments               Counter64,
+        zxAnLagIfInJabbers                  Counter64,
+        zxAnLagIfOutJabbers                 Counter64,
+        zxAnLagIfOutPausePkts               Counter64,
+        zxAnLagIfOutCollisions              Counter64,        
+        zxAnLagIfSingleCollisions           Counter64,
+        zxAnLagIfMultipleCollisions         Counter64,
+        zxAnLagIfFcsErrors                  Counter64,
+        zxAnLagIfAlignmentErrors            Counter64,        
+        zxAnLagIfLinkStatusChanges          Counter32,        
+        zxAnLagIfReset                      INTEGER
+        }
+        
+    zxAnLagIfInPkts    OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of packets received on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 1 }
+
+    zxAnLagIfOutPkts    OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of packets transmitted on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 2 }
+
+    zxAnLagIfInOctets  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of octets received on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 3 }
+
+    zxAnLagIfOutOctets  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of octets transmitted on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 4 }
+
+    zxAnLagIfInUcastPkts  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of unicast packets received on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 5 }  
+
+    zxAnLagIfOutUcastPkts  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of unicast packets transmitted on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 6 }
+
+    zxAnLagIfInMcastPkts  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of multicast packets received on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 7 }  
+
+    zxAnLagIfOutMcastPkts  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of multicast packets transmitted on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 8 }  
+
+    zxAnLagIfInBcastPkts  OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of broadcast packets received on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 9 }   
+
+    zxAnLagIfOutBcastPkts  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of broadcast packets transmitted on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 10 }   
+
+    zxAnLagIfInErrPkts  OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of error packets received on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 11 }
+
+  zxAnLagIfOutErrPkts  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of error packets transmitted on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 12 } 
+
+    zxAnLagIfInPkts64Octets  OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of packets received that were 64 octets in length 
+             on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 13 } 
+
+    zxAnLagIfOutPkts64Octets  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of packets transmitted that were 64 octets in 
+             length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 14 } 
+
+    zxAnLagIfInPkts65to127Octets  OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of packets received that were between 65 and 127 
+             octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 15 }  
+
+    zxAnLagIfOutPkts65to127Octets  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of packets transmitted that were between 65 and 
+             127 octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 16 } 
+
+    zxAnLagIfInPkts128to255Octets  OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of packets received that were between 128 and 255
+             octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 17 }    
+
+    zxAnLagIfOutPkts128to255Octets  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of packets transmitted that were between 128 and 
+             255 octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 18 } 
+
+    zxAnLagIfInPkts256to511Octets  OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of packets received that were between 256 and 511
+             octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 19 }    
+
+    zxAnLagIfOutPkts256to511Octets  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of packets transmitted that were between 256 and 
+             511 octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 20 }  
+
+    zxAnLagIfInPkts512to1023Octets  OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of packets received that were between 512 and 1023
+             octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 21 }    
+
+    zxAnLagIfOutPkts512to1023Octets  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of packets transmitted that were between 512 and 
+             1023 octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 22 }
+
+    zxAnLagIfInPkts1024to1518Octets  OBJECT-TYPE
+        SYNTAX         Counter64
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The total number of packets received that were between 1024 and 
+             1518 octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 23 } 
+
+   zxAnLagIfOutPkts1024to1518Octets  OBJECT-TYPE
+        SYNTAX        Counter64
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "The total number of packets transmitted that were between 1024 and 
+             1518 octets in length on the LAG."
+        ::= { zxAnLagIfCurrStatsEntry 24 } 
+     
+    zxAnLagIfInOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed."
+        ::= { zxAnLagIfCurrStatsEntry 25 }
+
+    zxAnLagIfOutOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed."
+        ::= { zxAnLagIfCurrStatsEntry 26 }
+        
+    zxAnLagIfInUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets long (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed."
+        ::= { zxAnLagIfCurrStatsEntry 27 }
+
+    zxAnLagIfOutUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 
+             64 octets long (excluding framing bits, but including FCS 
+             octets) and were otherwise well formed."
+        ::= { zxAnLagIfCurrStatsEntry 28 }
+              
+    zxAnLagIfInDiscardPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of discarded packets received on the 
+             LAG interface."
+        ::= { zxAnLagIfCurrStatsEntry 29 }
+        
+    zxAnLagIfOutDiscardPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of outbound packets which were chosen to be
+             discarded even though no errors had been detected to prevent
+             their being transmitted.  One possible reason for discarding
+             such a packet could be to free up buffer space.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other
+             times as indicated by the value of
+             ifCounterDiscontinuityTime."
+        ::= { zxAnLagIfCurrStatsEntry 30 }
+       
+    zxAnLagIfInCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets received on 
+             the LAG interface."
+        ::= { zxAnLagIfCurrStatsEntry 31 }        
+     
+    zxAnLagIfOutCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets transmitted out of the 
+             LAG interface."
+        ::= { zxAnLagIfCurrStatsEntry 32 }
+        
+    zxAnLagIfInDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets received were 
+             dropped by the probe due to lack of resources.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnLagIfCurrStatsEntry 33 }    
+
+    zxAnLagIfOutDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets transmitted were 
+             dropped by the probe due to lack of resources.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnLagIfCurrStatsEntry 34 }
+
+    zxAnLagIfInFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with 
+             an integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error)."
+        ::= { zxAnLagIfCurrStatsEntry 35 }
+
+    zxAnLagIfOutFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with an 
+             integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error)."
+        ::= { zxAnLagIfCurrStatsEntry 36 }
+
+    zxAnLagIfInJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error).
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnLagIfCurrStatsEntry 37 }
+
+    zxAnLagIfOutJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error).
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnLagIfCurrStatsEntry 38 }
+              
+    zxAnLagIfOutPausePkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of MAC Control frames transmitted on
+             this LAG interface with an opcode indicating the
+             PAUSE operation.
+
+             This counter does not increment when the LAG
+             interface is operating in half-duplex mode.
+
+             For interfaces operating at 10 Gb/s, this
+             counter can roll over in less than 5 minutes if
+             it is incrementing at its maximum rate.  Since
+             that amount of time could be less than a
+             management station's poll cycle time, in order
+             to avoid a loss of information, a management
+             station is advised to poll the
+             dot3HCOutPauseFrames object for 10 Gb/s or
+             faster interfaces.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnLagIfCurrStatsEntry 39 }
+        
+    zxAnLagIfOutCollisions    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames that are involved in out collision and
+             are subsequently transmitted successfully.
+
+             A frame that is counted by an instance of this
+             object is also counted by the corresponding
+             instance of either the ifOutUcastPkts,
+             ifOutMulticastPkts, or ifOutBroadcastPkts,
+             and is not counted by the corresponding
+             instance of the dot3StatsSingleCollisionFrames
+             object.
+
+             This counter does not increment when the
+             interface is operating in full-duplex mode.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnLagIfCurrStatsEntry 40 }     
+
+    zxAnLagIfSingleCollisions    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames that are involved in a single
+             collision, and are subsequently transmitted
+             successfully.
+
+             A frame that is counted by an instance of this
+             object is also counted by the corresponding
+             instance of either the ifOutUcastPkts,
+             ifOutMulticastPkts, or ifOutBroadcastPkts,
+             and is not counted by the corresponding
+             instance of the dot3StatsMultipleCollisionFrames
+             object.
+
+             This counter does not increment when the
+             interface is operating in full-duplex mode.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnLagIfCurrStatsEntry 41 } 
+        
+    zxAnLagIfMultipleCollisions    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames that are involved in more
+             than one collision and are subsequently
+             transmitted successfully.
+
+             A frame that is counted by an instance of this
+             object is also counted by the corresponding
+             instance of either the ifOutUcastPkts,
+             ifOutMulticastPkts, or ifOutBroadcastPkts,
+             and is not counted by the corresponding
+             instance of the dot3StatsSingleCollisionFrames
+             object.
+
+             This counter does not increment when the
+             interface is operating in full-duplex mode.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnLagIfCurrStatsEntry 42 }
+
+    zxAnLagIfFcsErrors    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames received on a particular LAG
+             interface that are an integral number of octets
+             in length but do not pass the FCS check.  This
+             count does not include frames received with
+             frame-too-long or frame-too-short error.
+
+             The count represented by an instance of this
+             object is incremented when the frameCheckError
+             status is returned by the MAC service to the
+             LLC (or other MAC user). Received frames for
+             which multiple error conditions pertain are,
+             according to the conventions of IEEE 802.3
+             Layer Management, counted exclusively according
+             to the error status presented to the LLC.
+
+             Note:  Coding errors detected by the physical
+             layer for speeds above 10 Mb/s will cause the
+             frame to fail the FCS check.
+
+             For interfaces operating at 10 Gb/s, this
+             counter can roll over in less than 5 minutes if
+             it is incrementing at its maximum rate.  Since
+             that amount of time could be less than a
+             management station's poll cycle time, in order
+             to avoid a loss of information, a management
+             station is advised to poll the
+             dot3HCStatsFCSErrors object for 10 Gb/s or
+             faster interfaces.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnLagIfCurrStatsEntry 43 }
+        
+    zxAnLagIfAlignmentErrors    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A count of frames received on a particular LAG
+             interface that are not an integral number of
+             octets in length and do not pass the FCS check.
+
+             The count represented by an instance of this
+             object is incremented when the alignmentError
+             status is returned by the MAC service to the
+             LLC (or other MAC user). Received frames for
+             which multiple error conditions pertain are,
+             according to the conventions of IEEE 802.3
+             Layer Management, counted exclusively according
+             to the error status presented to the LLC.
+
+             This counter does not increment for group
+             encoding schemes greater than 4 bits per group.
+
+             For interfaces operating at 10 Gb/s, this
+             counter can roll over in less than 5 minutes if
+             it is incrementing at its maximum rate.  Since
+             that amount of time could be less than a
+             management station's poll cycle time, in order
+             to avoid a loss of information, a management
+             station is advised to poll the
+             dot3HCStatsAlignmentErrors object for 10 Gb/s
+             or faster interfaces.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management
+             system, and at other times as indicated by the
+             value of ifCounterDiscontinuityTime."
+        ::= { zxAnLagIfCurrStatsEntry 44 }
+        
+    zxAnLagIfLinkStatusChanges OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the LAG interface.
+             The total number starts from zero and is increased when the link
+             status changes from up to down, or from down to up."
+        ::= { zxAnLagIfCurrStatsEntry 45 }
+        
+    zxAnLagIfReset OBJECT-TYPE
+        SYNTAX      INTEGER {
+            perfReset(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Clear all the statistics of LAG.
+             When get this variable, always return 1."
+        ::= { zxAnLagIfCurrStatsEntry 100 }   
+
+--------------------------------------------------------------------------------
+-- 2.4 Interface Rate Statistics
+--------------------------------------------------------------------------------
+
+    zxAnIfRateStatsTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIfRateStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+             "The rate statistics table of interfaces."
+        ::= { zxAnIfPerfObjects 20 }
+
+    zxAnIfRateStatsEntry    OBJECT-TYPE
+        SYNTAX      ZxAnIfRateStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The rate statistics entry of interfaces."
+        INDEX   { ifIndex,zxAnSubIfIndex}
+        ::= { zxAnIfRateStatsTable 1 }
+
+    ZxAnIfRateStatsEntry ::= SEQUENCE {
+        zxAnIfCurrTxNetDataRate          Integer32,
+        zxAnIfCurrRxNetDataRate          Integer32,
+        zxAnIfCurrTxOctetRate            Gauge32,
+        zxAnIfCurrRxOctetRate            Gauge32,
+        zxAnIfCurrTxPktRate              Gauge32,
+        zxAnIfCurrRxPktRate              Gauge32,
+        zxAnIfCurrTxOctetPeakRate        Gauge32,
+        zxAnIfCurrRxOctetPeakRate        Gauge32,
+        zxAnIfCurrTxErroredPktRate       Gauge32,
+        zxAnIfCurrRxErroredPktRate       Gauge32
+        }
+
+    zxAnIfCurrTxNetDataRate OBJECT-TYPE
+        SYNTAX          Integer32
+        UNITS           "kbps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Current actual transmitted net data rate of the interface."
+        ::=  { zxAnIfRateStatsEntry 1 }
+
+    zxAnIfCurrRxNetDataRate OBJECT-TYPE
+        SYNTAX          Integer32
+        UNITS           "kbps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Current actual received net data rate of the interface."
+        ::=  { zxAnIfRateStatsEntry 2 }
+
+    zxAnIfCurrTxOctetRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the interface's current transmitted bandwidth in
+            bytes per second.
+            For interfaces which do not vary in bandwidth or for those where no
+            accurate estimation can be made, this object should contain the
+            nominal bandwidth.  If the bandwidth of the interface is greater
+            than the maximum value reportable by this object then this object
+            should report its maximum value (4,294,967,295)."
+        ::=  { zxAnIfRateStatsEntry  3 }
+
+  zxAnIfCurrRxOctetRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the interface's current received bandwidth
+            in bytes per second.
+            For interfaces which do not vary in bandwidth or for those where no
+            accurate estimation can be made, this object should contain the
+            nominal bandwidth.  If the bandwidth of the interface is greater
+            than the maximum value reportable by this object then this object
+            should report its maximum value (4,294,967,295)."
+      ::=  { zxAnIfRateStatsEntry  4 }
+
+    zxAnIfCurrTxPktRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "pps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the interface's current transmitted bandwidth
+            in packets per second.
+            For interfaces which do not vary in bandwidth or for those where no
+            accurate estimation can be made, this object should contain the
+            nominal bandwidth.  If the bandwidth of the interface is greater
+            than the maximum value reportable by this object then this object
+            should report its maximum value (4,294,967,295)."
+      ::=  { zxAnIfRateStatsEntry  5 }
+
+  zxAnIfCurrRxPktRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "pps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the interface's current received bandwidth
+            in packets per second.
+            For interfaces which do not vary in bandwidth or for those where no
+            accurate estimation can be made, this object should contain the
+            nominal bandwidth.  If the bandwidth of the interface is greater
+            than the maximum value reportable by this object then this object
+            should report its maximum value (4,294,967,295)."
+      ::=  { zxAnIfRateStatsEntry  6 }
+
+  zxAnIfCurrTxOctetPeakRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The interface's peak transmitted bandwidth in bytes per second.
+            If the bandwidth of the interface is greater than the maximum value
+            reportable by this object then this object should report its maximum
+            value (4,294,967,295)."
+      ::=  { zxAnIfRateStatsEntry  7 }
+
+    zxAnIfCurrRxOctetPeakRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The interface's peak received bandwidth in bytes per second.
+            If the bandwidth of the interface is greater than the maximum value
+            reportable by this object then this object should report its maximum
+            value (4,294,967,295)."
+      ::=  { zxAnIfRateStatsEntry  8 }
+      
+    zxAnIfCurrTxErroredPktRate  OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "pps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Current transmitted errored packet rate."
+        ::= { zxAnIfRateStatsEntry 9 }
+
+    zxAnIfCurrRxErroredPktRate  OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "pps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Current received errored packet rate."
+        ::= { zxAnIfRateStatsEntry 10 }
+        
+--------------------------------------------------------------------------------
+-- 2.5 Interface Bandwidth Using
+--------------------------------------------------------------------------------
+    zxAnIfBandwidthUsingTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnIfBandwidthUsingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Bandwidth using ratio and threshold table."
+        ::=  { zxAnIfPerfObjects  30 }
+
+    zxAnIfBandwidthUsingEntry   OBJECT-TYPE
+        SYNTAX      ZxAnIfBandwidthUsingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Bandwidth using entry."
+         INDEX   { ifIndex, zxAnSubIfIndex}
+        ::=  { zxAnIfBandwidthUsingTable 1 }
+
+    ZxAnIfBandwidthUsingEntry  ::=  SEQUENCE {
+        zxAnIfInBandwidthUsingRatio              Integer32,
+        zxAnIfOutBandwidthUsingRatio             Integer32,
+        zxAnIfInBandwidthUsingThresh             Integer32,
+        zxAnIfOutBandwidthUsingThresh            Integer32,
+        zxAnIfInBandwidthUsingRatioHa            Integer32,          
+        zxAnIfOutBandwidthUsingRatioHa           Integer32
+       }
+
+    zxAnIfInBandwidthUsingRatio OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        UNITS           "percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the interface's current received bandwidth using
+            ratio."
+        ::=  {  zxAnIfBandwidthUsingEntry  1  }
+
+    zxAnIfOutBandwidthUsingRatio OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        UNITS           "percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the interface's current transmitted bandwidth using
+            ratio."
+        ::=  {  zxAnIfBandwidthUsingEntry  2  }
+
+    zxAnIfInBandwidthUsingThresh OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        UNITS           "percents"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The threshold of zxAnIfInBandwidthUsingRatio.
+            When zxAnIfInBandwidthUsingRatio exceeds this threshold,
+            the zxAnIfInBwUsingThreshExceedAlm trap should be generated.
+            If zxAnIfInBandwidthUsingRatio always exceeds the threshold,
+            only one zxAnIfInBwUsingThreshExceedAlm trap should be sent."
+        DEFVAL {100}
+        ::=  {  zxAnIfBandwidthUsingEntry  3  }
+
+    zxAnIfOutBandwidthUsingThresh OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        UNITS           "percents"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The threshold of zxAnIfOutBandwidthUsingRatio.
+            When zxAnIfOutBandwidthUsingRatio exceeds this threshold,
+            the zxAnIfOutBwUsingThreshExceedAlm trap should be generated.
+            If zxAnIfOutBandwidthUsingRatio always exceeds the threshold,
+            only one zxAnIfOutBwUsingThreshExceedAlm trap should be sent."
+        DEFVAL {100}
+        ::=  {  zxAnIfBandwidthUsingEntry  4  }
+
+   zxAnIfInBandwidthUsingRatioHa OBJECT-TYPE
+        SYNTAX          Integer32(0..10000000)
+        UNITS           "0.00001percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The high accuracy value of zxAnIfInBandwidthUsingRatio."
+        ::=  {  zxAnIfBandwidthUsingEntry  5  }
+
+    zxAnIfOutBandwidthUsingRatioHa OBJECT-TYPE
+        SYNTAX          Integer32(0..10000000)
+        UNITS           "0.00001percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The high accuracy value of zxAnIfOutBandwidthUsingRatio"
+        ::=  {  zxAnIfBandwidthUsingEntry  6  }
+
+-------------------------------------------------------------------------------
+-- 2.6 Interface Number Statistics
+-------------------------------------------------------------------------------
+
+    zxAnIfNumberStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIfNumberStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The number of interfaces statistics table."
+        ::= { zxAnIfPerfObjects 40 }
+
+    zxAnIfNumberStatsEntry OBJECT-TYPE
+         SYNTAX      ZxAnIfNumberStatsEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The number of interfaces statistics entry."
+         INDEX  { zxAnIfNumberStatsIfType }
+         ::= { zxAnIfNumberStatsTable 1 }
+
+    ZxAnIfNumberStatsEntry ::= SEQUENCE {
+         zxAnIfNumberStatsIfType        INTEGER,
+         zxAnIfNumberStatsTotalNumber   Integer32,
+         zxAnIfNumberStatsOnlineNumber  Integer32
+         }
+
+    zxAnIfNumberStatsIfType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            adsl(1),
+            vdsl(2),
+            shdsl(3),
+            ethernet(4),
+            igmp(5)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The interface type."
+        ::= { zxAnIfNumberStatsEntry 1 }
+
+    zxAnIfNumberStatsTotalNumber  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of interfaces."
+        ::= { zxAnIfNumberStatsEntry 2 }
+
+    zxAnIfNumberStatsOnlineNumber  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of online interfaces."
+        ::= { zxAnIfNumberStatsEntry 3 }
+
+--------------------------------------------------------------------------------
+-- 2.7 Interface VLAN statistics
+--------------------------------------------------------------------------------
+
+    zxAnIfVlanCurrStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIfVlanCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Interface VLAN statistic table."
+        ::= { zxAnIfPerfObjects 50 }
+
+    zxAnIfVlanCurrStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnIfVlanCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnIfVlanCurrStatsTable entry."
+        INDEX {
+            ifIndex,
+            zxAnIfVid
+        }
+        ::= { zxAnIfVlanCurrStatsTable 1 }
+
+    ZxAnIfVlanCurrStatsEntry  ::= SEQUENCE {
+        zxAnIfVid                         VlanId,
+        zxAnIfVlanInPkts                  Counter64,
+        zxAnIfVlanOutPkts                 Counter64,
+        zxAnIfVlanInOctets                Counter64,
+        zxAnIfVlanOutOctets               Counter64,
+        zxAnIfVlanInUcastPkts             Counter64,
+        zxAnIfVlanOutUcastPkts            Counter64,
+        zxAnIfVlanInUcastOctets           Counter64,
+        zxAnIfVlanOutUcastOctets          Counter64,
+        zxAnIfVlanInMcastPkts             Counter64,
+        zxAnIfVlanOutMcastPkts            Counter64,
+        zxAnIfVlanInMcastOctets           Counter64,
+        zxAnIfVlanOutMcastOctets          Counter64,
+        zxAnIfVlanInBcastPkts             Counter64,
+        zxAnIfVlanOutBcastPkts            Counter64,
+        zxAnIfVlanInBcastOctets           Counter64,
+        zxAnIfVlanOutBcastOctets          Counter64,
+        zxAnIfVlanInFloodPkts             Counter64,
+        zxAnIfVlanOutFloodPkts            Counter64,
+        zxAnIfVlanInFloodOctets           Counter64,
+        zxAnIfVlanOutFloodOctets          Counter64,
+        zxAnIfVlanInDiscardPkts           Counter64,
+        zxAnIfVlanOutDiscardPkts          Counter64,
+        zxAnIfVlanInDiscardOctets         Counter64,
+        zxAnIfVlanOutDiscardOctets        Counter64,
+        zxAnIfVlanInErrorPkts             Counter64,
+        zxAnIfVlanOutErrorPkts            Counter64,
+        zxAnIfVlanInErrorOctets           Counter64,
+        zxAnIfVlanOutErrorOctets          Counter64,
+        zxAnIfVlanCurrStatsReset          INTEGER,
+        zxAnIfVlanCurrStatsRowStatus      RowStatus
+        }
+
+    zxAnIfVid  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The interface VLAN ID."
+        ::= { zxAnIfVlanCurrStatsEntry 1 }
+
+    zxAnIfVlanInPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 2 }
+
+    zxAnIfVlanOutPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 3 }
+
+    zxAnIfVlanInOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 4 }
+
+    zxAnIfVlanOutOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 5 }
+
+    zxAnIfVlanInUcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received unicast packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 6 }
+
+    zxAnIfVlanOutUcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 7 }
+
+    zxAnIfVlanInUcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received unicast octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 8 }
+
+    zxAnIfVlanOutUcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 9 }
+
+    zxAnIfVlanInMcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received multicast packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 10 }
+
+    zxAnIfVlanOutMcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted multicast packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 11 }
+
+    zxAnIfVlanInMcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received multicast octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 12 }
+
+    zxAnIfVlanOutMcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted multicast octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 13 }
+
+    zxAnIfVlanInBcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received broadcast packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 14 }
+
+    zxAnIfVlanOutBcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted broadcast packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 15 }
+
+    zxAnIfVlanInBcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received broadcast octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 16 }
+
+    zxAnIfVlanOutBcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted broadcast octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 17 }
+
+    zxAnIfVlanInFloodPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received flooding packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 18 }
+
+    zxAnIfVlanOutFloodPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted flooding packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 19 }
+
+    zxAnIfVlanInFloodOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received flooding octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 20 }
+
+    zxAnIfVlanOutFloodOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted flooding octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 21 }
+
+    zxAnIfVlanInDiscardPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received discarded packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 22 }
+
+    zxAnIfVlanOutDiscardPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted discarded packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 23 }
+
+    zxAnIfVlanInDiscardOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received discarded octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 24 }
+
+    zxAnIfVlanOutDiscardOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted discarded octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 25 }
+
+    zxAnIfVlanInErrorPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received errored packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 26 }
+
+    zxAnIfVlanOutErrorPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted errored packets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 27 }
+
+    zxAnIfVlanInErrorOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received errored octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 28 }
+
+    zxAnIfVlanOutErrorOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted errored octets of the interface VLAN."
+        ::= { zxAnIfVlanCurrStatsEntry 29 }
+
+    zxAnIfVlanCurrStatsReset  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            perfReset(1)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Clear all the current performance variables.
+             When get this variable, always return 1.
+             Reset port vlan statistics counter manually when it is set to '1'."
+        ::= { zxAnIfVlanCurrStatsEntry 99 }
+
+    zxAnIfVlanCurrStatsRowStatus   OBJECT-TYPE
+        SYNTAX         RowStatus
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnIfVlanCurrStatsEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnIfVlanCurrStatsEntry 100 }
+
+--------------------------------------------------------------------------------
+-- 2.8 Interface VLAN Rate Statistics
+--------------------------------------------------------------------------------
+
+    zxAnIfVlanRateStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIfVlanRateStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Interface VLAN rate statistic table."
+        ::= { zxAnIfPerfObjects 51 }
+
+    zxAnIfVlanRateStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnIfVlanRateStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnIfVlanRateStatsTable entry."
+        INDEX {
+            ifIndex,
+            zxAnIfVid
+        }
+        ::= { zxAnIfVlanRateStatsTable 1 }
+
+    ZxAnIfVlanRateStatsEntry  ::= SEQUENCE {
+        zxAnIfVlanRxPktRate               Gauge32,
+        zxAnIfVlanTxPktRate               Gauge32,
+        zxAnIfVlanRxPktPeakRate           Gauge32,
+        zxAnIfVlanTxPktPeakRate           Gauge32,
+        zxAnIfVlanRxUcastPktRate          Gauge32,
+        zxAnIfVlanTxUcastPktRate          Gauge32,
+        zxAnIfVlanRxUcastPktPeakRate      Gauge32,
+        zxAnIfVlanTxUcastPktPeakRate      Gauge32,
+        zxAnIfVlanRxMcastPktRate          Gauge32,
+        zxAnIfVlanTxMcastPktRate          Gauge32,
+        zxAnIfVlanRxMcastPktPeakRate      Gauge32,
+        zxAnIfVlanTxMcastPktPeakRate      Gauge32,
+        zxAnIfVlanRxBcastPktRate          Gauge32,
+        zxAnIfVlanTxBcastPktRate          Gauge32,
+        zxAnIfVlanRxBcastPktPeakRate      Gauge32,
+        zxAnIfVlanTxBcastPktPeakRate      Gauge32,
+        zxAnIfVlanRxFloodPktRate          Gauge32,
+        zxAnIfVlanTxFloodPktRate          Gauge32,
+        zxAnIfVlanRxFloodPktPeakRate      Gauge32,
+        zxAnIfVlanTxFloodPktPeakRate      Gauge32,
+        zxAnIfVlanRxDiscardPktRate        Gauge32,
+        zxAnIfVlanTxDiscardPktRate        Gauge32,
+        zxAnIfVlanRxDiscardPktPeakRate    Gauge32,
+        zxAnIfVlanTxDiscardPktPeakRate    Gauge32,
+        zxAnIfVlanRxErrorPktRate          Gauge32,
+        zxAnIfVlanTxErrorPktRate          Gauge32,
+        zxAnIfVlanRxErrorPktPeakRate      Gauge32,
+        zxAnIfVlanTxErrorPktPeakRate      Gauge32
+        }
+
+    zxAnIfVlanRxPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 1 }
+
+    zxAnIfVlanTxPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 2 }
+
+    zxAnIfVlanRxPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received pakcet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 3 }
+
+    zxAnIfVlanTxPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 4 }
+
+    zxAnIfVlanRxUcastPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received unicast packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 5 }
+
+    zxAnIfVlanTxUcastPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 6 }
+
+    zxAnIfVlanRxUcastPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 7 }
+
+    zxAnIfVlanTxUcastPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 8 }
+
+    zxAnIfVlanRxMcastPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received multicast packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 9 }
+
+    zxAnIfVlanTxMcastPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted multicast packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 10 }
+
+    zxAnIfVlanRxMcastPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received multicast packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 11 }
+
+    zxAnIfVlanTxMcastPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted multicast packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 12 }
+
+    zxAnIfVlanRxBcastPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received broadcast packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 13 }
+
+    zxAnIfVlanTxBcastPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received broadcast packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 14 }
+
+    zxAnIfVlanRxBcastPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received broadcast packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 15 }
+
+    zxAnIfVlanTxBcastPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted broadcast packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 16 }
+
+    zxAnIfVlanRxFloodPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received flooding packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 17 }
+
+    zxAnIfVlanTxFloodPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted flooding packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 18 }
+
+    zxAnIfVlanRxFloodPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received flooding packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 19 }
+
+    zxAnIfVlanTxFloodPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted flooding packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 20 }
+
+    zxAnIfVlanRxDiscardPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received discarded packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 21 }
+
+    zxAnIfVlanTxDiscardPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted discarded packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 22 }
+
+    zxAnIfVlanRxDiscardPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received discarded packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 23 }
+
+    zxAnIfVlanTxDiscardPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted discarded packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 24 }
+
+    zxAnIfVlanRxErrorPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received errored packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 25 }
+
+    zxAnIfVlanTxErrorPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted errored packet rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 26 }
+
+    zxAnIfVlanRxErrorPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received errored packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 27 }
+
+    zxAnIfVlanTxErrorPktPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted errored packet peak rate of the interface VLAN."
+        ::= { zxAnIfVlanRateStatsEntry 28 }
+
+--------------------------------------------------------------------------------
+-- 2.9 Interface SVLAN and CVLAN Statistics
+--------------------------------------------------------------------------------
+    
+    zxAnIfVlan2CurrStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIfVlan2CurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Interface S-VID and C-VID statistic table."
+        ::= { zxAnIfPerfObjects 52 }
+
+    zxAnIfVlan2CurrStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnIfVlan2CurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Interface SVLAN and CVLAN statistic entry."
+        INDEX {
+            ifIndex,
+            zxAnIfVlan2CurrStatsSVid,
+            zxAnIfVlan2CurrStatsCVid
+        }
+        ::= { zxAnIfVlan2CurrStatsTable 1 }
+    
+    ZxAnIfVlan2CurrStatsEntry  ::= SEQUENCE {
+        zxAnIfVlan2CurrStatsSVid           VlanId,
+        zxAnIfVlan2CurrStatsCVid           Integer32,
+        zxAnIfVlan2InPkts                  Counter64,
+        zxAnIfVlan2OutPkts                 Counter64,
+        zxAnIfVlan2InOctets                Counter64,
+        zxAnIfVlan2OutOctets               Counter64,
+        zxAnIfVlan2CurrStatsReset          INTEGER
+    }
+
+    zxAnIfVlan2CurrStatsSVid  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The interface S-VID."
+        ::= { zxAnIfVlan2CurrStatsEntry 1 }
+    
+    zxAnIfVlan2CurrStatsCVid  OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The interface C-VID.
+             Value 0 means statistics only based on S-VID."
+        ::= { zxAnIfVlan2CurrStatsEntry 2 }
+
+    zxAnIfVlan2InPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received packets of the interface VLAN."
+        ::= { zxAnIfVlan2CurrStatsEntry 3 }
+
+    zxAnIfVlan2OutPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted packets of the interface VLAN."
+        ::= { zxAnIfVlan2CurrStatsEntry 4 }
+
+    zxAnIfVlan2InOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received octets of the interface VLAN."
+        ::= { zxAnIfVlan2CurrStatsEntry 5 }
+
+    zxAnIfVlan2OutOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted octets of the interface VLAN."
+        ::= { zxAnIfVlan2CurrStatsEntry 6 }
+
+    zxAnIfVlan2CurrStatsReset  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            perfReset(1)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Clear all the current performance variables.
+             When get this variable, always return 1.
+             Reset port vlan statistics counter manually when it is set to '1'."
+        ::= { zxAnIfVlan2CurrStatsEntry 100 }
+    
+--------------------------------------------------------------------------------
+-- 2.10 Bridge Port Current Performance Statistics
+--------------------------------------------------------------------------------
+
+    zxAnBrgIfCurrPerfStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnBrgIfCurrPerfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the bridge interface current performance 
+             statistics."
+        ::= { zxAnIfPerfObjects 60 }
+        
+    zxAnBrgIfCurrPerfStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnBrgIfCurrPerfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnBrgIfCurrPerfStatsTable entry."
+        INDEX   { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnBrgIfCurrPerfStatsTable 1 }   
+        
+    ZxAnBrgIfCurrPerfStatsEntry  ::= SEQUENCE {      
+        zxAnBrgIfCurrPerfStatsRowStatus      RowStatus
+        }
+
+    zxAnBrgIfCurrPerfStatsRowStatus   OBJECT-TYPE
+        SYNTAX         RowStatus
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnBrgIfCurrPerfStatsEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnBrgIfCurrPerfStatsEntry 100 }
+
+--------------------------------------------------------------------------------
+-- 2.11 Interface SVLAN and CVLAN Current Performance Statistics
+--------------------------------------------------------------------------------
+    
+    zxAnIfVlanCurrPerfStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIfVlanCurrPerfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the interface S-VID and C-VID current performance 
+             statistics."
+        ::= { zxAnIfPerfObjects 61 }
+        
+    zxAnIfVlanCurrPerfStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnIfVlanCurrPerfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnIfVlanCurrPerfStatsTable entry."
+        INDEX   {
+            ifIndex,
+            zxAnIfVlanPerfStatsSVid,
+            zxAnIfVlanPerfStatsCVid
+        }
+        ::= { zxAnIfVlanCurrPerfStatsTable 1 }   
+        
+    ZxAnIfVlanCurrPerfStatsEntry  ::= SEQUENCE {
+        zxAnIfVlanPerfStatsSVid           VlanId,
+        zxAnIfVlanPerfStatsCVid           Integer32,
+        zxAnIfVlanPerfStatsRowStatus      RowStatus
+    }
+     
+    zxAnIfVlanPerfStatsSVid  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The interface S-VID."
+        ::= { zxAnIfVlanCurrPerfStatsEntry 1 }
+    
+    zxAnIfVlanPerfStatsCVid  OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The interface C-VID.
+             Value 0 means statistics only based on S-VID."
+        ::= { zxAnIfVlanCurrPerfStatsEntry 2 }
+        
+    zxAnIfVlanPerfStatsRowStatus   OBJECT-TYPE
+        SYNTAX         RowStatus
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnIfVlanCurrPerfStatsEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnIfVlanCurrPerfStatsEntry 100 }
+
+--------------------------------------------------------------------------------
+-- 2.12 VND0 Ethernet Port Statistics
+--------------------------------------------------------------------------------
+ zxAnVnd0EthIfCurrStatsTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVnd0EthIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data table of shared interfaces of the VND 0."
+        ::= { zxAnIfPerfObjects 62 }
+
+    zxAnVnd0EthIfCurrStatsEntry    OBJECT-TYPE
+        SYNTAX      ZxAnVnd0EthIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data entry of shared interfaces of the VND 0."
+        INDEX   { ifIndex}
+        ::= { zxAnVnd0EthIfCurrStatsTable 1 }
+
+    ZxAnVnd0EthIfCurrStatsEntry ::= SEQUENCE {
+        zxAnVnd0EthIfInOctets           Counter64,
+        zxAnVnd0EthIfOutOctets          Counter64,
+        zxAnVnd0EthIfInPkts             Counter64,
+        zxAnVnd0EthIfOutPkts            Counter64,
+        zxAnVnd0EthIfInUcastPkts        Counter64,
+        zxAnVnd0EthIfOutUcastPkts       Counter64,
+        zxAnVnd0EthIfInMcastPkts        Counter64,
+        zxAnVnd0EthIfOutMcastPkts       Counter64,
+        zxAnVnd0EthIfInBcastPkts        Counter64,
+        zxAnVnd0EthIfOutBcastPkts       Counter64,  
+        zxAnVnd0EthIfRxOctetRate        Gauge32,
+        zxAnVnd0EthIfTxOctetRate        Gauge32,
+        zxAnVnd0EthIfRxPktRate          Gauge32,
+        zxAnVnd0EthIfTxPktRate          Gauge32,
+        zxAnVnd0EthIfRxOctetPeakRate    Gauge32, 
+        zxAnVnd0EthIfTxOctetPeakRate    Gauge32,
+        zxAnVnd0EthIfInBwUsingRatio     Integer32,
+        zxAnVnd0EthIfOutBwUsingRatio    Integer32,
+        zxAnVnd0EthIfInBwUsingRatioHa   Integer32,          
+        zxAnVnd0EthIfOutBwUsingRatioHa  Integer32,
+        zxAnVnd0EthIfLinkStatusChanges  Counter32,
+        zxAnVnd0EthIfReset              INTEGER        
+        }
+        
+    zxAnVnd0EthIfInOctets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of octets received on the shared interface of 
+             the VND 0, including framing characters.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 1 }
+
+    zxAnVnd0EthIfOutOctets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of octets transmitted out on the shared interface 
+             of the VND 0, including framing characters."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 2 }
+        
+    zxAnVnd0EthIfInPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received on the shared interface of 
+             the VND 0, including framing characters.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 3 }
+
+    zxAnVnd0EthIfOutPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted out on the shared interface 
+             of the VND 0, including framing characters."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 4 }
+        
+    zxAnVnd0EthIfInUcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a higher 
+             (sub-)layer, which were not addressed to a multicast or broadcast 
+             address at this sub-layer.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 5 }
+
+    zxAnVnd0EthIfOutUcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols requested 
+             be transmitted, and which were not addressed to a multicast or 
+             broadcast address at this sub-layer, including those that were 
+             discarded or not sent.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 6 }
+        
+    zxAnVnd0EthIfInMcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a higher 
+             (sub-)layer, which were addressed to a multicast address at this 
+             sub-layer.  For a MAC layer protocol, this includes both Group and 
+             Functional addresses.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 7 }
+
+    zxAnVnd0EthIfOutMcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols requested 
+             be transmitted, and which were addressed to a multicast address at 
+             this sub-layer, including those that were discarded or not sent.  
+             For a MAC layer protocol, this includes both Group and Functional 
+             addresses.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime"
+        ::= { zxAnVnd0EthIfCurrStatsEntry 8 }
+        
+    zxAnVnd0EthIfInBcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a higher 
+             (sub-)layer, which were addressed to a broadcast address at this 
+             sub-layer.
+             
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 9 }
+
+    zxAnVnd0EthIfOutBcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols requested 
+             be transmitted, and which were addressed to a broadcast address at 
+             this sub-layer, including those that were discarded or not sent.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 10 }
+        
+    zxAnVnd0EthIfRxOctetRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the received bandwidth in bytes per second on the 
+             shared interface of the VND 0.
+             For interfaces which do not vary in bandwidth or for those where no
+             accurate estimation can be made, this object should contain the
+             nominal bandwidth.  If the bandwidth of the interface is greater
+             than the maximum value reportable by this object then this object
+             should report its maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0EthIfCurrStatsEntry  11 }
+      
+    zxAnVnd0EthIfTxOctetRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the transmitted bandwidth in bytes per second on the
+             shared interface of the VND 0.
+             For interfaces which do not vary in bandwidth or for those where no
+             accurate estimation can be made, this object should contain the
+             nominal bandwidth.  If the bandwidth of the interface is greater
+             than the maximum value reportable by this object then this object
+             should report its maximum value (4,294,967,295)."
+        ::=  { zxAnVnd0EthIfCurrStatsEntry  12 }
+
+    zxAnVnd0EthIfRxPktRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "pps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the received bandwidth in packets per second on the
+             shared interface of the VND 0.
+             For interfaces which do not vary in bandwidth or for those where no
+             accurate estimation can be made, this object should contain the
+             nominal bandwidth.  If the bandwidth of the interface is greater
+             than the maximum value reportable by this object then this object
+             should report its maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0EthIfCurrStatsEntry  13 }
+      
+    zxAnVnd0EthIfTxPktRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "pps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the transmitted bandwidth in packets per second on 
+             the shared interface of the VND 0.
+             For interfaces which do not vary in bandwidth or for those where no
+             accurate estimation can be made, this object should contain the
+             nominal bandwidth.  If the bandwidth of the interface is greater
+             than the maximum value reportable by this object then this object
+             should report its maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0EthIfCurrStatsEntry  14 }
+
+    zxAnVnd0EthIfRxOctetPeakRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The peak received bandwidth in bytes per second on the shared 
+             interface of the VND 0.
+             If the bandwidth of the interface is greater than the maximum value
+             reportable by this object then this object should report its 
+             maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0EthIfCurrStatsEntry  15 }
+
+    zxAnVnd0EthIfTxOctetPeakRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The peak transmitted bandwidth in bytes per second on the shared 
+             interface of the VND 0.
+             If the bandwidth of the interface is greater than the maximum value
+             reportable by this object then this object should report its 
+             maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0EthIfCurrStatsEntry  16 }
+
+    zxAnVnd0EthIfInBwUsingRatio OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        UNITS           "percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the received bandwidth using ratio on the shared 
+             interface of the VND 0."
+        ::=  {  zxAnVnd0EthIfCurrStatsEntry  17  }
+
+    zxAnVnd0EthIfOutBwUsingRatio OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        UNITS           "percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the transmitted bandwidth using ratio on the shared
+             interface of the VND 0."
+        ::=  {  zxAnVnd0EthIfCurrStatsEntry  18  }
+
+   zxAnVnd0EthIfInBwUsingRatioHa OBJECT-TYPE
+        SYNTAX          Integer32(0..10000000)
+        UNITS           "0.00001percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The high accuracy value of zxAnVnd0EthIfInBwUsingRatio."
+        ::=  {  zxAnVnd0EthIfCurrStatsEntry  19  }
+
+    zxAnVnd0EthIfOutBwUsingRatioHa OBJECT-TYPE
+        SYNTAX          Integer32(0..10000000)
+        UNITS           "0.00001percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The high accuracy value of zxAnVnd0EthIfOutBwUsingRatio"
+        ::=  {  zxAnVnd0EthIfCurrStatsEntry  20 }
+        
+    zxAnVnd0EthIfLinkStatusChanges OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the shared interface
+             of the VND 0.
+             The total number starts from zero and is increased when the link
+             status changes from up to down, or from down to up."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 51 }
+        
+    zxAnVnd0EthIfReset OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                reset(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Clear all the current performance variables. 
+             When get this variable, always return 1."
+        ::= { zxAnVnd0EthIfCurrStatsEntry 100 }
+
+
+--------------------------------------------------------------------------------
+-- 2.13 VND0 LAG Interface Statistics
+--------------------------------------------------------------------------------
+    zxAnVnd0LagIfCurrStatsTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVnd0LagIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data table of shared LAG interfaces of 
+             the VND 0."
+        ::= { zxAnIfPerfObjects 64 }
+
+    zxAnVnd0LagIfCurrStatsEntry    OBJECT-TYPE
+        SYNTAX      ZxAnVnd0LagIfCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Current performance data entry of shared LAG interfaces of 
+             the VND 0."
+        INDEX   { ifIndex}
+        ::= { zxAnVnd0LagIfCurrStatsTable 1 }
+
+    ZxAnVnd0LagIfCurrStatsEntry ::= SEQUENCE {
+        zxAnVnd0LagIfInOctets           Counter64,
+        zxAnVnd0LagIfOutOctets          Counter64,
+        zxAnVnd0LagIfInPkts             Counter64,
+        zxAnVnd0LagIfOutPkts            Counter64,
+        zxAnVnd0LagIfInUcastPkts        Counter64,
+        zxAnVnd0LagIfOutUcastPkts       Counter64,
+        zxAnVnd0LagIfInMcastPkts        Counter64,
+        zxAnVnd0LagIfOutMcastPkts       Counter64,
+        zxAnVnd0LagIfInBcastPkts        Counter64,
+        zxAnVnd0LagIfOutBcastPkts       Counter64,  
+        zxAnVnd0LagIfRxOctetRate        Gauge32,
+        zxAnVnd0LagIfTxOctetRate        Gauge32,
+        zxAnVnd0LagIfRxPktRate          Gauge32,
+        zxAnVnd0LagIfTxPktRate          Gauge32,
+        zxAnVnd0LagIfRxOctetPeakRate    Gauge32, 
+        zxAnVnd0LagIfTxOctetPeakRate    Gauge32,
+        zxAnVnd0LagIfInBwUsingRatio     Integer32,
+        zxAnVnd0LagIfOutBwUsingRatio    Integer32,
+        zxAnVnd0LagIfInBwUsingRatioHa   Integer32,          
+        zxAnVnd0LagIfOutBwUsingRatioHa  Integer32,
+        zxAnVnd0LagIfLinkStatusChanges  Counter32,
+        zxAnVnd0LagIfReset              INTEGER        
+        }
+        
+    zxAnVnd0LagIfInOctets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of octets received on the shared LAG interface of 
+             the VND 0, including framing characters.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 1 }
+
+    zxAnVnd0LagIfOutOctets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of octets transmitted out on the shared 
+             LAG interface of the VND 0, including framing characters."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 2 }
+        
+    zxAnVnd0LagIfInPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received on the shared LAG 
+             interface of the VND 0, including framing characters.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 3 }
+
+    zxAnVnd0LagIfOutPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted out on the shared LAG 
+             interface of the VND 0, including framing characters."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 4 }
+        
+    zxAnVnd0LagIfInUcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a higher 
+             (sub-)layer, which were not addressed to a multicast or broadcast 
+             address at this sub-layer.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 5 }
+
+    zxAnVnd0LagIfOutUcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols requested 
+             be transmitted, and which were not addressed to a multicast or 
+             broadcast address at this sub-layer, including those that were 
+             discarded or not sent.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 6 }
+        
+    zxAnVnd0LagIfInMcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a higher 
+             (sub-)layer, which were addressed to a multicast address at this 
+             sub-layer.  For a MAC layer protocol, this includes both Group and 
+             Functional addresses.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 7 }
+
+    zxAnVnd0LagIfOutMcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols requested 
+             be transmitted, and which were addressed to a multicast address at 
+             this sub-layer, including those that were discarded or not sent.  
+             For a MAC layer protocol, this includes both Group and Functional 
+             addresses.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime"
+        ::= { zxAnVnd0LagIfCurrStatsEntry 8 }
+        
+    zxAnVnd0LagIfInBcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets, delivered by this sub-layer to a higher 
+             (sub-)layer, which were addressed to a broadcast address at this 
+             sub-layer.
+             
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 9 }
+
+    zxAnVnd0LagIfOutBcastPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets that higher-level protocols requested 
+             be transmitted, and which were addressed to a broadcast address at 
+             this sub-layer, including those that were discarded or not sent.
+
+             Discontinuities in the value of this counter can occur at
+             re-initialization of the management system, and at other times as 
+             indicated by the value of ifCounterDiscontinuityTime."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 10 }
+        
+    zxAnVnd0LagIfRxOctetRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the received bandwidth in bytes per second on the 
+             shared LAG interface of the VND 0.
+             For interfaces which do not vary in bandwidth or for those where no
+             accurate estimation can be made, this object should contain the
+             nominal bandwidth.  If the bandwidth of the interface is greater
+             than the maximum value reportable by this object then this object
+             should report its maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0LagIfCurrStatsEntry 11 }
+      
+    zxAnVnd0LagIfTxOctetRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the transmitted bandwidth in bytes per second on the
+             shared LAG interface of the VND 0.
+             For interfaces which do not vary in bandwidth or for those where no
+             accurate estimation can be made, this object should contain the
+             nominal bandwidth.  If the bandwidth of the interface is greater
+             than the maximum value reportable by this object then this object
+             should report its maximum value (4,294,967,295)."
+        ::=  { zxAnVnd0LagIfCurrStatsEntry  12 }
+
+    zxAnVnd0LagIfRxPktRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "pps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the received bandwidth in packets per second on the
+             shared LAG interface of the VND 0.
+             For interfaces which do not vary in bandwidth or for those where no
+             accurate estimation can be made, this object should contain the
+             nominal bandwidth.  If the bandwidth of the interface is greater
+             than the maximum value reportable by this object then this object
+             should report its maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0LagIfCurrStatsEntry 13 }
+      
+    zxAnVnd0LagIfTxPktRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "pps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the transmitted bandwidth in packets per second on 
+             the shared LAG interface of the VND 0.
+             For interfaces which do not vary in bandwidth or for those where no
+             accurate estimation can be made, this object should contain the
+             nominal bandwidth.  If the bandwidth of the interface is greater
+             than the maximum value reportable by this object then this object
+             should report its maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0LagIfCurrStatsEntry 14 }
+
+    zxAnVnd0LagIfRxOctetPeakRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The peak received bandwidth in bytes per second on the shared LAG 
+             interface of the VND 0.
+             If the bandwidth of the interface is greater than the maximum value
+             reportable by this object then this object should report its 
+             maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0LagIfCurrStatsEntry 15 }
+
+    zxAnVnd0LagIfTxOctetPeakRate OBJECT-TYPE
+        SYNTAX          Gauge32
+        UNITS           "Bps"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The peak transmitted bandwidth in bytes per second on the shared 
+             LAG interface of the VND 0.
+             If the bandwidth of the interface is greater than the maximum value
+             reportable by this object then this object should report its 
+             maximum value (4,294,967,295)."
+      ::=  { zxAnVnd0LagIfCurrStatsEntry 16 }
+
+    zxAnVnd0LagIfInBwUsingRatio OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        UNITS           "percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the received bandwidth using ratio on the shared 
+             LAG interface of the VND 0."
+        ::=  { zxAnVnd0LagIfCurrStatsEntry 17 }
+
+    zxAnVnd0LagIfOutBwUsingRatio OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        UNITS           "percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "An estimate of the transmitted bandwidth using ratio on the shared
+             LAG interface of the VND 0."
+        ::=  { zxAnVnd0LagIfCurrStatsEntry 18 }
+
+    zxAnVnd0LagIfInBwUsingRatioHa OBJECT-TYPE
+        SYNTAX          Integer32(0..10000000)
+        UNITS           "0.00001percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The high accuracy value of zxAnVnd0LagIfInBwUsingRatio."
+        ::=  { zxAnVnd0LagIfCurrStatsEntry 19 }
+
+    zxAnVnd0LagIfOutBwUsingRatioHa OBJECT-TYPE
+        SYNTAX          Integer32(0..10000000)
+        UNITS           "0.00001percents"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The high accuracy value of zxAnVnd0LagIfOutBwUsingRatio"
+        ::=  { zxAnVnd0LagIfCurrStatsEntry 20 }
+        
+    zxAnVnd0LagIfLinkStatusChanges OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the shared LAG 
+             interface of the VND 0.
+             The total number starts from zero and is increased when the link
+             status changes from up to down, or from down to up."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 51 }
+        
+    zxAnVnd0LagIfReset OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                reset(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Clear all the current performance variables. 
+             When get this variable, always return 1."
+        ::= { zxAnVnd0LagIfCurrStatsEntry 100 }
+                
+--------------------------------------------------------------------------------
+-- 3. Interface Notifications Definations
+--------------------------------------------------------------------------------
+
+    zxAnIfBwUsingTraps  OBJECT IDENTIFIER ::= { zxAnIfPerfNotifications 1 }
+
+    zxAnIfInBwUsingThreshExceedAlm NOTIFICATION-TYPE
+        OBJECTS { zxAnIfInBandwidthUsingRatio, 
+                  zxAnIfInBandwidthUsingThresh,
+                  zxAnIfInBandwidthUsingRatioHa }
+        STATUS  current
+        DESCRIPTION
+            "It indicates that zxAnIfInBandwidthUsingRatio exceeds the threshold
+             zxAnIfInBandwidthUsingThresh."
+        ::= { zxAnIfBwUsingTraps 1 }
+
+    zxAnIfInBwUsingThreshExceedClr NOTIFICATION-TYPE
+        OBJECTS { zxAnIfInBandwidthUsingRatio, 
+                  zxAnIfInBandwidthUsingThresh,
+                  zxAnIfInBandwidthUsingRatioHa }
+        STATUS  current
+        DESCRIPTION
+            "It indicates that zxAnIfInBandwidthUsingRatio is below the
+             threshold zxAnIfInBandwidthUsingThresh."
+        ::= { zxAnIfBwUsingTraps 2 }
+
+    zxAnIfOutBwUsingThreshExceedAlm NOTIFICATION-TYPE
+        OBJECTS { zxAnIfOutBandwidthUsingRatio, 
+                  zxAnIfOutBandwidthUsingThresh,
+                  zxAnIfOutBandwidthUsingRatioHa }
+        STATUS  current
+        DESCRIPTION
+            "It indicates that zxAnIfOutBandwidthUsingRatio exceeds the
+             threshold zxAnIfOutBandwidthUsingThresh."
+        ::= { zxAnIfBwUsingTraps 3 }
+
+    zxAnIfOutBwUsingThreshExceedClr NOTIFICATION-TYPE
+        OBJECTS { zxAnIfOutBandwidthUsingRatio, 
+                  zxAnIfOutBandwidthUsingThresh,
+                  zxAnIfOutBandwidthUsingRatioHa }
+        STATUS  current
+        DESCRIPTION
+            "It indicates that zxAnIfOutBandwidthUsingRatio is below the
+             threshold zxAnIfOutBandwidthUsingThresh."
+        ::= { zxAnIfBwUsingTraps 4 }
+
+--------------------------------------------------------------------------------
+-- 4. zxAnIfPerfConformance
+--------------------------------------------------------------------------------
+
+zxAnIfeEthPerfCompliance MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "The compliance statement for entities which implement the
+         ZTE-AN-INTERFACE-PERF-MIB."
+
+    MODULE       -- this module
+        MANDATORY-GROUPS {
+               zxAnEthIfPerfCurrGroup
+               }
+    ::= { zxAnIfPerfCompliances 1 }
+
+
+    zxAnEthIfPerfCurrGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfInOctets,
+            zxAnEthIfInPkts,
+            zxAnEthIfInUcastPkts,
+            zxAnEthIfInMcastPkts,
+            zxAnEthIfInBcastPkts,
+            zxAnEthIfInOversizedPkts,
+            zxAnEthIfInUndersizedPkts,
+            zxAnEthIfOutOctets,
+            zxAnEthIfOutPkts,
+            zxAnEthIfOutUcastPkts,
+            zxAnEthIfOutMcastPkts,
+            zxAnEthIfOutBcastPkts,
+            zxAnEthIfOutPausePkts,
+            zxAnEthIfOutDiscardPkts,
+            zxAnEthIfOutCollisions,
+            zxAnEthIfSingleCollisions,
+            zxAnEthIfMultipleCollisions,
+            zxAnEthIfFcsErrors,
+            zxAnEthIfAlignmentErrors,
+            zxAnEthIfInCrcErrPkts,
+            zxAnEthIfInDiscardPkts,
+            zxAnEthIfInErrPkts,
+            zxAnEthIfOutErrPkts,
+            zxAnEthIfLinkStatusChanges,
+            zxAnEthIfReset
+        }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects providing current performance data of
+            interfaces."
+        ::= { zxAnIfPerfGroups 1 }
+
+zxAnIfBrgPerfCompliance MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "The compliance statement for entities which implement the
+         ZTE-AN-INTERFACE-PERF-MIB."
+
+    MODULE       -- this module
+        MANDATORY-GROUPS {
+               zxAnBrgIfPerfCurrGroup
+               }
+    ::= { zxAnIfPerfCompliances 2 }
+
+
+    zxAnBrgIfPerfCurrGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnBrgIfInOctets,
+            zxAnBrgIfInUcastPkts,
+            zxAnBrgIfInMcastPkts,
+            zxAnBrgIfInBcastPkts,
+            zxAnBrgIfOutOctets,
+            zxAnBrgIfOutUcastPkts,
+            zxAnBrgIfOutMcastPkts,
+            zxAnBrgIfOutBcastPkts,
+            zxAnBrgIfInDiscardPkts,
+            zxAnBrgIfOutDiscardPkts,
+            zxAnIfCurrTxNetDataRate,
+            zxAnIfCurrRxNetDataRate,
+            zxAnBrgIfReset,
+            zxAnIfNumberStatsTotalNumber,
+            zxAnIfNumberStatsOnlineNumber
+        }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects providing current performance data of
+            interfaces."
+        ::= { zxAnIfPerfGroups 2 }
+
+
+END

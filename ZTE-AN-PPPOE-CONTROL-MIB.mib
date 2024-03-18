@@ -1,0 +1,88 @@
+ZTE-AN-PPPOE-CONTROL-MIB DEFINITIONS ::= BEGIN
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32         FROM SNMPv2-SMI
+    MODULE-COMPLIANCE, OBJECT-GROUP                 FROM SNMPv2-CONF              
+    RowStatus                                       FROM SNMPv2-TC
+    zxAnServiceSecurity                             FROM ZTE-AN-SMI
+    VlanId                                          FROM ZTE-AN-TC-MIB
+    zxAnSubIfIndex                                  FROM ZTE-AN-IF-MIB
+    ifIndex                                         FROM IF-MIB;
+
+    zxAnPppoeControlMib MODULE-IDENTITY
+        LAST-UPDATED    "201907021000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Yang Xi ZTE Corporation
+                         Mail: yang.xi8@zte.com.cn
+                         Tel : +86-21-68897487"
+
+        DESCRIPTION     
+          "The MIB module for the management of PPPoE packet control."
+
+        REVISION        "201907021000Z"
+        DESCRIPTION
+          "Initial version of this MIB module."
+        ::= { zxAnServiceSecurity 81}
+    
+    zxAnPppoeControlObjects OBJECT IDENTIFIER ::= {zxAnPppoeControlMib 2}
+    zxAnPppoeReversePktFilterObjects 
+                   OBJECT IDENTIFIER ::= {zxAnPppoeControlObjects 1}
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 2.2 zxAnPppoeReversePktFilterTable
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.2 zxAnPppoeReversePktFilterTable
+--------------------------------------------------------------------------------
+    zxAnPppoeReversePktFilterTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPppoeReversePktFilterEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PPPoE reversed packet filter VLAN table. 
+             The reversed packets belonging to the VLAN configured in this table
+             will be dropped."
+        ::= { zxAnPppoeReversePktFilterObjects 2 }
+    
+    zxAnPppoeReversePktFilterEntry OBJECT-TYPE
+        SYNTAX      ZxAnPppoeReversePktFilterEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PPPoE reversed packet filter VLAN entry."
+        INDEX  { zxAnPppoeReversePktFilterVid }
+        ::= { zxAnPppoeReversePktFilterTable 1 }
+    
+    ZxAnPppoeReversePktFilterEntry ::= SEQUENCE {
+        zxAnPppoeReversePktFilterVid    VlanId,
+        zxAnPppoeReversePktRowStatus    RowStatus
+        }
+    
+    zxAnPppoeReversePktFilterVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnPppoeReversePktFilterEntry 1 }
+
+    zxAnPppoeReversePktRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4).
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnPppoeReversePktFilterEntry 50 }
+
+END

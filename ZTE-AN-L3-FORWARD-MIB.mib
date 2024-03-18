@@ -1,0 +1,61 @@
+ZTE-AN-L3-FORWARD-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        OBJECT-TYPE, MODULE-IDENTITY        FROM SNMPv2-SMI
+        zxAnLayer3                          FROM ZTE-AN-SMI;
+
+    zxAnL3ForwardMib MODULE-IDENTITY
+        LAST-UPDATED    "201802060000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Wu Jian
+                         Mail: wu.jian1@zte.com.cn
+                         Tel : 021-68897223"
+        DESCRIPTION     "This MIB defines managed objects of L3 forwarding."
+        REVISION        "201802060000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= { zxAnLayer3 71 }
+
+-------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1. L3 Forward Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnL3ForwardGlobalObjects  OBJECT IDENTIFIER ::= {zxAnL3ForwardMib 1}
+
+--------------------------------------------------------------------------------
+-- 1. L3 Forward Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnL3ForwardEcmpMode    OBJECT-TYPE
+        SYNTAX      INTEGER {
+            destMac(1),
+            srcMac(2),
+            srcMacAndDestMac(3),
+            destIp(4),
+            srcIp(5),
+            srcIpAndDestIp(6),
+            destPort(7),
+            srcPort(8),
+            srcPortAndDestPort(9)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "ECMP mode."
+        DEFVAL { srcIpAndDestIp }
+        ::={ zxAnL3ForwardGlobalObjects 2 }
+
+    zxAnL3ForwardAntiUserSideIcmp    OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "Enable/disable anti-attack of user side ICMP packets."
+        DEFVAL { disabled }
+        ::={ zxAnL3ForwardGlobalObjects 3 }
+
+END

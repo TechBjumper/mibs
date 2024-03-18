@@ -1,0 +1,387 @@
+-- *****************************************************************
+--
+-- Copyright (c) 2009 by ZTE Corporation
+-- All rights reserved.
+-- 
+-- *****************************************************************
+--
+ZXR10-SYSTEM-CONFIG-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY,OBJECT-IDENTITY,OBJECT-TYPE,
+        enterprises,TimeTicks,Integer32, Gauge32            FROM SNMPv2-SMI
+        DisplayString                                       FROM SNMPv2-TC;
+        
+    zte MODULE-IDENTITY
+        LAST-UPDATED "201706122042Z"  
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO
+            "ZTE Corporation 
+             Nanjing Institute of ZTE Corporation
+             
+             No.68 Zijinghua Rd. Yuhuatai District, Nanjing, China
+             
+             Tel: +86-25-52870000"
+
+        DESCRIPTION
+        "ZXR10 T8000 ZXR10SYSTEMCONFIG-MIB"
+
+        REVISION "201902202042Z"  
+        DESCRIPTION
+           "add node zxr10SystemHealthStatus"
+		
+        REVISION "201706122042Z"  
+        DESCRIPTION
+           "add node zxr10ReloadSystem"
+       
+        REVISION "201706012018Z"  
+        DESCRIPTION
+           "add node zxr10RedundancySwitch"
+
+        REVISION "201504290000Z"  
+        DESCRIPTION
+           "modify zxr10SystemStartupPackageSize SYNTAX." 
+           
+        REVISION "201502280000Z"  
+        DESCRIPTION
+           "add zxr10SystemRunMode SYNTAX enumeration label runModeBackToBack." 
+           
+        REVISION "201311080000Z"  
+        DESCRIPTION
+           "add node zxr10NetworkManagementVersion."
+           
+        REVISION "200908120000Z"  
+        DESCRIPTION
+           "Initial revision"      
+
+        ::= { enterprises 3902 }    -- assigned by IANA
+            
+    zxr10      OBJECT IDENTIFIER ::= { zte 3}
+    zxr10RosngMIB      OBJECT IDENTIFIER ::= { zxr10 6000 } 
+
+    zxr10SystemConfigMIB OBJECT-IDENTITY
+            STATUS current
+            --DESCRIPTION
+            -- ""
+            --LAST-UPDATED "200907131200Z"
+            --ORGANIZATION "ZTE Corporation Enterprise Structure of Management Information"
+            --CONTACT-INFO
+            --  "ZTE Corporation Enterprise Structure of Management Information"
+
+            DESCRIPTION
+                "ZXR10 T8000 ZXR10SYSTEMCONFIG-MIB"
+
+    ::= { zxr10RosngMIB 1 } 
+
+    zxr10systemconfig OBJECT IDENTIFIER ::= { zxr10SystemConfigMIB 1 }
+
+    --  mib object in zxr10systemconfig group
+    zxr10SystemID OBJECT-TYPE
+          SYNTAX        OBJECT IDENTIFIER
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                  "An integer description of the zxr10SystemID."
+          ::= { zxr10systemconfig 1 }
+
+    zxr10SystemserialNo OBJECT-TYPE
+          SYNTAX        DisplayString
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                  "the serial no of the current system."
+          ::= { zxr10systemconfig 2 }
+       
+    zxr10SystemBootVersion OBJECT-TYPE
+          SYNTAX        DisplayString
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                  "the boot version no of the current system."
+          ::= { zxr10systemconfig 3 }    
+     
+     zxr10SystemVersion OBJECT-TYPE
+          SYNTAX        DisplayString
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                  "the version no of the current system."
+          ::= { zxr10systemconfig 4 }      
+       
+     zxr10ROSngSystemVersion OBJECT-TYPE   
+          SYNTAX        DisplayString
+          MAX-ACCESS  read-only
+          STATUS  current
+          DESCRIPTION
+                  "the ROSng no of the current system."
+          ::= { zxr10systemconfig 5 }
+                
+    zxr10SystemBuildTime OBJECT-TYPE
+          SYNTAX        DisplayString
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                  "the build time of the current system."
+          ::= { zxr10systemconfig 6 }
+
+    zxr10BackupSystemVersion OBJECT-TYPE
+          SYNTAX        DisplayString
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                  "the version no of the backup system."
+          ::= { zxr10systemconfig 7 }
+
+
+    zxr10BackupROSngSystemVersion OBJECT-TYPE
+          SYNTAX        DisplayString
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                  "the ROSng no of the backup system."
+          ::= { zxr10systemconfig 8 }
+     
+    zxr10BackupSystemBuildTime OBJECT-TYPE
+          SYNTAX        DisplayString
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                  "the build time of the backup system."
+          ::= { zxr10systemconfig 9 }
+
+    zxr10SystemStartupLocation OBJECT-TYPE
+          SYNTAX        DisplayString
+          MAX-ACCESS    read-only
+          STATUS        current
+          DESCRIPTION
+                 "The start up location of the current system."
+          ::= { zxr10systemconfig 10 }
+
+    zxr10SystemStartupPackageName  OBJECT-TYPE                            
+         SYNTAX         DisplayString            
+         MAX-ACCESS     read-only       
+         STATUS         current                                
+         DESCRIPTION                                    
+                 "The package name of the current system."
+         ::= { zxr10systemconfig 11 }  
+                             
+    zxr10SystemStartupPackageSize OBJECT-TYPE
+         SYNTAX         Gauge32          
+         MAX-ACCESS     read-only       
+         STATUS         current                                
+         DESCRIPTION                                    
+                 "The package size of the current system."
+         ::= { zxr10systemconfig 12 }  
+
+    zxr10SystemStartupTime OBJECT-TYPE
+         SYNTAX         TimeTicks            
+         MAX-ACCESS     read-only       
+         STATUS         current                                
+         DESCRIPTION                                    
+                 "The start up time of the current system."
+         ::= { zxr10systemconfig 13 }  
+
+    zxr10SystemConfigFileLocation OBJECT-TYPE
+         SYNTAX        DisplayString
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION   
+                 "The location of the config file of the current system."
+         ::= { zxr10systemconfig  14}
+             
+    zxr10SystemConfigFileName OBJECT-TYPE
+         SYNTAX        DisplayString
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION   
+                 "The name of the config file of the current system."
+         ::= { zxr10systemconfig  15}
+
+    zxr10SystemRunMode OBJECT-TYPE
+         SYNTAX        INTEGER {
+                                 runModeSingle(0),
+                                 runModeOnePlusFour(1),
+                                 runModeTwoPlusEight(2),
+                                 runModeOnePlusTwo(3),
+                                 runModeTwoPlusFour(4),
+                                 runModeTwoPlusTwo(5),
+                                 runModeFourPlusSixteen(6),
+                                 runModeTwoPlusFourOnlyTwoLCC(7),
+                                 runModeBackToBack(8)
+                               }
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION   
+                 "The run mode of the current system."
+         ::= { zxr10systemconfig  16}      
+             
+    zxr10SfuFabricLength OBJECT-TYPE
+         SYNTAX        INTEGER
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION   
+                 "The sfu fabric length of the current system."
+         ::= { zxr10systemconfig  17} 
+
+    zxr10SystemMacNum OBJECT-TYPE
+         SYNTAX        INTEGER
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION   
+                 "The mac num of the base mac."
+         ::= { zxr10systemconfig  18} 
+
+    zxr10NetworkManagementVersion OBJECT-TYPE
+         SYNTAX        DisplayString
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION   
+                 "The network management version of the current system."
+         ::= { zxr10systemconfig  19} 
+		 
+    zxr10SystemAutoPlugCardEn OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+         }
+         MAX-ACCESS    read-write
+         STATUS        current
+         DESCRIPTION   
+            "Enables and disables the automatic plugging card."
+		 DEFVAL  { enabled }
+         ::= { zxr10systemconfig  20}
+         
+    zxr10SystemHealthStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+            ok(1),
+            warning(2),
+            critical(3),
+			unknown(4)
+         }
+         MAX-ACCESS    read-only
+         STATUS        current
+         DESCRIPTION   
+            "The health status of the current system."
+         ::= { zxr10systemconfig  21}
+             
+    zxr10SystemOperation OBJECT IDENTIFIER ::= { zxr10SystemConfigMIB 2 }
+
+    zxr10ReloadSystem OBJECT-TYPE
+        SYNTAX        INTEGER{
+            forced(1)
+            }
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION   
+            "Reload system."
+        ::= { zxr10SystemOperation  1}
+
+    zxr10RedundancySwitch OBJECT-TYPE
+        SYNTAX        INTEGER{
+            forced(1),
+            graceful(2)
+            }
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION   
+            "Redundancy switch between the master and slave system controller."
+        ::= { zxr10SystemOperation  2} 
+
+    zxr10SystemSyncObjects     OBJECT IDENTIFIER ::= {zxr10SystemConfigMIB 3}
+
+    zxr10SystemSynchronizationTable OBJECT-TYPE   
+        SYNTAX      SEQUENCE OF Zxr10SystemSynchronizationEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The system synchronization table."
+        ::= { zxr10SystemSyncObjects 2}
+
+    zxr10SystemSynchronizationEntry OBJECT-TYPE   
+        SYNTAX      Zxr10SystemSynchronizationEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The system synchronization entry."
+        INDEX {zxr10SystemSyncModuleName, zxr10SystemSyncLeName}
+        ::= { zxr10SystemSynchronizationTable 1 }
+
+    Zxr10SystemSynchronizationEntry ::= SEQUENCE {
+        zxr10SystemSyncModuleName             INTEGER,
+        zxr10SystemSyncLeName                 INTEGER,
+        zxr10SystemSyncLeLocation             DisplayString, 
+        zxr10SystemSyncType                   INTEGER,
+        zxr10SystemSyncStatus                 INTEGER            
+        }
+
+     zxr10SystemSyncModuleName OBJECT-TYPE   
+        SYNTAX      INTEGER {
+            database(1),
+            fileSystem(2),
+            isis(3),
+            ospf(4),
+            bgp(5),
+            rip(6),
+            base(7),
+            ldp(8),
+            mplsTe(9),
+			multicast(10),
+            ospfv3(11)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The name of the module."
+        ::= { zxr10SystemSynchronizationEntry 1 }   
+
+    zxr10SystemSyncLeName  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            invalid(1),
+            systemController(2),
+            mpls(3),
+            routerProcessorRoute(4)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The name of the logic entry.
+             The logic entry name of database and fileSystem is 'invalid'."  
+    ::= { zxr10SystemSynchronizationEntry 2 }
+
+    zxr10SystemSyncLeLocation  OBJECT-TYPE  
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The location of the logic entry" 
+    ::= { zxr10SystemSynchronizationEntry 3 }
+
+    zxr10SystemSyncType  OBJECT-TYPE  
+        SYNTAX      INTEGER {
+            invalid(1),
+            gracefulRestart(2),
+            nonStopRouting(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The type of synchronization.
+             The synchronization type of database and fileSystem is 'invalid'." 
+    ::= { zxr10SystemSynchronizationEntry 4 }
+
+    zxr10SystemSyncStatus  OBJECT-TYPE  
+        SYNTAX      INTEGER {
+            initializing(1),
+            synchronizing(2),
+            synchronized(3),
+			noPeer(4),
+            noMemory(5),
+			unknown(255)		
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The status of synchronization." 
+    ::= { zxr10SystemSynchronizationEntry 5 }
+     
+END

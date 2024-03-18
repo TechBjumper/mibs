@@ -1,0 +1,2244 @@
+ZTE-AN-IEEE1588-MIB DEFINITIONS ::= BEGIN 
+
+IMPORTS 
+    MODULE-IDENTITY, OBJECT-TYPE,
+    Integer32, Counter32                            FROM SNMPv2-SMI
+    RowStatus, TruthValue, DisplayString, MacAddress
+                                                    FROM SNMPv2-TC
+    InetAddress, InetAddressType, 
+    InetAddressPrefixLength                         FROM INET-ADDRESS-MIB    
+    OBJECT-GROUP                                    FROM SNMPv2-CONF
+    NOTIFICATION-TYPE                               FROM SNMPv2-SMI
+    MODULE-COMPLIANCE                               FROM SNMPv2-CONF
+    zxAnClockSync                                   FROM ZTE-AN-SMI
+    VlanId                                          FROM ZTE-AN-TC-MIB
+    ifIndex                                         FROM IF-MIB;
+    
+    zxAnIeee1588Mib MODULE-IDENTITY
+        LAST-UPDATED "202003110000Z"
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO "shenmeng
+                      Mail: shen.meng1@zte.com.cn 
+                      Tel : 021-68897214"
+        DESCRIPTION  "The MIB module for the management of IEEE1588 ."
+                
+        --  Revision history
+        
+        REVISION        "202003110000Z"
+        DESCRIPTION
+             "delete zxAnPtpClientTable, zxAnPtpServerTable,
+              zxAnPtpRemoteSrcTable,zxAnPtpTable,zxAnPtpVlanObjects,
+              zxAnPtpServerObjects,zxAn1588PtpMsgStatsObjects,
+              zxAn1588PtpMstMsgStatsObjects,zxAn1588EthernetPktStatsObjects,
+              zxAnPtpEthIfConfTable"
+        REVISION        "202002250000Z"
+        DESCRIPTION
+             "Add zxAnPtpIfStatsTable to zxAnPtpStatsObjects"
+        REVISION        "202002170000Z"
+        DESCRIPTION
+             "Add zxAnPtpPrfHoldoverInTimeout to zxAnPtpPrfTable"
+        REVISION        "202002120000Z"
+        DESCRIPTION
+            "Add zxAnPtpIfConfTable to the zxAnIeee1588PtpObjects.
+             Add zxAnPtpPrfSystemPtpPrf to the zxAnPtpProfileGlobalObjects.
+             Add zxAnPtpPrfTable to the zxAnPtpProfileObjects."
+                                  
+        REVISION        "201609200000Z"
+        DESCRIPTION
+            "Add zxAn1588LocalTimeStatusChanged trap.
+             Add zxAnIeee1588TimeStatusDftPri1, 
+                 zxAnIeee1588TimeStatusDftPri2,
+                 zxAnIeee1588TimeStatusDftClkCls to
+                 the zxAnIeee1588TimeStatusConfObjs.
+             Add zxAnPtpEthIfConfTable to the zxAnIeee1588PtpObjects.
+             Add zxAnPtpAnnounceMsgLostAlm, zxAnPtpAnnounceMsgLostClr to
+                 the zxAnIeee1588PtpTraps.
+             Add zxAnSyncTime1ppsSrcDlyCompensate to the 
+                  zxAnSyncTime1ppsSrcTable."
+             
+        REVISION        "201605030000Z"
+        DESCRIPTION
+            "Add zxAnPtpMstSourcePortLocation to the zxAnPtpMasterObjects.
+             Add zxAnPtpSvrAnnounceMsgInterval, zxAnPtpSvrClockStepConfMode to
+                 the zxAnPtpServerObjects.
+             Add zxAnPtpServerTable, zxAnPtpClientTable to the 
+                 zxAnIeee1588PtpObjects."
+        REVISION        "201603160000Z"
+        DESCRIPTION
+            "Add zxAn1588LocalUtcTime to the zxAnIeee1588TimeStatusInfoObjs.
+             Add zxAnPtpProtocolIpAddrPfxLen, zxAnPtpProtocolGatewayIpAddrType
+                 zxAnPtpProtocolGatewayIpAddress to the zxAnPtpTable.
+             Add zxAnSyncTime1ppsSrcFormat, zxAnSyncTime1ppsSrcCurrentQL,
+                 zxAnSyncTime1ppsSrcTimeAccuracy, zxAnSyncTime1ppsSrcTimeSrcType
+                 to the zxAnSyncTime1ppsSrcTable.
+             Remove node zxAn1ppsTodMasterInfo."
+        REVISION        "201602160000Z"
+        DESCRIPTION
+            "Add zxAnPtpRemoteSrcPriority into zxAnPtpRemoteSrcTable."
+        REVISION        "201511141500Z"
+        DESCRIPTION
+            "Add the following traps:
+             zxAnIeee1588AccuracyDegradedAlm
+             zxAnIeee1588AccuracyDegradedClr
+             zxAnIeee1588PtpNeverSyncAlm
+             zxAnIeee1588PtpNeverSyncClr
+             zxAnIeee1588PtpLolAlm
+             zxAnIeee1588PtpLolClr
+             zxAnIeee15881ppsPlusTodLosAlm
+             zxAnIeee15881ppsPlusTodLosClr"            
+        REVISION        "201109210000Z"
+        DESCRIPTION
+            "Modify zxAnPtpEthWorkMode's SYNTAX."
+        REVISION        "201109190000Z"
+        DESCRIPTION
+            "Modify zxAnPtpEthWorkMode's SYNTAX and  zxAnPtpClockStatus SYNTAX."
+        REVISION        "201109140000Z"
+        DESCRIPTION
+            "Add multi-variables usage rule description."
+        REVISION        "201101261500Z"
+        DESCRIPTION
+            "Initial version of this MIB module."        
+        ::= {zxAnClockSync 15}
+
+-------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 01. zxAnIeee1588Capabilities
+-- 03. zxAnIeee1588AlmThreshObjects
+-- 04. zxAnIeee1588TimeStatusInfoObjs
+-- 05. zxAnIeee1588TimeStatusConfObjs
+-- 09. zxAnPtpMasterObjects
+-- 17. zxAnPtpIfConfTable
+-- 18. zxAnPtpProfileGlobalObjects
+-- 19. zxAnPtpPrfTable
+-- 22. zxAnPtpIfStatsTable
+-- 25. zxAnSyncTime1ppsSrcTable
+-- 26. zxAnSyncTimeTodSrcTable
+-- 27. zxAnSyncTimeOutputPortTable
+
+-- Following notification objects are defined.
+-- 51. zxAnIeee1588GlobalTraps
+-- 52. zxAnIeee1588PtpTraps
+-- 53. zxAnIeee15881ppsTraps
+
+-- Following conformance information is defined.
+-- 61. zxAnIeee1588Conformance
+-------------------------------------------------------------------------------
+
+zxAnIeee1588GlobalObjects        OBJECT IDENTIFIER ::= {zxAnIeee1588Mib 1}
+zxAnIeee1588Objects              OBJECT IDENTIFIER ::= {zxAnIeee1588Mib 2}
+zxAnIeee1588Notifications        OBJECT IDENTIFIER ::= {zxAnIeee1588Mib 3}
+
+zxAnIeee1588AlmThreshObjects     OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588GlobalObjects 11}
+zxAnIeee1588TimeStatusInfoObjs       OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588GlobalObjects 12}
+zxAnIeee1588TimeStatusConfObjs       OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588GlobalObjects 13}                                                                                   
+zxAnIeee1588PtpObjects           OBJECT IDENTIFIER ::= {zxAnIeee1588Objects 1}
+zxAnIeee15881ppsObjects          OBJECT IDENTIFIER ::= {zxAnIeee1588Objects 2}
+
+zxAnIeee1588PtpGlobalObjects     OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588PtpObjects 1}
+zxAnPtpMasterObjects             OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588PtpGlobalObjects 1}
+zxAnPtpProfileObjects            OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588PtpObjects 20}  
+zxAnPtpStatsObjects              OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588PtpObjects 25}                                             
+zxAnPtpProfileGlobalObjects      OBJECT IDENTIFIER ::= 
+                                              {zxAnPtpProfileObjects 1}                                           
+zxAnIeee1588GlobalTraps          OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588Notifications 1}
+zxAnIeee1588PtpTraps             OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588Notifications 2}
+zxAnIeee15881ppsTraps            OBJECT IDENTIFIER ::= 
+                                              {zxAnIeee1588Notifications 3}
+
+--------------------------------------------------------------------------------
+-- 01. zxAnIeee1588Capabilities
+--------------------------------------------------------------------------------
+   zxAnIeee1588Capabilities     OBJECT-TYPE 
+       SYNTAX   BITS{           
+                from201602To201603(0),
+                add1ppsSrcDelayCompensation(1)
+                } 
+       MAX-ACCESS       read-only
+       STATUS           current
+       DESCRIPTION      "The IEEE1588 capabilities of this equipment.
+            The bit value 1 means the function represented by this bit is
+            supported by this equipment.            
+            bit 0: value 1 means the following changes,
+                  adding zxAnPtpRemoteSrcPriority to the zxAnPtpRemoteSrcTable,
+                  adding zxAn1588LocalUtcTime to the zxAnIeee1588TimeStatusInfoObjs,
+                  adding zxAnPtpProtocolIpAddrPfxLen,
+                         zxAnPtpProtocolGatewayIpAddrType and
+                         zxAnPtpProtocolGatewayIpAddress to the 
+                         zxAnPtpTable,
+                  adding zxAnSyncTime1ppsSrcFormat,
+                         zxAnSyncTime1ppsSrcCurrentQL,
+                         zxAnSyncTime1ppsSrcTimeAccuracy and
+                         zxAnSyncTime1ppsSrcTimeSrcType to the 
+                         zxAnSyncTime1ppsSrcTable.                             
+            bit 1: value 1 means the following changes,
+                  adding zxAnSyncTime1ppsSrcDlyCompensate to the 
+                  zxAnSyncTime1ppsSrcTable.
+            NOTE: No recommended to display it in NMS."
+       ::=  {  zxAnIeee1588GlobalObjects 1  }  
+       
+-------------------------------------------------------------------------------
+-- 03. zxAnIeee1588AlmThreshObjects
+-------------------------------------------------------------------------------
+    zxAn1588FreqQLThresh OBJECT-TYPE
+        SYNTAX      INTEGER {
+            qlprc(2),
+            qlssua(4),
+            qlssub(8),
+            qlsec(11)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "System frequency quality level threshold.
+             A zxAnAccuracyDegradedAlm alarm will be generated when system 
+             frequency quality level is below the following threshold.
+             qlprc(2): quality level of primary reference clock, it is defined 
+                       in recommendation G.811.
+             qlssua(4): quality level of type I/V slave clock, it is defined 
+                       in recommendation G.812.
+             qlssub(8): quality level of type VI slave clock, it is defined 
+                       in recommendation G.812.             
+             qlsec(11): quality level of SDH equipment clock, it is defined 
+                       in recommendation G.813."              
+        DEFVAL { qlssua }
+        ::= {zxAnIeee1588AlmThreshObjects 1}
+    
+    zxAnPtpClockTraceClassThresh OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "PTP clock traceability class threshold.
+             A zxAnPtpClockTCBelowThreshAlm alarm will be generated when PTP 
+             traceability clock class is below threshold."
+        DEFVAL { 135 }
+        ::= {zxAnIeee1588AlmThreshObjects 2}
+    
+    zxAn1ppsInputSignalQLThresh OBJECT-TYPE
+        SYNTAX      INTEGER {
+            locked(1),
+            qlprc(2),
+            qlssua(4),
+            qlssub(8),
+            qlsec(11)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "1PPS input signal quality level threshold.
+             A zxAn1ppsInSignalQlBelowThreshAlm alarm will be generated when 
+             1PPS input signal  quality level of '1PPS+ToD' port is
+             below the following threshold.
+             locked(1): 1PPS input signal source is locked with grandmaster
+                        at this time.
+             qlprc(2): quality level of primary reference clock, it is defined 
+                       in recommendation G.811. 1PPS input signal is in holdover
+                       state at this time by using PRC.
+             qlssua(4): quality level of type I/V slave clock, it is defined 
+                       in recommendation G.812. 1PPS input signal is in holdover
+                       state at this time by using SSU-A.
+             qlssub(8): quality level of type VI slave clock, it is defined 
+                       in recommendation G.812. 1PPS input signal is in holdover
+                       state at this time by using SSU-B.             
+             qlsec(11): quality level of SDH equipment clock, it is defined 
+                       in recommendation G.813. 1PPS input signal is in holdover
+                       state at this time by using SEC."                             
+        DEFVAL { qlprc }
+        ::= {zxAnIeee1588AlmThreshObjects 3}
+
+-------------------------------------------------------------------------------
+-- 04. zxAnIeee1588TimeStatusInfoObjs
+-------------------------------------------------------------------------------
+    zxAn1588TimeAccuracyDegradAlmRsn  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            freqLol(1),
+            freqQualityLevelBelowThresh(2)            
+        }
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "The time accuracy degraded alarm reason.
+             A zxAn1588TimeAccuracyDegradeAlm alarm will be generated because 
+             for the following threshold.
+             freqLol(1): frequency loss of lock.
+             freqQualityLevelBelowThresh(2): frequency quality level below
+                  threshold."                     
+        ::= {zxAnIeee1588TimeStatusInfoObjs 1}
+        
+    zxAn1588TimeSourceType  OBJECT-TYPE
+        SYNTAX   INTEGER{
+            none(1),
+            ptp(2),
+            oneppsPlusTod(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The current time source type.            
+             none(1): no time source.
+             ptp(2): PTP time source.
+             oneppsPlusTod: 1PPS+ToD time source."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 2}
+
+    zxAn1588TimeSourceId  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..23))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The current time source identification.
+             It indicates the PTP time source ID when zxAn1588TimeSourceType is 
+             ptp(1). It indicates the 1PPS+ToD time source ID when 
+             zxAn1588TimeSourceType is oneppsPlusTod(2). 
+             If zxAn1588TimeSourceType is none(1), the attribute value is 
+             empty string."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 3}
+
+    zxAn1588LocalTimeStatus  OBJECT-TYPE
+        SYNTAX      INTEGER{
+            freeRun(1),
+            synchronizing(2),
+            locked(3),
+            holdoverInSpecification(4),
+            holdoverOutOfSpecification(5),
+            holdover(6)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The local time status.
+             freeRun(1): the local time has never been synchronized with any 
+                       time source.
+             synchronizing(2): the local time is synchronizing with a time
+                       source.
+             locked(3): the local time has been synchronized with a time source.
+             holdoverInspecification(4): the local time is no longer 
+                       synchronized with a time source and is using information 
+                       obtained while it was previously synchronized or other 
+                       information sources were still available, to maintain 
+                       performance within desired specification. 
+                       It is defined in recommendation G.8275.1 appendix V.
+             holdoverOutOfSpecification(5): the local time is no longer 
+                       synchronized with a time source and, while it may be 
+                       using information obtained while it was previously 
+                       synchronized or other information sources were still 
+                       available, it is unable to maintain performance 
+                       within desired specification.
+                       It is defined in recommendation G.8275.1 appendix V.
+             holdover(6): the local time is no longer synchronized with a time
+                       source, this value is only used for 
+                       zxAn1588LocalTimeStatusChanged trap."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 4}
+
+    zxAn1588LocalClockFreqStatus  OBJECT-TYPE
+        SYNTAX      INTEGER{
+            freeRun(1),
+            locked(2),
+            holdover(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The local clock frequency status.            
+             freerun(1): the local clock frequency is in free-run state.
+             locked(2): the local clock frequency is in locked state.
+             holdover(3): the local clock frequency is in holdover state."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 5}
+
+    zxAn1588LocalClockFreqQltyLvl  OBJECT-TYPE
+        SYNTAX      INTEGER{
+            qlprc(2),
+            qlssua(4),
+            qlssub(8),
+            qlsec(11)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The local clock frequency quality level.            
+             qlprc(2): quality level of primary reference clock, it is defined 
+                       in recommendation G.811. 1PPS input signal is in holdover
+                       state at this time by using PRC.
+             qlssua(4): quality level of type I/V slave clock, it is defined 
+                       in recommendation G.812. 
+             qlssub(8): quality level of type VI slave clock, it is defined 
+                       in recommendation G.812. 
+             qlsec(11): quality level of SDH equipment clock, it is defined 
+                       in recommendation G.813. "
+        ::= {zxAnIeee1588TimeStatusInfoObjs 6}
+
+    zxAn1588PtpMessageReceiveStatus  OBJECT-TYPE
+        SYNTAX      INTEGER{
+            normal(1),
+            annocMessageMissed(2),
+            syncMessageMissed(3),
+            annocAndSyncMessagesMissed(4)            
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The PTP message receiving status.            
+             normal(1): the PTP message receiving status is normal.
+             annocMessageMissed(2): the PTP announcement message is missed.
+             syncMessageMissed(3): the PTP synchronization message is missed. 
+             annocAndSyncMessagesMissed(4): the PTP announcement and
+                                            synchronization messages are all 
+                                            missed."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 7}
+        
+    zxAn1588LastTimeSourceType  OBJECT-TYPE
+        SYNTAX   INTEGER{
+            none(1),
+            ptp(2),
+            oneppsPlusTod(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The last time source type.            
+             none(1): no time source.
+             ptp(2): PTP time source.
+             oneppsPlusTod: 1PPS+ToD time source."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 8}
+
+    zxAn1588LastTimeSourceId  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..23))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The last time source identification.
+             It indicates the PTP time source ID when zxAn1588TimeSourceType is 
+             ptp(1). It indicates the 1PPS+ToD time source ID when 
+             zxAn1588TimeSourceType is oneppsPlusTod(2). 
+             If zxAn1588TimeSourceType is none(1), the attribute value is 
+             empty string."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 9}
+        
+    zxAn1588LocalUtcTime  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..19))
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+            "The UTC time of Local clock. The format is 
+             yyyy-mm-dd HH:MM:SS.For example, 2001-01-01 02:22:33."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 10}                  
+
+    zxAn1588LastLocalTimeStatus OBJECT-TYPE
+        SYNTAX      INTEGER{
+            freeRun(1),
+            synchronizing(2),
+            locked(3),
+            holdoverInSpecification(4),
+            holdoverOutOfSpecification(5),
+            holdover(6)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The last local time status.
+             freeRun(1): the local time has never been synchronized with any 
+                       time source.
+             synchronizing(2): the local time is synchronizing with a time
+                       source.
+             locked(3): the local time has been synchronized with a time source.
+             holdoverInspecification(4): the local time is no longer 
+                       synchronized with a time source and is using information 
+                       obtained while it was previously synchronized or other 
+                       information sources were still available, to maintain 
+                       performance within desired specification. 
+                       It is defined in recommendation G.8275.1 appendix V.
+             holdoverOutOfSpecification(5): the local time is no longer 
+                       synchronized with a time source and, while it may be 
+                       using information obtained while it was previously 
+                       synchronized or other information sources were still 
+                       available, it is unable to maintain performance 
+                       within desired specification.
+                       It is defined in recommendation G.8275.1 appendix V.
+             holdover(6): the local time is no longer synchronized with a time
+                       source, this value is only used for 
+                       zxAn1588LocalTimeStatusChanged trap."
+        ::= {zxAnIeee1588TimeStatusInfoObjs 11}
+
+-------------------------------------------------------------------------------
+-- 05. zxAnIeee1588TimeStatusConfObjs
+-------------------------------------------------------------------------------
+    zxAnIeee1588TimeStatusDftPri1  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The default value of priority 1 delivered to PTP master.
+             This value will be used when OLT is in holdover state."
+        DEFVAL { 128 }
+        ::= {zxAnIeee1588TimeStatusConfObjs 1}
+        
+    zxAnIeee1588TimeStatusDftPri2  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The default value of priority 2 delivered to PTP master,
+             This value will be used when OLT is in holdover state."
+        DEFVAL { 128 }
+        ::= {zxAnIeee1588TimeStatusConfObjs 2}
+
+    zxAnIeee1588TimeStatusDftClkCls  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The default value of clock class delivered to PTP master,
+             This value will be used when OLT is in holdover state."
+        DEFVAL { 187 }
+        ::= {zxAnIeee1588TimeStatusConfObjs 3}
+
+-------------------------------------------------------------------------------
+-- 09. zxAnPtpMasterObjects
+-------------------------------------------------------------------------------
+    zxAnPtpMstDomainId  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The domain identification of the master. 
+             It is a logic number and the range is from 0 to 255, the value 0 
+             indicates the default domain."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 3.1.7"    
+        ::= {zxAnPtpMasterObjects 1}
+
+    zxAnPtpMstIsLeap59  OBJECT-TYPE
+        SYNTAX     INTEGER {   
+            yes(1), 
+            no(2) 
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "In PTP systems whose epoch is the PTP epoch, the value 'yes'
+             indicates that the last minute of the current UTC day contains
+             59 seconds, the value 'no' indicates that the last minute of
+             the current UTC day does not contain 59 seconds or the epoch
+             is not PTP epoch."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.4.4 Leap59"         
+        ::= {zxAnPtpMasterObjects 2}
+
+    zxAnPtpMstIsLeap61  OBJECT-TYPE
+       SYNTAX     INTEGER {   
+            yes(1), 
+            no(2) 
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "In PTP systems whose epoch is the PTP epoch, the value 'yes'
+             indicates that the last minute of the current UTC day contains
+             61 seconds, the value 'no' indicates that the last minute of
+             the current UTC day does not contain 61 seconds or the epoch
+             is not PTP epoch."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.4.5 Leap61"         
+        ::= {zxAnPtpMasterObjects 3}    
+
+    zxAnPtpMstIsTimeTraceable  OBJECT-TYPE
+        SYNTAX     INTEGER {   
+            yes(1), 
+            no(2) 
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+             "The value 'yes' indicates that the current UTC offset can be
+              traced to a primary reference and 'no' otherwise."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.4.6"           
+        ::= {zxAnPtpMasterObjects 4}
+
+    zxAnPtpMstIsFreqTraceable  OBJECT-TYPE
+        SYNTAX     INTEGER {   
+            yes(1), 
+            no(2) 
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The value 'yes' indicates that the time frequency can be
+             traced to a primary reference and 'no' otherwise."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.4.7"            
+        ::= {zxAnPtpMasterObjects 5}
+
+    zxAnPtpMstIsUtcOffsetValid  OBJECT-TYPE
+        SYNTAX     INTEGER {   
+            yes(1), 
+            no(2) 
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The value 'yes' indicates that the current UTC offset is known to 
+             be valid and 'no' otherwise."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 9.4 
+             currentUtcOffsetValid"          
+        ::= {zxAnPtpMasterObjects 6}
+
+    zxAnPtpMstCurrentUtcOffset  OBJECT-TYPE
+        SYNTAX      Integer32(0..65535)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The current UTC offset between TAI(International Atomic Time)
+             and UTC."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.4.2 currentUtcOffset"              
+        ::= {zxAnPtpMasterObjects 7}
+
+    zxAnPtpMstClockId  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (8))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The master clock identity.
+             This attribute value is hexadecimal data."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 7.5.2.2.2 clockIdentity"     
+        ::= {zxAnPtpMasterObjects 8}
+
+    zxAnPtpMstGrdmstClockId  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (8))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The grandmaster clock identity.
+             This attribute value is hexadecimal data."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.3.6"                
+        ::= {zxAnPtpMasterObjects 9}
+
+    zxAnPtpMstGrdmstIsPtpTimescale  OBJECT-TYPE
+        SYNTAX     INTEGER {   
+            yes(1), 
+            no(2) 
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The value 'yes' indicates that the clock timescale of the
+             grandmaster clock is PTP and 'no' otherwise."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.4.8"                                  
+        ::= {zxAnPtpMasterObjects 10}
+
+    zxAnPtpMstGrdmstPriority1   OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The grandmaster clock priority 1.
+             The value 0 indicates the highest priority."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.3.8 
+             grandmasterPriority1"     
+        ::= {zxAnPtpMasterObjects 11}
+
+    zxAnPtpMstGrdmstPriority2   OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The grandmaster clock priority 2.
+             The value 0 indicates the highest priority."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.3.9
+             grandmasterPriority2"     
+        ::= {zxAnPtpMasterObjects 12}
+
+    zxAnPtpMstGrdmstClockTraceClass  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The grandmaster clock traceability class of the time or frequency 
+             distributed. The value 0 indicates the best traceability class."        
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 7.6.2.4 clockClass"
+        ::= {zxAnPtpMasterObjects 13}         
+
+    zxAnPtpMstGrdmstClockAccuracy  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The grandmaster clock accuracy. The value 0 indicates the highest
+             clock accuracy."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 7.6.2.5 clockAccuracy"         
+        ::= {zxAnPtpMasterObjects 14}
+
+    zxAnPtpMstGrdmstClockOslv  OBJECT-TYPE
+        SYNTAX      Integer32(0..65535)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The grandmaster clock offset scaled log variance. 
+             It is computed based on the theory of Allan deviation."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.1.3.1.3" 
+        ::= {zxAnPtpMasterObjects 15}
+
+    zxAnPtpMstGrdmstTraversedClocks  OBJECT-TYPE
+        SYNTAX      Integer32(0..65535)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The clocks traversed between the local clock and the 
+             grandmaster clock."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.2.2 "              
+        ::= {zxAnPtpMasterObjects 16}
+
+    zxAnPtpMstGrdmstTimeSource  OBJECT-TYPE
+        SYNTAX    INTEGER {   
+            atomicClock(16),
+            gps(32),
+            terrestrialRadio(48),
+            ptp(64),
+            ntp(80),
+            handset(96),
+            other(144),
+            internalOscillator(160)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The source of time used by the grandmaster clock."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.4.9 timeSource"              
+        ::= {zxAnPtpMasterObjects 17}
+
+    zxAnPtpMstSourcePortLocation    OBJECT-TYPE
+        SYNTAX      INTEGER {
+            uplinkCard(1),
+            masterControlCard(2),
+            slaveControlCard(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The source port location.
+             uplinkCard(1): it means that the PTP master source port
+                            is located at the uplink card.
+             masterControlCard(2): it means that the PTP master source port 
+                                   is located at the master control card.
+             slaveControlCard(3): it means that the PTP master source port 
+                                  is located at the slave control card."
+        DEFVAL { uplinkCard }
+        ::= {zxAnPtpMasterObjects 18}
+
+--------------------------------------------------------------------------------
+-- 17. zxAnPtpIfConfTable
+--------------------------------------------------------------------------------
+    zxAnPtpIfConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPtpIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The IEEE 1588 PTP port table."
+        ::=  {zxAnIeee1588PtpObjects 7}
+
+    zxAnPtpIfConfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnPtpIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The IEEE 1588 PTP port entry."
+        INDEX   {ifIndex}
+        ::=  {zxAnPtpIfConfTable 1}
+
+    ZxAnPtpIfConfEntry ::= SEQUENCE {      
+        zxAnPtpIfConfClockId                OCTET STRING,
+        zxAnPtpIfConfNumber                 Integer32,
+        zxAnPtpIfConfState                  INTEGER,
+        zxAnPtpIfConfMinDelayReqInterval    INTEGER,
+        zxAnPtpIfConfAnnounceInterval       Integer32,
+        zxAnPtpIfConfMaxLossAnnounceMsgs    Integer32,
+        zxAnPtpIfConfSyncInterval           INTEGER,
+        zxAnPtpIfConfLocalPriority          Integer32,
+        zxAnPtpIfConfPtpMsgProtocolType     INTEGER,
+        zxAnPtpIfConfAddressType            INTEGER,
+        zxAnPtpIfConfMsgForwardOption       INTEGER,
+        zxAnPtpIfConfDelayCompensation      Integer32,
+        zxAnPtpIfConfAdminStatus            INTEGER,
+        zxAnPtpIfConfRowStatus              RowStatus
+        }
+
+    zxAnPtpIfConfClockId  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (8))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The PTP port clock identity.
+             This attribute value is hexadecimal data."
+        REFERENCE
+            "Clause 8.2.5.2.1, IEEE1588-2008"
+        ::= {zxAnPtpIfConfEntry 1}
+
+    zxAnPtpIfConfNumber OBJECT-TYPE
+        SYNTAX         Integer32(0..255)
+        MAX-ACCESS     read-only
+        STATUS  current
+        DESCRIPTION
+            "The PTP port number."
+        REFERENCE
+            "Clause 8.2.5.2.1, IEEE1588-2008"
+        ::= { zxAnPtpIfConfEntry 2 }
+             
+    zxAnPtpIfConfState OBJECT-TYPE
+        SYNTAX     INTEGER {
+            initializing(1),
+            faulty(2),
+            disabled(3),
+            listening(4),
+            preMaster(5),
+            master(6),
+            passive(7),
+            uncalibrated(8),
+            slave(9)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The PTP port state."
+        REFERENCE
+            "Clause 8.2.5.3.1, IEEE1588-2008"   
+        DEFVAL { initializing }
+        ::= {zxAnPtpIfConfEntry 3}
+
+    zxAnPtpIfConfMinDelayReqInterval  OBJECT-TYPE
+        SYNTAX   INTEGER{
+            us31250(1),
+            us62500(2),
+            us125000(3),
+            us250000(4),
+            us500000(5),
+            oneSecond(6)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum interval between successive Delay_Req messages.
+             us31250 means interval 2**(-5)s
+             us62500 means interval 2**(-4)s
+             us125000 means interval 2**(-3)s
+             us250000 means interval 2**(-2)s
+             us500000 means interval 2**(-1)s
+             oneSecond means interval 2**(0)s"
+        REFERENCE
+            "Clause 8.2.5.3.2, IEEE1588-2008"   
+        ::= {zxAnPtpIfConfEntry 4}
+
+    zxAnPtpIfConfAnnounceInterval   OBJECT-TYPE
+        SYNTAX   INTEGER{
+            us31250(1),
+            us62500(2),
+            us125000(3),
+            us250000(4),
+            us500000(5),
+            oneSecond(6)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interval between successive Announce messages.
+             us31250 means interval 2**(-5)s
+             us62500 means interval 2**(-4)s
+             us125000 means interval 2**(-3)s
+             us250000 means interval 2**(-2)s
+             us500000 means interval 2**(-1)s
+             oneSecond means interval 2**(0)s"
+        REFERENCE
+            "Clause 8.2.5.4.1, IEEE1588-2008"   
+        DEFVAL { us125000 }
+        ::= {zxAnPtpIfConfEntry 6}
+
+    zxAnPtpIfConfMaxLossAnnounceMsgs  OBJECT-TYPE
+        SYNTAX   Integer32(2..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The maximum number of Announce messages loss."
+        REFERENCE
+            "Clause 8.2.5.4.2, IEEE1588-2008"   
+        DEFVAL { 3 }
+        ::= {zxAnPtpIfConfEntry 7}
+
+    zxAnPtpIfConfSyncInterval  OBJECT-TYPE
+        SYNTAX   INTEGER{
+            us31250(1),
+            us62500(2),
+            us125000(3),
+            us250000(4),
+            us500000(5),
+            oneSecond(6)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interval between successive synchronization messages.
+             us31250 means interval 2**(-5)s
+             us62500 means interval 2**(-4)s
+             us125000 means interval 2**(-3)s
+             us250000 means interval 2**(-2)s
+             us500000 means interval 2**(-1)s
+             oneSecond means interval 2**(0)s"
+        REFERENCE
+             "Clause 8.2.5.4.3, IEEE1588-2008"  
+        DEFVAL { us62500 }
+        ::= {zxAnPtpIfConfEntry 8}
+
+    zxAnPtpIfConfLocalPriority OBJECT-TYPE
+        SYNTAX      Integer32(1..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP port local priority."
+        REFERENCE
+            "Clause 8.2.1.4.3, IEEE1588-2008"   
+        DEFVAL { 128 }
+        ::= {zxAnPtpIfConfEntry 13}
+
+    zxAnPtpIfConfPtpMsgProtocolType  OBJECT-TYPE
+        SYNTAX   INTEGER {
+            ipv4(1),
+            ethernet(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP message protocol type.
+             ipv4(1): it means the PTP messages is IPv4 protocol.
+             ethernet(2): it means the PTP messages is Ethernet protocol."
+        REFERENCE
+            "Clause 8.2.1.4.3, IEEE1588-2008"    
+        DEFVAL { ethernet }
+        ::= {zxAnPtpIfConfEntry 21}
+
+    zxAnPtpIfConfAddressType OBJECT-TYPE
+        SYNTAX     INTEGER {
+            multicast(1),
+            unicast(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP port address type.
+             multicast(1): it means the PTP port address type is multicast. 
+             unicast(2): it means the PTP port address type is unicast."
+        REFERENCE
+            "Clause 8.2.1.4.3, IEEE1588-2008"   
+        DEFVAL { multicast }
+        ::= {zxAnPtpIfConfEntry 22}
+
+    zxAnPtpIfConfMsgForwardOption OBJECT-TYPE
+        SYNTAX     INTEGER {
+            forwardable(1),
+            nonforwardable(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP message forwarding option.
+             forwardable(1): it means the PTP messages is preferable to 
+                             forward the PTP messages through the PTP port.
+             nonforwardable(2): it means the PTP messages must never be 
+                             forwarded through the PTP port."
+        REFERENCE
+            "Clause 8.2.1.4.3, IEEE1588-2008"   
+        DEFVAL { nonforwardable }
+        ::= {zxAnPtpIfConfEntry 23}
+
+    zxAnPtpIfConfDelayCompensation OBJECT-TYPE
+        SYNTAX      Integer32(-100000..100000)
+        UNITS       "Nanoseconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP port delay compensation."
+        REFERENCE
+            "Clause 8.2.1.4.3, IEEE1588-2008"   
+        DEFVAL { 0 }
+        ::= {zxAnPtpIfConfEntry 24}
+
+    zxAnPtpIfConfAdminStatus    OBJECT-TYPE
+        SYNTAX  INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP port administrative status.
+             Enables or disables the PTP port."
+        REFERENCE
+            "Clause 8.2.1.4.3, IEEE1588-2008"    
+        DEFVAL { enabled }
+        ::= {zxAnPtpIfConfEntry 25}
+
+    zxAnPtpIfConfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+
+             To delete a row in this table, a manager must
+             set this object to destroy(6).
+
+             To query this object, always return 1."
+        ::= {zxAnPtpIfConfEntry 50}               
+                
+--------------------------------------------------------------------------------
+-- 18. zxAnPtpProfileGlobalObjects
+--------------------------------------------------------------------------------      
+    zxAnPtpPrfSystemPtpPrf    OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (0 .. 40))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The system PTP profile name. Refers to 'zxAnPtpPrfName'.
+             An empty string indicates no binding any profile."
+        ::= {zxAnPtpProfileGlobalObjects 1}
+                
+--------------------------------------------------------------------------------
+-- 19. zxAnPtpPrfTable
+--------------------------------------------------------------------------------    
+    zxAnPtpPrfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPtpPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The IEEE 1588 PTP profile table."
+        ::=  {zxAnPtpProfileObjects 2}
+
+    zxAnPtpPrfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnPtpPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The IEEE 1588 PTP profile entry."
+        INDEX   { zxAnPtpPrfName }
+        ::=  {zxAnPtpPrfTable 1}
+
+    ZxAnPtpPrfEntry ::= SEQUENCE {
+        zxAnPtpPrfName                   DisplayString,
+        zxAnPtpPrfPriority2              Integer32,
+        zxAnPtpPrfDomainNumber           Integer32,
+        zxAnPtpPrfLocalPriority          Integer32,
+        zxAnPtpPrfMaxStepsRemoved        Integer32,
+        zxAnPtpPrfBmcaOption             INTEGER,
+        zxAnPtpPrfTraceOption            INTEGER,
+        zxAnPtpPrfHoldoverInTimeout      INTEGER,
+        zxAnPtpPrfRowStatus              RowStatus              
+        }
+
+    zxAnPtpPrfName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE (1 .. 40))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "The PTP profile name."
+        ::= { zxAnPtpPrfEntry 1 }
+
+    zxAnPtpPrfPriority2   OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP priority 2.
+             The value 0 indicates the highest priority."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.1.4.2 
+             defaultDS.priority2"
+        DEFVAL { 128 }                           
+        ::= { zxAnPtpPrfEntry 3 }
+                
+    zxAnPtpPrfDomainNumber   OBJECT-TYPE
+        SYNTAX      Integer32(24..43)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP domain number."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 8.2.1.4.3 
+             defaultDS.domainNumber"
+        DEFVAL { 24 }                            
+        ::= { zxAnPtpPrfEntry 4 }       
+
+    zxAnPtpPrfLocalPriority   OBJECT-TYPE
+        SYNTAX      Integer32(1..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP local priority.
+             The value 1 indicates the highest priority."
+        REFERENCE
+            "G.8275.1 6.3.2"
+        DEFVAL { 128 }                           
+        ::= { zxAnPtpPrfEntry 5 }
+                
+    zxAnPtpPrfMaxStepsRemoved   OBJECT-TYPE
+        SYNTAX      Integer32(1..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP maximum steps removed.
+             The parameter is defined in [IEEE1588] is used to indicate the
+             distance between a clock and the grandmaster clock in the network. 
+             It was originally intended to be used as a helpful tool to detect
+             cyclic paths that may occur in PTP systems. By default it is 
+             required that a clock not qualify any Announce messages where the
+             stepsRemoved field is equal to, or greater than, 255 in order to
+             ensure that rogue frames are extinguished."
+        REFERENCE
+            "G.8275.1 Annex F"
+        DEFVAL { 255 }                           
+        ::= { zxAnPtpPrfEntry 6 }
+
+    zxAnPtpPrfBmcaOption    OBJECT-TYPE
+        SYNTAX  INTEGER{
+            g82751(1),
+            ieee1588(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP BMCA (best master clock algorithm) option.
+             g82751(1): BMCA complies with G.8275.1.
+             ieee1588(2): BMCA complies with IEEE 1588."
+        DEFVAL { g82751 }         
+        ::= {zxAnPtpPrfEntry 7}
+                
+    zxAnPtpPrfTraceOption    OBJECT-TYPE
+        SYNTAX  INTEGER{
+            g82751(1),
+            g82751note3(2),
+            ieee1588(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP trace option.
+             g82751(1): PTP trace complies with G.8275.1.
+             g82751note3(2): PTP trace complies with G.8275.1 note 3.
+             ieee1588(3): PTP trace complies with IEEE 1588."
+        DEFVAL { g82751 }         
+        ::= {zxAnPtpPrfEntry 8}
+                
+    zxAnPtpPrfHoldoverInTimeout   OBJECT-TYPE
+        SYNTAX      Integer32(0..1440)
+        UNITS       "Minutes"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The holdover-in timeout.
+             The value 0 indicates that the system clock do not enter into
+             the holdover-in status."
+        REFERENCE
+            "G.8275.1 Table V1"
+        DEFVAL { 60 }                           
+        ::= { zxAnPtpPrfEntry 9 }
+                
+    zxAnPtpPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+
+             To delete a row in this table, a manager must
+             set this object to destroy(6).
+
+             To query this object, always return 1."
+        ::= {zxAnPtpPrfEntry 50}             
+
+-------------------------------------------------------------------------------
+-- 22. zxAnPtpIfStatsTable
+-------------------------------------------------------------------------------                 
+    zxAnPtpIfStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPtpIfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The IEEE 1588 PTP port statistics table."
+        ::=  {zxAnPtpStatsObjects 2}
+
+    zxAnPtpIfStatsEntry  OBJECT-TYPE
+        SYNTAX      ZxAnPtpIfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The IEEE 1588 PTP port statistics entry."
+        INDEX   {ifIndex}
+        ::=  {zxAnPtpIfStatsTable 1}
+
+    ZxAnPtpIfStatsEntry ::= SEQUENCE {      
+        zxAnPtpIfStatsAnnounceMsgs             Counter32,
+        zxAnPtpIfStatsSyncMsgs                 Counter32,
+        zxAnPtpIfStatsDelayReqMsgs             Counter32,
+        zxAnPtpIfStatsDelayRespMsgs            Counter32,
+        zxAnPtpIfStatsFollowUpMsgs             Counter32     
+        }
+                
+    zxAnPtpIfStatsAnnounceMsgs  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of PTP announce messages."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 13.5 Announce message"        
+        ::= {zxAnPtpIfStatsEntry 1}
+        
+    zxAnPtpIfStatsSyncMsgs  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of PTP synchronization messages."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 
+             13.6 Sync and Delay_Req messages"        
+        ::= {zxAnPtpIfStatsEntry 2}
+        
+    zxAnPtpIfStatsDelayReqMsgs  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of PTP delay_req messages."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 
+             13.6 Sync and Delay_Req messages"        
+        ::= {zxAnPtpIfStatsEntry 3}
+        
+    zxAnPtpIfStatsDelayRespMsgs  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of PTP delay_resp messages."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 
+             13.8 Delay_Resp message"        
+        ::= {zxAnPtpIfStatsEntry 4}       
+        
+    zxAnPtpIfStatsFollowUpMsgs  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of PTP follow_up messages."
+        REFERENCE
+            "IEEE Standard for a Precision Clock Synchronization Protocol for
+             Networked Measurement and Control Systems 
+             13.8 Follow_Up message"        
+        ::= {zxAnPtpIfStatsEntry 5}
+        
+------------------------------------------------------------------------------- 
+-- 25. zxAnSyncTime1ppsSrcTable
+-------------------------------------------------------------------------------
+    zxAnSyncTime1ppsSrcTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnSyncTime1ppsSrcEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "This table includes 1PPS source information in NE 
+                    equipment."
+        ::=  { zxAnIeee15881ppsObjects 3 }
+
+    zxAnSyncTime1ppsSrcEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSyncTime1ppsSrcEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnSyncTime1ppsSrcTable.
+            to create a 1pps source,it must comply with the multi-variables
+            usage rule - all the mib variables related to same fuction 
+            must be in one snmp set operation.
+            the variables have two type mandatory and optional:
+            Mandatory variables must be in the one snmp set operation.
+            Optional variables may be in the one snmp set operation with the
+            mandatory variables, but must not be used alone.
+            
+            case 1 - to create 1PPS signal source from 1PPS port:
+            -Mandatory:
+            zxAnSyncTime1ppsSrcRack,
+            zxAnSyncTime1ppsSrcShelf,
+            zxAnSyncTime1ppsSrcSlot,
+            zxAnSyncTime1ppsSrcSignalType,
+            zxAnSyncTime1ppsSrcPortType,
+            zxAnSyncTime1ppsSrcPort,
+            zxAnSyncTime1ppsSrcPriority, 
+            zxAnSyncTime1ppsSrcRowStatus,
+            -Optional: 
+            
+            case 3 - to destroy 1PPS signal
+            -Mandatory:
+            zxAnSyncTime1ppsSrcRowStatus,"
+        INDEX   {zxAnSyncTime1ppsSrcId}
+        ::=  { zxAnSyncTime1ppsSrcTable 1 }
+
+    ZxAnSyncTime1ppsSrcEntry  ::=  SEQUENCE {         
+        zxAnSyncTime1ppsSrcId                  Integer32,
+        zxAnSyncTime1ppsSrcRack                Integer32,
+        zxAnSyncTime1ppsSrcShelf               Integer32,
+        zxAnSyncTime1ppsSrcSlot                Integer32,
+        zxAnSyncTime1ppsSrcFirstPtp            TruthValue,
+        zxAnSyncTime1ppsSrcSignalType          INTEGER,
+        zxAnSyncTime1ppsSrcPriority            Integer32,
+        zxAnSyncTime1ppsSrcPortType            INTEGER,
+        zxAnSyncTime1ppsSrcPort                Integer32,
+        zxAnSyncTime1ppsSrcWorkStatus          INTEGER,
+        zxAnSyncTime1ppsSrcValidStatus         INTEGER,
+        zxAnSyncTime1ppsSrcPortStatus          INTEGER,                
+        zxAnSyncTime1ppsSrcFormat              INTEGER,
+        zxAnSyncTime1ppsSrcCurrentQL           INTEGER,
+        zxAnSyncTime1ppsSrcTimeAccuracy        Integer32,
+        zxAnSyncTime1ppsSrcTimeSrcType         INTEGER,
+        zxAnSyncTime1ppsSrcDlyCompensate       Integer32,
+        zxAnSyncTime1ppsSrcRowStatus           RowStatus        
+        }
+
+    zxAnSyncTime1ppsSrcId  OBJECT-TYPE
+        SYNTAX      Integer32(1..255)       
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This '1PPS+ToD' source id."
+        ::= { zxAnSyncTime1ppsSrcEntry 1 }   
+             
+    zxAnSyncTime1ppsSrcRack  OBJECT-TYPE
+        SYNTAX      Integer32(1)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the rack number."
+        ::= { zxAnSyncTime1ppsSrcEntry 2 }   
+          
+    zxAnSyncTime1ppsSrcShelf  OBJECT-TYPE
+        SYNTAX      Integer32(1)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the shelf number."
+        ::= { zxAnSyncTime1ppsSrcEntry 3 }         
+        
+    zxAnSyncTime1ppsSrcSlot  OBJECT-TYPE
+        SYNTAX      Integer32(1..22)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the slot number.
+            Only support time card, such as cick."
+        ::= { zxAnSyncTime1ppsSrcEntry 4 }     
+        
+   
+    zxAnSyncTime1ppsSrcFirstPtp  OBJECT-TYPE
+        SYNTAX      TruthValue        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PTP node provided '1PPS+ToD' siginal is the first node of
+            this slot or not."
+        DEFVAL { true }
+        ::= { zxAnSyncTime1ppsSrcEntry 5 }          
+        
+    zxAnSyncTime1ppsSrcSignalType      OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {   
+             ptp(1),
+             onepps(2)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     
+            "The type of '1PPS+ToD' signal source.
+            ptp(1)    : 1PPS come from PTP
+            onepps(2) : 1PPS come from physical 1pps port"
+        ::=  {  zxAnSyncTime1ppsSrcEntry  6  } 
+    
+    zxAnSyncTime1ppsSrcPriority  OBJECT-TYPE
+        SYNTAX      Integer32(1..255)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The priority of '1PPS+ToD' signal source, value 1 is the 
+              highest priority."
+        ::= { zxAnSyncTime1ppsSrcEntry 7 }             
+        
+    zxAnSyncTime1ppsSrcPortType      OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {   
+             typeTtl(1),
+             type422(2)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     
+            "The '1PPS+ToD' signal source port type.
+            It is valid only for the 'onepps' signal type.
+            typeTtl(1)  : physical port type TTL 
+            type422(2)  : from physical port as RJ45"
+        ::=  {  zxAnSyncTime1ppsSrcEntry  8  }             
+                                
+    zxAnSyncTime1ppsSrcPort  OBJECT-TYPE
+        SYNTAX      Integer32(1..4)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The physical port number.
+             It is valid only for the 'onepps' signal type.
+            "
+        ::= { zxAnSyncTime1ppsSrcEntry 9 } 
+        
+    zxAnSyncTime1ppsSrcWorkStatus      OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {   
+             none(1),
+             active(2),
+             standby(3)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     
+            "The '1PPS+ToD' signal source work status, 
+            none(1)    : indicates PTP source is invalid.
+            active(2)  : indicates PTP source is active,
+            standby(3) : indicates PTP source is standby source, "
+        ::=  {  zxAnSyncTime1ppsSrcEntry  10  }                     
+    
+    zxAnSyncTime1ppsSrcValidStatus      OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {   
+             valid(1),
+             invalid(2)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     
+            "The '1PPS+ToD' singnal source work status.
+            valid(1)  : indicates the 1PPS signal is valid
+            invalid(2): indicates the 1PPS signal is invalid
+            When  the value is invalid,
+            then zxAnSyncTime1ppsSrcWorkStatus is none."
+        ::=  {  zxAnSyncTime1ppsSrcEntry  11  }                     
+        
+    zxAnSyncTime1ppsSrcPortStatus      OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {   
+             none(1),
+             normal(2),
+             signalLos(3)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     
+             "The '1PPS+ToD' signal source port status.
+              It is valid only for the 'onepps' signal type.
+              If zxAnSyncTime1ppsSrcSignalType is 'ptp', 
+              then the value is none.
+              When the value is none or signalLos, then  
+              zxAnSyncTime1ppsSrcValidStatus is invalid. "
+        ::=  {  zxAnSyncTime1ppsSrcEntry  12  }                     
+
+    zxAnSyncTime1ppsSrcFormat   OBJECT-TYPE
+        SYNTAX          INTEGER
+        {
+            unknown(1),
+            gpzda(2),
+            gprmc(3),
+            cmcc(4)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+             "The '1PPS+ToD' singnal source format.
+              unknown(1): it indicates the '1PPS+ToD' signal source format
+                         is unknown.
+              gpzda(2): it indicates the '1PPS+ToD' signal source format
+                         is GPZDA.
+              gprmc(3): it indicates the '1PPS+ToD' signal source format
+                         is GPRMC.
+              cmcc(4): it indicates the '1PPS+ToD' signal source format
+                         is CMCC."
+        ::=  { zxAnSyncTime1ppsSrcEntry  13 }
+
+    zxAnSyncTime1ppsSrcCurrentQL    OBJECT-TYPE
+        SYNTAX          INTEGER
+        {
+            locked(1),
+            qlprc(2),
+            qlssua(4),
+            qlssub(8),
+            qlsec(11),
+            qldnu(15)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The '1PPS+ToD' singnal source current quality level.             
+             locked(1): 1PPS input signal source is locked with grandmaster
+                        at this time.
+             qlprc(2): quality level of primary reference clock, it is defined 
+                       in recommendation G.811. 
+             qlssua(4): quality level of type I/V slave clock, it is defined 
+                       in recommendation G.812. 
+             qlssub(8): quality level of type VI slave clock, it is defined 
+                       in recommendation G.812. 
+             qlsec(11): quality level of SDH equipment clock, it is defined 
+                       in recommendation G.813. 
+             qldnu(15): quality level of unusable clock, it is defined 
+                       in recommendation G.813."
+        ::=  { zxAnSyncTime1ppsSrcEntry  14 }
+
+    zxAnSyncTime1ppsSrcTimeAccuracy OBJECT-TYPE
+        SYNTAX          Integer32(0..3810)
+        UNITS           "Nanoseconds"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The '1PPS+ToD' singnal source time accuracy, value 0 indicates the 
+             highest accuracy."
+        ::=  { zxAnSyncTime1ppsSrcEntry  15 }
+
+    zxAnSyncTime1ppsSrcTimeSrcType  OBJECT-TYPE
+        SYNTAX          INTEGER
+        {
+            bds(1),
+            gps(2),
+            ptp(3),
+            other(255)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The '1PPS+ToD' singnal source time source type.
+             bds(1): the time source type is beidou bavigation satellite
+                     system.
+             gps(2): the time source type is global positioning system.
+             ptp(3): the time source type is precision timing protocol
+                     system.
+             other(255): the time source type is other system."
+        ::=  { zxAnSyncTime1ppsSrcEntry  16 }
+        
+    zxAnSyncTime1ppsSrcDlyCompensate  OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "Nanoseconds"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The '1PPS+ToD' delay compensation."
+        DEFVAL { 0 }                 
+        ::=  { zxAnSyncTime1ppsSrcEntry  17 }
+            
+    zxAnSyncTime1ppsSrcRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+                     
+            To delete a row in this table, a manager must
+            set this object to destroy(6).
+            
+            To query this object, always return 1."
+        ::= { zxAnSyncTime1ppsSrcEntry 30 } 
+                                     
+------------------------------------------------------------------------------- 
+-- 26. zxAnSyncTimeTodSrcTable
+-------------------------------------------------------------------------------
+
+    zxAnSyncTimeTodSrcTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnSyncTimeTodSrcEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "This table includes TOD source information in NE 
+                    equipment."
+        ::=  { zxAnIeee15881ppsObjects 4 }
+
+    zxAnSyncTimeTodSrcEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSyncTimeTodSrcEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnSyncTimeTodSrcTable.
+            to create a TOD source,it must comply with the multi-variables
+            usage rule - all the mib variables related to same fuction 
+            must be in one snmp set operation.
+            the variables have two type mandatory and optional:
+            Mandatory variables must be in the one snmp set operation.
+            Optional variables may be in the one snmp set operation with the
+            mandatory variables, but must not be used alone.
+            
+            case 1 - to create tod source from physical tod port:
+            -Mandatory:
+            zxAnSyncTimeTodSrcRack,
+            zxAnSyncTimeTodSrcShelf,
+            zxAnSyncTimeTodSrcSlot,
+            zxAnSyncTimeTodSrcPort,
+            zxAnSyncTimeTodSrcSignalType,
+            zxAnSyncTimeTodSrcRowStatus,
+            -Optional: 
+            zxAnSyncTimeTodSrcYearAdjust,
+            
+            case 2 - to destroy tod source
+            -Mandatory:
+            zxAnSyncTimeTodSrcRowStatus,"
+        INDEX   {zxAnSyncTimeTodSrcId}
+        ::=  { zxAnSyncTimeTodSrcTable 1 }
+
+    ZxAnSyncTimeTodSrcEntry  ::=  SEQUENCE {       
+        zxAnSyncTimeTodSrcId                  Integer32,
+        zxAnSyncTimeTodSrcRack                Integer32,
+        zxAnSyncTimeTodSrcShelf               Integer32,
+        zxAnSyncTimeTodSrcSlot                Integer32,
+        zxAnSyncTimeTodSrcPort                Integer32, 
+        zxAnSyncTimeTodSrcSignalType          INTEGER,
+        zxAnSyncTimeTodSrcYearAdjust          Integer32,
+        zxAnSyncTimeTodSrcPortStatus          INTEGER,
+        zxAnSyncTimeTodSrcRowStatus           RowStatus        
+        }
+                    
+    zxAnSyncTimeTodSrcId  OBJECT-TYPE
+        SYNTAX      Integer32(1..255)       
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This tod source id."
+        ::= { zxAnSyncTimeTodSrcEntry 1 }   
+
+    zxAnSyncTimeTodSrcRack  OBJECT-TYPE
+        SYNTAX      Integer32(1)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the rack number."
+        ::= { zxAnSyncTimeTodSrcEntry 2 }   
+          
+    zxAnSyncTimeTodSrcShelf  OBJECT-TYPE
+        SYNTAX      Integer32(1)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the shelf number."
+        ::= { zxAnSyncTimeTodSrcEntry 3 }         
+        
+    zxAnSyncTimeTodSrcSlot  OBJECT-TYPE
+        SYNTAX      Integer32(1..22)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the slot number.
+            Only support time card, such as cick."
+        ::= { zxAnSyncTimeTodSrcEntry 4 }    
+              
+    zxAnSyncTimeTodSrcPort  OBJECT-TYPE
+        SYNTAX      Integer32        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the port number."
+        ::= { zxAnSyncTimeTodSrcEntry 5 } 
+                
+    zxAnSyncTimeTodSrcSignalType      OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {   
+             gps(1),
+             chinaMobile(2),
+             chinaUnicom(3),
+             chinaTelecom(4)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     
+            "The signal type of TOD signal source.
+            gps(1)         : GPS TOD form
+            chinaMobile(2) : China Mobile Telecom's TOD form
+            chinaUnicom(3) : China Unicom Telecom's TOD form
+            chinaTelecom(4): China Telecom's TOD form"
+        ::=  {  zxAnSyncTimeTodSrcEntry  6  }     
+        
+    zxAnSyncTimeTodSrcYearAdjust      OBJECT-TYPE 
+        SYNTAX          Integer32(0..2050)
+        UNITS           "year"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "The year adjustment value of TOD signal source.
+                         It is valid only for the 'gps' signal type."
+        DEFVAL          { 0 }                                  
+        ::=  {  zxAnSyncTimeTodSrcEntry  7  }             
+                                                
+    zxAnSyncTimeTodSrcPortStatus      OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {   
+             none(1),
+             normal(2),
+             signalLos(3)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     
+            "The TOD signal source port status.
+            none(1)      : none
+            normal(2)    : no alarm
+            signalLos(3) : Loss of TOD"
+        ::=  {  zxAnSyncTimeTodSrcEntry  8  }                     
+        
+    zxAnSyncTimeTodSrcRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+                     
+            To delete a row in this table, a manager must
+            set this object to destroy(6).
+            
+            To query this object, always return 1."
+        ::= { zxAnSyncTimeTodSrcEntry 30 }   
+
+------------------------------------------------------------------------------- 
+-- 27. zxAnSyncTimeOutputPortTable
+-------------------------------------------------------------------------------
+   zxAnSyncTimeOutputPortTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnSyncTimeOutputPortEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "This table includes 1PPS and TOD signal output ports 
+                      information in NE equipment."
+        ::=  { zxAnIeee15881ppsObjects 5 }
+
+    zxAnSyncTimeOutputPortEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSyncTimeOutputPortEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnSyncTimeOutputPortTable.
+            to create a TOD output,it must comply with the multi-variables
+            usage rule - all the mib variables related to same fuction 
+            must be in one snmp set operation.
+            the variables have two type mandatory and optional:
+            Mandatory variables must be in the one snmp set operation.
+            Optional variables may be in the one snmp set operation with the
+            mandatory variables, but must not be used alone.
+            
+            case 1 - to create tod output:
+            -Mandatory:
+            zxAnSyncTimeOutputRack,
+            zxAnSyncTimeOutputShelf,
+            zxAnSyncTimeOutputSlot,
+            zxAnSyncTimeOutputPort,
+            zxAnSyncTimeOutputPortEnable,
+            zxAnSyncTimeOutputPortRowStatus,
+            -Optional: 
+            
+            case 3 - to destroy tod output
+            -Mandatory:
+            zxAnSyncTimeOutputPortRowStatus,"
+        INDEX   {zxAnSyncTimeOutputId}
+        ::=  { zxAnSyncTimeOutputPortTable 1 }
+
+    ZxAnSyncTimeOutputPortEntry  ::=  SEQUENCE {        
+        zxAnSyncTimeOutputId                  Integer32,
+        zxAnSyncTimeOutputRack                Integer32,
+        zxAnSyncTimeOutputShelf               Integer32,
+        zxAnSyncTimeOutputSlot                Integer32,    
+        zxAnSyncTimeOutputPort                Integer32, 
+        zxAnSyncTimeOutputPortEnable          INTEGER,
+        zxAnSyncTimeOutputPortPhaseAdjus      Integer32,
+        zxAnSyncTimeOutputPortRowStatus       RowStatus        
+        }
+        
+    zxAnSyncTimeOutputId  OBJECT-TYPE
+        SYNTAX      Integer32        
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This time output id."
+        ::= { zxAnSyncTimeOutputPortEntry 1 }   
+           
+    zxAnSyncTimeOutputRack  OBJECT-TYPE
+        SYNTAX      Integer32(1)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the rack number."
+        ::= { zxAnSyncTimeOutputPortEntry 2 }   
+          
+    zxAnSyncTimeOutputShelf  OBJECT-TYPE
+        SYNTAX      Integer32(1)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the shelf number."
+        ::= { zxAnSyncTimeOutputPortEntry 3 }         
+        
+    zxAnSyncTimeOutputSlot  OBJECT-TYPE
+        SYNTAX      Integer32(1..22)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the slot number.
+            Only support pon card."
+        ::= { zxAnSyncTimeOutputPortEntry 4 }                             
+           
+    zxAnSyncTimeOutputPort  OBJECT-TYPE
+        SYNTAX      Integer32(1..8)        
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the  port number."
+        ::= { zxAnSyncTimeOutputPortEntry 5 }    
+                
+    zxAnSyncTimeOutputPortEnable      OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {   
+              enable(1), 
+              disable(2) 
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     
+            "Enables or disables the output port of 
+            1PPS and TOD signal.
+            enable(1) : enable 
+            disable(2): disable"                      
+        ::=  {  zxAnSyncTimeOutputPortEntry  6  }     
+        
+    zxAnSyncTimeOutputPortPhaseAdjus      OBJECT-TYPE 
+        SYNTAX          Integer32(-1000000..1000000)
+        UNITS           "ns"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "The phase adjustment value.
+                         It is valid only for the 1PPS signal."
+        DEFVAL { 0 }                    
+        ::=  {  zxAnSyncTimeOutputPortEntry  7  }                                                                
+        
+    zxAnSyncTimeOutputPortRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+                     
+            To delete a row in this table, a manager must
+            set this object to destroy(6).
+            
+            To query this object, always return 1."
+        ::= { zxAnSyncTimeOutputPortEntry 30 }
+
+-------------------------------------------------------------------------------
+-- 51. zxAnIeee1588GlobalTraps
+-------------------------------------------------------------------------------
+    zxAn1588TimeAccuracyDegradeAlm        NOTIFICATION-TYPE
+        OBJECTS {
+                zxAn1588TimeAccuracyDegradAlmRsn
+                }        
+        STATUS  current
+        DESCRIPTION
+            "A zxAnAccuracyDegradedAlm trap is sent when the agent has 
+             detected that the time accuracy has been degraded."
+        ::={zxAnIeee1588GlobalTraps 1}
+
+    zxAn1588TimeAccuracyDegradeClr        NOTIFICATION-TYPE
+        OBJECTS {
+                zxAn1588TimeAccuracyDegradAlmRsn
+                }    
+        STATUS  current
+        DESCRIPTION
+            "A zxAn1588TimeAccuracyDegradeClr trap is sent when the agent has 
+             detected that the time accuracy has come into the accurate status."
+        ::={zxAnIeee1588GlobalTraps 2} 
+        
+    zxAn1588TimeSourceChanged        NOTIFICATION-TYPE
+        OBJECTS {
+                zxAn1588LastTimeSourceType,
+                zxAn1588LastTimeSourceId,
+                zxAn1588TimeSourceType,
+                zxAn1588TimeSourceId
+                }    
+        STATUS  current
+        DESCRIPTION
+            "A zxAn1588TimeSourceChanged trap is sent when the agent has 
+             detected that the current time source of IEEE1588 device has been 
+             changed to another new time source."
+        ::={zxAnIeee1588GlobalTraps 3}                     
+
+    zxAn1588LocalTimeStatusChanged  NOTIFICATION-TYPE
+        OBJECTS {
+                    zxAn1588LastLocalTimeStatus,
+                    zxAn1588LocalTimeStatus
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAn1588LocalTimeStatusChanged trap is sent when the agent has 
+             detected that the current time status of IEEE1588 device has been 
+             changed to another new time status."
+        ::={zxAnIeee1588GlobalTraps 4}
+
+-------------------------------------------------------------------------------
+-- 52. zxAnIeee1588PtpTraps
+-------------------------------------------------------------------------------
+    zxAnPtpNeverSyncAlm        NOTIFICATION-TYPE        
+        STATUS  current
+        DESCRIPTION
+            "A zxAnPtpNeverSyncAlm trap is sent when the agent has
+             detected that the PTP clock has never been synchronized with a 
+             time source."            
+        ::={zxAnIeee1588PtpTraps 1}
+
+    zxAnPtpNeverSyncClr        NOTIFICATION-TYPE       
+        STATUS  current
+        DESCRIPTION
+            "A zxAnPtpNeverSyncClr trap is sent when the agent has
+             detected that the PTP clock has been synchronized with a 
+             time source."                        
+        ::={zxAnIeee1588PtpTraps 2}           
+
+    zxAnPtpLolAlm        NOTIFICATION-TYPE        
+        STATUS  current
+        DESCRIPTION
+            "A zxAnPtpLolAlm trap is sent when the agent has detected 
+             that the PTP clock was in the loss of lock status."             
+        ::={zxAnIeee1588PtpTraps 3}
+
+    zxAnPtpLolClr        NOTIFICATION-TYPE        
+        STATUS  current
+        DESCRIPTION
+            "A zxAnPtpLolClr trap is sent when the agent has
+             detected that the PTP clock has been locked again."     
+        ::={zxAnIeee1588PtpTraps 4}
+        
+    zxAnPtpClockTCBelowThreshAlm      NOTIFICATION-TYPE        
+        STATUS  current
+        DESCRIPTION
+            "A zxAnPtpClockTCBelowThreshAlm trap is sent when the agent has 
+             detected that the PTP clock traceability class has been below 
+             zxAnPtpClockTraceClassThresh threshold."
+        ::={zxAnIeee1588PtpTraps 5}
+        
+    zxAnPtpClockTCBelowThreshClr      NOTIFICATION-TYPE        
+        STATUS  current
+        DESCRIPTION
+            "A zxAnPtpClockTCBelowThreshClr trap is sent when the agent has 
+             detected that the PTP clock traceability class has not been below 
+             zxAnPtpClockTraceClassThresh threshold."
+        ::={zxAnIeee1588PtpTraps 6}          
+            
+    zxAnPtpAnnounceMsgLostAlm      NOTIFICATION-TYPE        
+        STATUS  current
+        DESCRIPTION
+            "A zxAnPtpAnnounceMsgLostAlm trap is sent when the agent has 
+             detected that the announce messages lost."
+        ::={zxAnIeee1588PtpTraps 7}
+        
+    zxAnPtpAnnounceMsgLostClr      NOTIFICATION-TYPE        
+        STATUS  current
+        DESCRIPTION
+            "A zxAnPtpAnnounceMsgLostClr trap is sent when the agent has 
+             detected that the announce messages are received again."
+        ::={zxAnIeee1588PtpTraps 8}
+            
+-------------------------------------------------------------------------------
+-- 53. zxAnIeee15881ppsTraps
+-------------------------------------------------------------------------------          
+    zxAn1ppsPlusTodLosAlm        NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnSyncTime1ppsSrcRack,
+                zxAnSyncTime1ppsSrcShelf,
+                zxAnSyncTime1ppsSrcSlot,
+                zxAnSyncTime1ppsSrcPort
+                }
+        STATUS  current
+        DESCRIPTION           
+            "A zxAn1ppsPlusTodLosAlm trap is sent when the agent has
+             detected that the '1PPS+ToD' port was in the loss of signal 
+             status."        
+        ::={zxAnIeee15881ppsTraps 1}
+
+    zxAn1ppsPlusTodLosClr        NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnSyncTime1ppsSrcRack,
+                zxAnSyncTime1ppsSrcShelf,
+                zxAnSyncTime1ppsSrcSlot,
+                zxAnSyncTime1ppsSrcPort
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAn1ppsPlusTodLosClr trap is sent when the agent has
+             detected that the '1PPS+ToD' port has restored signal."     
+        ::={zxAnIeee15881ppsTraps 2}         
+            
+    zxAn1ppsInSignalQlBelowThreshAlm        NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnSyncTime1ppsSrcRack,
+                zxAnSyncTime1ppsSrcShelf,
+                zxAnSyncTime1ppsSrcSlot,
+                zxAnSyncTime1ppsSrcPort
+                }        
+        STATUS  current
+        DESCRIPTION
+            "A zxAn1ppsInSignalQlBelowThreshAlm trap is sent when the agent has 
+             detected that the 1PPS input signal quality level of '1PPS+ToD' 
+             port has been below zxAn1ppsInputSignalQLThresh threshold."
+        ::={zxAnIeee15881ppsTraps 3}
+        
+    zxAn1ppsInSignalQlBelowThreshClr        NOTIFICATION-TYPE        
+        OBJECTS {
+                zxAnSyncTime1ppsSrcRack,
+                zxAnSyncTime1ppsSrcShelf,
+                zxAnSyncTime1ppsSrcSlot,
+                zxAnSyncTime1ppsSrcPort
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAn1ppsInSignalQlBelowThreshClr trap is sent when the agent has 
+             detected that the 1PPS input signal quality level of '1PPS+ToD' 
+             port has not been below zxAn1ppsInputSignalQLThresh threshold.
+             "
+        ::={zxAnIeee15881ppsTraps 4}        
+                    
+-------------------------------------------------------------------------------
+-- 61. zxAnIeee1588Conformance 
+-------------------------------------------------------------------------------      
+zxAnIeee1588Conformance      OBJECT IDENTIFIER ::= {zxAnIeee1588Mib 4}
+
+zxAnIeee1588Compliances      OBJECT IDENTIFIER ::= {zxAnIeee1588Conformance 1}
+zxAnIeee1588Groups           OBJECT IDENTIFIER ::= {zxAnIeee1588Conformance 2}
+
+    zxAnIeee1588Compliance  MODULE-COMPLIANCE
+    STATUS current
+    DESCRIPTION
+        "The compliance statement for entities which implement
+         the Zte An IEEE1588 MIB.  Implementation of this MIB
+         is based on individual product needs."
+    MODULE      -- this module
+        MANDATORY-GROUPS {
+            zxAnIeee1588PtpPrfObjectsGroup,
+            zxAnIeee1588PtpIfObjectsGroup, 
+            zxAnIeee15881ppsObjectsGroup,
+            zxAnIeee1588PtpMstInfoGroup,
+            zxAnIeee1588TimeStatusGroup,
+            zxAnIeee1588PktStatsGroup,
+            zxAnIeee1588AlmThreshGroup,
+            zxAnIeee1588AlmTrapGroup
+            }
+    ::= { zxAnIeee1588Compliances 1 }     
+
+    zxAnIeee1588PtpPrfObjectsGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPtpPrfName,
+            zxAnPtpPrfPriority2,
+            zxAnPtpPrfDomainNumber,
+            zxAnPtpPrfLocalPriority,
+            zxAnPtpPrfMaxStepsRemoved,
+            zxAnPtpPrfBmcaOption,
+            zxAnPtpPrfTraceOption,
+            zxAnPtpPrfHoldoverInTimeout,
+            zxAnPtpPrfRowStatus
+            }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing IEEE1588 functions."
+        ::= { zxAnIeee1588Groups 1 } 
+
+    zxAnIeee1588PtpIfObjectsGroup OBJECT-GROUP
+        OBJECTS {
+            ifIndex,
+            zxAnPtpIfConfClockId,
+            zxAnPtpIfConfNumber,
+            zxAnPtpIfConfMinDelayReqInterval,
+            zxAnPtpIfConfAnnounceInterval,
+            zxAnPtpIfConfSyncInterval,
+            zxAnPtpIfConfLocalPriority,
+            zxAnPtpIfConfPtpMsgProtocolType,
+            zxAnPtpIfConfAddressType,
+            zxAnPtpIfConfMsgForwardOption,
+            zxAnPtpIfConfDelayCompensation,
+            zxAnPtpIfConfAdminStatus,
+            zxAnPtpIfConfRowStatus
+            }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing IEEE1588 port functions."
+        ::= { zxAnIeee1588Groups 2 } 
+        
+    zxAnIeee15881ppsObjectsGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnSyncTime1ppsSrcRack,
+            zxAnSyncTime1ppsSrcShelf,
+            zxAnSyncTime1ppsSrcSlot,
+            zxAnSyncTime1ppsSrcFirstPtp,
+            zxAnSyncTime1ppsSrcSignalType,
+            zxAnSyncTime1ppsSrcPriority,
+            zxAnSyncTime1ppsSrcPortType,
+            zxAnSyncTime1ppsSrcPort,
+            zxAnSyncTime1ppsSrcWorkStatus,
+            zxAnSyncTime1ppsSrcValidStatus,
+            zxAnSyncTime1ppsSrcFormat,
+            zxAnSyncTime1ppsSrcCurrentQL,
+            zxAnSyncTime1ppsSrcTimeAccuracy,
+            zxAnSyncTime1ppsSrcTimeSrcType,
+            zxAnSyncTime1ppsSrcDlyCompensate,
+            zxAnSyncTime1ppsSrcPortStatus,                
+            zxAnSyncTime1ppsSrcRowStatus,
+            zxAnSyncTimeOutputRack,
+            zxAnSyncTimeOutputShelf,
+            zxAnSyncTimeOutputSlot,    
+            zxAnSyncTimeOutputPort,
+            zxAnSyncTimeOutputPortEnable,
+            zxAnSyncTimeOutputPortPhaseAdjus,
+            zxAnSyncTimeOutputPortRowStatus
+            }
+        STATUS current
+        DESCRIPTION
+            "A collection of global objects providing 1PPS functions."
+        ::= { zxAnIeee1588Groups 3 } 
+
+    zxAnIeee1588PtpMstInfoGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPtpMstDomainId,
+            zxAnPtpMstIsLeap59,
+            zxAnPtpMstIsLeap61,
+            zxAnPtpMstIsTimeTraceable,
+            zxAnPtpMstIsFreqTraceable,
+            zxAnPtpMstIsUtcOffsetValid,
+            zxAnPtpMstCurrentUtcOffset,
+            zxAnPtpMstClockId,
+            zxAnPtpMstGrdmstClockId,
+            zxAnPtpMstGrdmstIsPtpTimescale,
+            zxAnPtpMstGrdmstPriority1,
+            zxAnPtpMstGrdmstPriority2,
+            zxAnPtpMstGrdmstClockTraceClass,
+            zxAnPtpMstGrdmstClockAccuracy,
+            zxAnPtpMstGrdmstClockOslv,
+            zxAnPtpMstGrdmstTraversedClocks,
+            zxAnPtpMstGrdmstTimeSource
+            }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing PTP master information."
+        ::= { zxAnIeee1588Groups 4 }
+
+    zxAnIeee1588TimeStatusGroup OBJECT-GROUP
+        OBJECTS {
+            zxAn1588TimeSourceType,
+            zxAn1588TimeSourceId,
+            zxAn1588LocalTimeStatus,
+            zxAn1588LocalClockFreqStatus,
+            zxAn1588LocalClockFreqQltyLvl,
+            zxAn1588PtpMessageReceiveStatus,
+            zxAn1588LastTimeSourceType,
+            zxAn1588LastTimeSourceId,
+            zxAn1588LocalUtcTime
+            }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing time status information."
+        ::= { zxAnIeee1588Groups 5 }
+
+    zxAnIeee1588PktStatsGroup OBJECT-GROUP
+        OBJECTS {
+            ifIndex,
+            zxAnPtpIfStatsAnnounceMsgs,
+            zxAnPtpIfStatsSyncMsgs,
+            zxAnPtpIfStatsDelayReqMsgs,
+            zxAnPtpIfStatsDelayRespMsgs,
+            zxAnPtpIfStatsFollowUpMsgs
+            }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing packets statistics."
+        ::= { zxAnIeee1588Groups 6 }
+
+    zxAnIeee1588AlmThreshGroup OBJECT-GROUP
+        OBJECTS {
+            zxAn1588FreqQLThresh,
+            zxAnPtpClockTraceClassThresh,
+            zxAn1ppsInputSignalQLThresh
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing alarm thresholds."
+        ::= { zxAnIeee1588Groups 7 }
+    
+    zxAnIeee1588AlmTrapGroup OBJECT-GROUP
+        OBJECTS {
+            zxAn1588TimeAccuracyDegradeAlm,
+            zxAn1588TimeAccuracyDegradeClr,
+            zxAnPtpNeverSyncAlm,
+            zxAnPtpNeverSyncClr,
+            zxAnPtpLolAlm,
+            zxAnPtpLolClr,
+            zxAnPtpClockTCBelowThreshAlm,
+            zxAnPtpClockTCBelowThreshClr,
+            zxAn1ppsPlusTodLosAlm,
+            zxAn1ppsPlusTodLosClr,
+            zxAn1ppsInSignalQlBelowThreshAlm,
+            zxAn1ppsInSignalQlBelowThreshClr
+            }
+    STATUS current
+        DESCRIPTION
+            "A collection of objects providing 1588 alarm functions"
+        ::= { zxAnIeee1588Groups 8 }
+
+END 

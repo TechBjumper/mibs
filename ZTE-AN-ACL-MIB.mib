@@ -1,0 +1,2063 @@
+
+ZTE-AN-ACL-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        ifIndex            
+            FROM IF-MIB            
+        InetAddressType, InetAddress,InetAddressPrefixLength
+            FROM INET-ADDRESS-MIB            
+        OBJECT-GROUP, MODULE-COMPLIANCE            
+            FROM SNMPv2-CONF            
+        Integer32, OBJECT-TYPE, MODULE-IDENTITY            
+            FROM SNMPv2-SMI            
+        DisplayString, RowStatus, MacAddress, TEXTUAL-CONVENTION,DateAndTime             
+            FROM SNMPv2-TC            
+        zxAnSubIfIndex            
+            FROM ZTE-AN-IF-MIB            
+        zxAnServiceSecurity            
+            FROM ZTE-AN-SMI;
+
+
+    zxAnAclMib MODULE-IDENTITY 
+        LAST-UPDATED "2011081114Z"
+        ORGANIZATION 
+            "ZTE Corporation"
+        CONTACT-INFO 
+            "Cao Yixin      ZTE Corporation
+            Mail: cao.yixin1@zte.com.cn
+            Tel : +86-21-68896470"
+        DESCRIPTION 
+            "This MIB defines managed objects of ZTE access control list."
+        REVISION "2011081114Z"
+        DESCRIPTION 
+            "Add the group: zxAnAclIfConfGroup."
+        REVISION "2011061215Z"
+        DESCRIPTION 
+            "Initial version of this MIB module."
+        ::= { zxAnServiceSecurity 15 }
+
+        
+    
+--
+-- Textual conventions
+--
+    
+    ZxAnAclPortOperator ::= TEXTUAL-CONVENTION
+        STATUS current
+        DESCRIPTION 
+            "Indicates how a packet's TCP/UDP port number is 
+            to be compared.
+            none(1) means that no comparison is to be made with 
+            the TCP/UDP port number.
+            
+            eq(2) means equal, ge(3) means greater than or equal, 
+            le(4) means less than or equal. 
+            Those 3 operators need only one operand
+
+            range(5) means that it compares the port value between two 
+            numbers, so this operator needs 2 operands "
+        SYNTAX INTEGER
+            {
+            none(1),
+            eq(2),
+            ge(3),
+            le(4),
+            range(5)
+            }
+            
+    ZxAnAclOperator ::= TEXTUAL-CONVENTION
+        STATUS current
+        DESCRIPTION 
+            "Indicates how an numeric object is to be compared.
+            none(1) means that no comparison is to be made with the object.
+            
+            equal(2) means equal, 
+            greater(3) means greater than or equal, 
+            less(4) means less than or equal. 
+            Those 3 operators need only one operand.
+
+            range(5) means that it compares the object value between two 
+            numbers, so this operator needs 2 operands. "
+        SYNTAX INTEGER
+            {
+                none(1),
+                equal(2),
+                greater(3),
+                less(4),
+                range(5)
+            }            
+
+    
+--
+-- Node definitions
+--
+
+--------------------------------------------------------------------------------
+-- Following objects are defined. 
+-- 1. zxAnAclCapabilities
+-- 2. zxAnAclTable
+-- 3. zxAnAclStandardRuleTable
+-- 6. zxAnAclHybridRuleTable
+-- 7. zxAnAclIpv6HybridRuleTable
+-- 9. zxAnAclTimeRangeTable
+-- 10. zxAnAclRuleParamGroupTable
+-- 11. zxAnAclRuleIpGroupTable
+
+--------------------------------------------------------------------------------
+
+    zxAnAclGlobalObjects   OBJECT IDENTIFIER ::= { zxAnAclMib 1 }
+    
+    zxAnAclObjects         OBJECT IDENTIFIER ::= { zxAnAclMib 2 }
+    
+    zxAnAclNotifications   OBJECT IDENTIFIER ::= { zxAnAclMib 3 }
+    
+    zxAnAclConformance     OBJECT IDENTIFIER ::= { zxAnAclMib 4 }    
+    
+    
+    zxAnAclBaseObjects     OBJECT IDENTIFIER ::= { zxAnAclObjects 2 }
+    
+    zxAnAclAdvancedObjects OBJECT IDENTIFIER ::= { zxAnAclObjects 3 }
+
+    zxAnAclIfConfObjects   OBJECT IDENTIFIER ::= { zxAnAclObjects 4 }  
+    
+    zxAnAclRuleParamGroupObjects   OBJECT IDENTIFIER ::= { zxAnAclObjects 5 }  
+
+--------------------------------------------------------------------------------
+-- 1. zxAnAclCapabilities
+--------------------------------------------------------------------------------    
+    zxAnAclCapabilities OBJECT-TYPE 
+        SYNTAX BITS {
+           tagTpid(0),
+           itag(1),
+           unifiedTypeAcl(2),
+           aclNotSupportName(3),
+           aclRuleParamGroup(4),
+           icmpType(5)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     
+            " The ACL capabilities for this equipment.
+              The bit value 1 means the function represented by this bit is 
+              supported.
+              tagTpid(0): value 1 means supporting zxAnAclHybridRuleStagTpid,
+              zxAnAclHybridRuleCtagTpid.
+              itag(1): value 1 means supporting zxAnAclHybridRuleItagTpid,
+              zxAnAclHybridRuleIsid.
+              unifiedTypeAcl(2): value 1 means just supporting one type of ACL, 
+              all ACLs in zxAnAclTable are the same type, zxAnAclNumber
+              range is 1~699, and only supporting zxAnAclIpv6HybridRuleTable.
+              aclNotSupportName(3): value 1 means not supporting zxAnAclName.
+              aclRuleIpGroup(4): value 1 means supporting 
+              zxAnAclIpv6HybridSrcIpGrpName and zxAnAclIpv6HybridDestIpGrpName.
+              icmpType(5),value 1 means supporting 
+              zxAnAclIpv6HybridStartIcmpType, zxAnAclIpv6HybridEndIcmpType and 
+              zxAnAclIpv6HybridIcmpTypeOper.
+            "
+        ::=  {  zxAnAclGlobalObjects  1  }
+        
+--------------------------------------------------------------------------------
+-- 2. zxAnAclTable
+--------------------------------------------------------------------------------        
+    
+    zxAnAclTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnAclEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table represents the ACL related parameters."
+        ::= { zxAnAclBaseObjects 2 }
+
+    
+    zxAnAclEntry OBJECT-TYPE
+        SYNTAX ZxAnAclEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "An entry in zxAnAclTable.
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables. 
+                    
+            To create an entry of this table, all the variable are optional.
+                            
+            After an entry is created, every variable can be modified. "
+        INDEX { zxAnAclNumber }
+        ::= { zxAnAclTable 1 }
+
+    
+    ZxAnAclEntry ::=
+        SEQUENCE { 
+            zxAnAclNumber         Integer32,
+            zxAnAclName           DisplayString,
+            zxAnAclRowStatus      RowStatus
+         }
+
+    zxAnAclNumber OBJECT-TYPE
+        SYNTAX Integer32 (1..699)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The number of an ACL.
+             When unifiedTypeAcl(2) bit of zxAnAclCapabilities is 0:            
+             range 1-99       - standard ACL.
+             range 100-199    - extended ACL.
+             range 200-299    - link ACL.
+             range 300-399    - hybrid ACL. 
+             range 500-599    - ipv6 extended ACL.
+             range 600-699    - ipv6 hybrid ACL.
+             When unifiedTypeAcl(2) bit of zxAnAclCapabilities is 1:
+             range 1-699      - ipv6 hybrid ACL."
+        ::= { zxAnAclEntry 1 }
+
+    
+    zxAnAclName OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..32))
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The name of an ACL.
+             The first element (excluding plus & minus) in an ACL name 
+             should not be a number.
+            You can't make the same name to different ACLs.
+            It's not necessary to create an ACL entry."
+        DEFVAL { ''b }
+        ::= { zxAnAclEntry 2 }
+
+    
+    zxAnAclRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAclEntry 50 }
+    
+--------------------------------------------------------------------------------
+-- 3. zxAnAclStandardRuleTable
+--------------------------------------------------------------------------------    
+    zxAnAclStandardRuleTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnAclStandardRuleEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Acl standard rule table.                
+            Provide acl standard rule configuration."
+        ::= { zxAnAclBaseObjects 3 }
+
+    
+    zxAnAclStandardRuleEntry OBJECT-TYPE
+        SYNTAX ZxAnAclStandardRuleEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "An entry in zxAnAclStandardRuleTable. 
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+                    
+            To create an entry of this table, all the variable are optional.
+                            
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue. "
+        INDEX { zxAnAclStdAclNumber, zxAnAclStdRuleId }
+        ::= { zxAnAclStandardRuleTable 1 }
+
+    
+    ZxAnAclStandardRuleEntry ::=
+        SEQUENCE { 
+            zxAnAclStdAclNumber             Integer32,
+            zxAnAclStdRuleId                Integer32,
+            zxAnAclStdRuleAccessCtrl        INTEGER,
+            zxAnAclStdRuleSrcIpType         InetAddressType,
+            zxAnAclStdRuleSrcIp             InetAddress,
+            zxAnAclStdRuleSrcIpMask         InetAddress,
+            zxAnAclStdRuleTimeRangeName     DisplayString,
+            zxAnAclStdRuleRowStatus         RowStatus
+         }
+
+    zxAnAclStdAclNumber OBJECT-TYPE
+        SYNTAX Integer32 (1..99)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The number of a standard Acl."
+        ::= { zxAnAclStandardRuleEntry 1 }
+
+    
+    zxAnAclStdRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..127)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The index of a rule within a standard Acl."
+        ::= { zxAnAclStandardRuleEntry 2 }
+
+    
+    zxAnAclStdRuleAccessCtrl OBJECT-TYPE
+        SYNTAX INTEGER
+            {
+            permit(1),
+            deny(2)
+            }
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specify packets to be rejected or to be forwarded."
+        DEFVAL { permit }
+        ::= { zxAnAclStandardRuleEntry 3 }
+
+    
+    zxAnAclStdRuleSrcIpType OBJECT-TYPE
+        SYNTAX InetAddressType
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The type of IP address used by this rule entry."
+        DEFVAL { ipv4 }
+        ::= { zxAnAclStandardRuleEntry 4 }
+
+    
+    zxAnAclStdRuleSrcIp OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source IP address to be matched for this rule. 
+            A value of zero causes all source address to match. 
+            The object value has to be consistent 
+            with the type specified in zxAnAclStdRuleSrcIpType."
+        DEFVAL { '00000000'h }
+        ::= { zxAnAclStandardRuleEntry 5 }
+
+    
+    zxAnAclStdRuleSrcIpMask OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclStdRuleSrcIp bits 
+            that must match. 0 bits in the mask indicate the corresponding 
+            bits in the zxAnAclStdRuleSrcIp must match in order for the 
+            matching to be successful, and 1 bits are not care bits in 
+            the matching.  A value of zero causes only IP packets of source 
+            address the same as zxAnAclStdRuleSrcIp to match.  This object 
+            value has to be consistent with the type specified in 
+            zxAnAclStdRuleSrcIpType."
+        DEFVAL { 'FFFFFFFF'h }
+        ::= { zxAnAclStandardRuleEntry 6 }
+
+    zxAnAclStdRuleTimeRangeName OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..32))
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Name of the time range.
+            Empty string means all the time the rule is valid."
+        DEFVAL { "" }
+        ::= { zxAnAclStandardRuleEntry 45 }
+    
+    zxAnAclStdRuleRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclStandardRuleEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAclStandardRuleEntry 50 }
+ --------------------------------------------------------------------------------
+-- 6. zxAnAclHybridRuleTable
+--------------------------------------------------------------------------------    
+    zxAnAclHybridRuleTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnAclHybridRuleEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Acl hybrid rule table.                
+            Provide acl hybrid rule configuration."
+        ::= { zxAnAclBaseObjects 6 }
+
+    
+    zxAnAclHybridRuleEntry OBJECT-TYPE
+        SYNTAX ZxAnAclHybridRuleEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "An entry in zxAnAclHybridRuleTable.
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+                    
+            To create an entry of this table, all the variable are optional.
+                            
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue. "
+        INDEX { zxAnAclHybridAclNumber, zxAnAclHybridRuleId }
+        ::= { zxAnAclHybridRuleTable 1 }
+
+    
+    ZxAnAclHybridRuleEntry ::=
+        SEQUENCE { 
+            zxAnAclHybridAclNumber           Integer32,
+            zxAnAclHybridRuleId              Integer32,
+            zxAnAclHybridRuleAccessCtrl      INTEGER,
+            zxAnAclHybridRuleSrcIpType       InetAddressType,
+            zxAnAclHybridRuleSrcIp           InetAddress,
+            zxAnAclHybridRuleSrcIpMask       InetAddress,
+            zxAnAclHybridRuleDestIpType      InetAddressType,
+            zxAnAclHybridRuleDestIp          InetAddress,
+            zxAnAclHybridRuleDestIpMask      InetAddress,
+            zxAnAclHybridRuleIpProto         Integer32,
+            zxAnAclHybridRuleEthProto        Integer32,
+            zxAnAclHybridRuleSrcPortOper     ZxAnAclPortOperator,
+            zxAnAclHybridRuleStartSrcPort    Integer32,
+            zxAnAclHybridRuleEndSrcPort      Integer32,
+            zxAnAclHybridRuleDestPortOper    ZxAnAclPortOperator,
+            zxAnAclHybridRuleStartDestPort   Integer32,
+            zxAnAclHybridRuleEndDestPort     Integer32,
+            zxAnAclHybridRulePrecedence      Integer32,
+            zxAnAclHybridRuleTos             Integer32,
+            zxAnAclHybridRuleDscp            Integer32,
+            zxAnAclHybridRuleStagCos         Integer32,
+            zxAnAclHybridRuleSVid            Integer32,
+            zxAnAclHybridRuleCtagCos         Integer32,
+            zxAnAclHybridRuleCVid            Integer32,
+            zxAnAclHybridRuleSrcMac          MacAddress,
+            zxAnAclHybridRuleSrcMacMask      MacAddress,
+            zxAnAclHybridRuleDestMac         MacAddress,
+            zxAnAclHybridRuleDestMacMask     MacAddress,
+            zxAnAclHybridRuleStagTpid        Integer32,
+            zxAnAclHybridRuleCtagTpid        Integer32,
+            zxAnAclHybridRuleItagTpid        Integer32,
+            zxAnAclHybridRuleIsid            Integer32,
+            zxAnAclHybridRuleTimeRangeName   DisplayString,
+            zxAnAclHybridRuleRowStatus       RowStatus
+         }
+
+    zxAnAclHybridAclNumber OBJECT-TYPE
+        SYNTAX Integer32 (300..399)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The number of a hybrid Acl."
+        ::= { zxAnAclHybridRuleEntry 1 }
+
+    
+    zxAnAclHybridRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..127)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The index of a rule within a hybrid Acl"
+        ::= { zxAnAclHybridRuleEntry 2 }
+
+    
+    zxAnAclHybridRuleAccessCtrl OBJECT-TYPE
+        SYNTAX INTEGER
+            {
+            permit(1),
+            deny(2)
+            }
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specify packets to be rejected or to be forwarded."
+        DEFVAL { permit }
+        ::= { zxAnAclHybridRuleEntry 3 }
+
+    
+    zxAnAclHybridRuleSrcIpType OBJECT-TYPE
+        SYNTAX InetAddressType
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The type of source IP address used by this rule entry."
+        DEFVAL { ipv4 }
+        ::= { zxAnAclHybridRuleEntry 4 }
+
+    
+    zxAnAclHybridRuleSrcIp OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source IP address to be matched against for this rule.
+            A zero value of this variable and a 0xFFFFFF value of variable 
+            zxAnAclHybridRuleSrcIpMask causes all source address to match. 
+            The object value has to be consistent with the type specified in 
+            zxAnAclHybridRuleSrcIpType."
+        DEFVAL { '00000000'h }
+        ::= { zxAnAclHybridRuleEntry 5 }
+
+    
+    zxAnAclHybridRuleSrcIpMask OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclStdRuleSrcIp bits that
+            must match.0 bits in the mask indicate the corresponding bits in
+            the zxAnAclHybridRuleSrcIp must match in order for the matching 
+            to be successful, and 1 bits are not care bits in the matching.
+            A value of zero causes only IP packets of source address the same
+            as zxAnAclHybridRuleSrcIp to match. This object value has to be 
+            consistent with the type specified in zxAnAclHybridRuleSrcIpType."
+        DEFVAL { 'FFFFFFFF'h }
+        ::= { zxAnAclHybridRuleEntry 6 }
+
+    
+    zxAnAclHybridRuleDestIpType OBJECT-TYPE
+        SYNTAX InetAddressType
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The type of destination IP address used by this rule entry."
+        DEFVAL { ipv4 }
+        ::= { zxAnAclHybridRuleEntry 8 }
+
+    
+    zxAnAclHybridRuleDestIp OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The destination IP address to be matched against for this rule.
+            A zero value of this variable and a 0xFFFFFF value of variable 
+            zxAnAclHybridRuleDestIpMask causes all destination address to match. 
+            The object value has to be consistent with the type specified in 
+            zxAnAclHybridRuleDestIpType."
+        DEFVAL { '00000000'h }
+        ::= { zxAnAclHybridRuleEntry 9 }
+
+    
+    zxAnAclHybridRuleDestIpMask OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclHybridRuleDestIp bits 
+            that must match. 0 bits in the mask indicate the corresponding 
+            bits in the zxAnAclHybridRuleDestIp must match in order for the
+            matching to be successful, and 1 bits are not care bits in the
+            matching. A value of zero causes only IP packets of destination 
+            address the same as zxAnAclHybridRuleDestIp to match. This object
+            value has to be consistent with the type specified in 
+            zxAnAclHybridRuleDestIpType."
+        DEFVAL { 'FFFFFFFF'h }
+        ::= { zxAnAclHybridRuleEntry 10 }
+
+    
+    zxAnAclHybridRuleIpProto OBJECT-TYPE
+        SYNTAX Integer32 (0..255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The protocol number field in the IP header used to indicate the
+            higher layer protocol as specified in RFC 1700.A value of '0xFF'
+            matches every IP packet.
+            
+            For example :
+            255 is any, 1 is ICMP, 2 is IGMP, 4 is IP in IP encapsulation,
+            6 is TCP, 9 is IGRP, 17 is UDP, 47 is GRE, 50 is ESP, 51 is AH,
+            88 is IGRP, 89 is OSPF, 94 is KA9Q/NOS compatible IP over IP, 
+            103 is PIMv2, 108 is PCP."
+        DEFVAL { 255 }
+        ::= { zxAnAclHybridRuleEntry 12 }
+
+    
+    zxAnAclHybridRuleEthProto OBJECT-TYPE
+        SYNTAX Integer32 (1537..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This 16-bit number indicates the matched Ethernet type. 
+            0xFFFF means any Ethernet type will be matched."
+        DEFVAL { 65535 }
+        ::= { zxAnAclHybridRuleEntry 13 }
+
+    
+    zxAnAclHybridRuleSrcPortOper OBJECT-TYPE
+        SYNTAX ZxAnAclPortOperator
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates how a packet's source TCP/UDP port number is to 
+            be compared.
+            
+            If the zxAnAclHybridRuleIpProto object in the same row does not 
+            indicate TCP or UDP, this object has to be 'none(1)' and cannot 
+            be changed.
+            
+            'none(1)',which is the default value, means that no comparison is
+            to be made with the source TCP/UDP port number.
+            
+            eq(2) means equal, ge(3) means greater than or equal, 
+            le(4) means less than or equal.
+            Those 3 operators are using the zxAnAclHybridRuleStartSrcPort 
+            object as an operand which is the only one needed. 
+            
+            range(5) means that it compares the port value between two numbers,
+            so this operator needs 2 operands. One operand is the starting port
+            number of the range which is zxAnAclHybridRuleStartSrcPort object,
+            and the other operand is the ending port number of the range which
+            the zxAnAclHybridRuleEndSrcPort object is in."
+        DEFVAL { none }
+        ::= { zxAnAclHybridRuleEntry 14 }
+
+    
+    zxAnAclHybridRuleStartSrcPort OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source port number of the TCP or UDP protocol. If the 
+            zxAnAclHybridRuleSrcPortOper object in the same row is range(5),
+            this object will be the starting port number of the port range.
+            This object cannot be configured if zxAnAclHybridRuleSrcPortOper
+            in the same row is none(1)."
+        DEFVAL { 0 }
+        ::= { zxAnAclHybridRuleEntry 15 }
+
+    
+    zxAnAclHybridRuleEndSrcPort OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source port number of the TCP or UDP protocol. If the 
+            zxAnAclHybridRuleSrcPortOper object in the same row is range(5),
+            this object will be the ending port number of the port range. 
+            This object cannot be configured if zxAnAclHybridRuleSrcPortOper 
+            in the same row is not range(5)."
+        DEFVAL { 0 }
+        ::= { zxAnAclHybridRuleEntry 16 }
+
+    
+    zxAnAclHybridRuleDestPortOper OBJECT-TYPE
+        SYNTAX ZxAnAclPortOperator
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates how a packet's destination TCP/UDP port number is to 
+            be compared.
+            
+            If the zxAnAclHybridRuleIpProto object in the same row does not 
+            indicate TCP or UDP, this object has to be 'none(1)' and cannot
+            be changed.
+            
+            'none(1)', which is the default value, means that no comparison is
+            to be made with the source TCP/UDP port number.
+            
+            eq(2) means equal, ge(3) means greater than or equal, 
+            le(4) means less than or equal.
+            Those 3 operators are using the zxAnAclHybridRuleStartDestPort 
+            object as an operand which is the only one needed. 
+            
+            range(5) means that it compares the port value between two numbers,
+            so this operator needs 2 operands. One operand is the starting port 
+            number of the range which is zxAnAclHybridRuleStartDestPort object, 
+            and the other operand is the ending port number of the range which 
+            the zxAnAclHybridRuleEndDestPort object is in."
+        DEFVAL { none }
+        ::= { zxAnAclHybridRuleEntry 17 }
+
+    
+    zxAnAclHybridRuleStartDestPort OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The destination port number of the TCP or UDP protocol. If the 
+            zxAnAclHybridRuleDestPortOper object in the same row is range(5), 
+            this object will be the starting port number of the port range. 
+            This object cannot be configured if zxAnAclHybridRuleDestPortOper
+            in the same row is none(1)."
+        DEFVAL { 0 }
+        ::= { zxAnAclHybridRuleEntry 18 }
+
+    
+    zxAnAclHybridRuleEndDestPort OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The destination port number of the TCP or UDP protocol. If the 
+            zxAnAclHybridRuleDestPortOper object in the same row is range(5), 
+            this object will be the ending port number of the port range. 
+            This object cannot be configured if zxAnAclHybridRuleDestPortOper 
+            in the same row is not range(5)."
+        DEFVAL { 0 }
+        ::= { zxAnAclHybridRuleEntry 19 }
+
+    
+    zxAnAclHybridRulePrecedence OBJECT-TYPE
+        SYNTAX Integer32 (0..7 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the IP precedence value to be matched against. 
+            Packets can be matched the IP precedence value from 0 to 7.
+            This object can't be configured simultaneously with 
+            zxAnAclHybridRuleDscp. The value of this object is ignored 
+            whenever the value of zxAnAclHybridRuleEthProto object 
+            is not 0xFFFF or 0x0800.
+            '0xFF' indicates no configure."
+        DEFVAL { 255 }
+        ::= { zxAnAclHybridRuleEntry 20 }
+
+    
+    zxAnAclHybridRuleTos OBJECT-TYPE
+        SYNTAX Integer32 (0..15 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the Tos value to be matched against. Packets can 
+            be matched the Tos value from 0 to 15. This object can't 
+            be configured simultaneously with zxAnAclHybridRuleDscp. 
+            The value of this object is ignored whenever the value of 
+            zxAnAclHybridRuleEthProto object is not 0xFFFF or 0x0800.
+            '0xFF' indicates no configure."
+        DEFVAL { 255 }
+        ::= { zxAnAclHybridRuleEntry 21 }
+
+    
+    zxAnAclHybridRuleDscp OBJECT-TYPE
+        SYNTAX Integer32 (0..63 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the Dscp value to be matched against. 
+            Packets can be matched the DSCP level from 0 to 63. 
+            This object can't be configured simultaneously with 
+            zxAnAclHybridRuleTos and ZxAnAclHybridRulePrecedence.
+            The value of this object is ignored whenever the value of 
+            zxAnAclHybridRuleEthProto object is not 0xFFFF or 0x0800.
+            '0xFF' indicates no configure."
+        DEFVAL { 255 }
+        ::= { zxAnAclHybridRuleEntry 22 }
+
+    
+    zxAnAclHybridRuleStagCos OBJECT-TYPE
+        SYNTAX Integer32 (0..7 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates the packet Cos value to be matched. If there are two 
+            tags in the packets, this object will be the Cos value in outer 
+            tag.'0xFF' indicates no configure."
+        DEFVAL { 255 }
+        ::= { zxAnAclHybridRuleEntry 25 }
+
+    
+    zxAnAclHybridRuleSVid OBJECT-TYPE
+        SYNTAX Integer32 (1..4090 | 65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates the packet VLAN number to be matched. If there are 
+            two tags in the packets, this object will be the VLAN number in 
+            outer tag.'0xFFFF' indicates no configure."
+        DEFVAL { 65535 }
+        ::= { zxAnAclHybridRuleEntry 26 }
+
+    
+    zxAnAclHybridRuleCtagCos OBJECT-TYPE
+        SYNTAX Integer32 (0..7 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates the packet Cos value to be matched. If there are two 
+            tags in the packets, this object will be the Cos value in inner 
+            tag. The value of this object is ignored whenever there is only 
+            one tag in the packets.'0xFF' indicates no configure."
+        DEFVAL { 255 }
+        ::= { zxAnAclHybridRuleEntry 27 }
+
+    
+    zxAnAclHybridRuleCVid OBJECT-TYPE
+        SYNTAX Integer32 (1..4090 | 65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates the packet VLAN number to be matched. If there are two 
+            tags in the packets, this object will be the VLAN number in inner 
+            tag. The value of this object is ignored whenever there is only 
+            one tag in the packets.'0xFFFF' indicates no configure."
+        DEFVAL { 65535 }
+        ::= { zxAnAclHybridRuleEntry 28 }
+
+    
+    zxAnAclHybridRuleSrcMac OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source MAC address to be matched against for this rule.
+            A 0 value of this variable and a 0xFFFFFFFFFFFF value of variable
+            zxAnAclHybridRuleSrcMacMask causes all source addresses to match."
+        DEFVAL { '000000000000'h }
+        ::= { zxAnAclHybridRuleEntry 29 }
+
+    
+    zxAnAclHybridRuleSrcMacMask OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclHybridRuleSrcMac bits 
+            that must match. 0 bits in the mask indicate the corresponding 
+            bits in the zxAnAclHybridRuleSrcMac must match in order for the 
+            matching to be successful, and 1 bits are not care bits 
+            in the matching. A value of zero causes only packets of source 
+            address the same as zxAnAclHybridRuleSrcMac to match. "
+        DEFVAL { 'FFFFFFFFFFFF'h }
+        ::= { zxAnAclHybridRuleEntry 30 }
+
+    
+    zxAnAclHybridRuleDestMac OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The destination MAC address to be matched against for this rule.  
+            A 0 value of this variable and a 0xFFFFFFFFFFFF value of variable
+            zxAnAclHybridRuleDestMacMask causes all destination addresses to 
+            match."
+        DEFVAL { '000000000000'h }
+        ::= { zxAnAclHybridRuleEntry 31 }
+
+    
+    zxAnAclHybridRuleDestMacMask OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclHybridRuleDestMac bits 
+            that must match. 0 bits in the mask indicate the corresponding bits 
+            in the zxAnAclHybridRuleDestMac must match in order for the matching 
+            to be successful, and 1 bits are not care bits in the matching. 
+            A value of zero causes only packets of source address the same as 
+            zxAnAclHybridRuleDestMac to match. "
+        DEFVAL { 'FFFFFFFFFFFF'h }
+        ::= { zxAnAclHybridRuleEntry 32 }
+
+    zxAnAclHybridRuleStagTpid OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the value which will be matched 802.1q TPID field. 
+            If there are two vlan tags in the packet, this object will             
+            be matched the field which in outer tag. 
+            Value '0' indicates no configure."
+        DEFVAL { 0 }
+        ::= { zxAnAclHybridRuleEntry 33 }
+        
+    zxAnAclHybridRuleCtagTpid OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the value which will be matched the inner TPID field
+            when there are two vlan tags. 
+            Value '0' indicates no configure."
+        DEFVAL { 0 }
+        ::= { zxAnAclHybridRuleEntry 34 }
+        
+    zxAnAclHybridRuleItagTpid OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the value which will be matched the 802.1ah 
+            I-Tag TPID field. 
+            Value '0' indicates no configure."
+        DEFVAL { 0 }
+        ::= { zxAnAclHybridRuleEntry 35 }
+        
+    zxAnAclHybridRuleIsid OBJECT-TYPE
+        SYNTAX Integer32 (0..16777215 | 2147483647)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the value which will be matched the 802.1ah I-SID field. 
+            Value '0x7FFFFFFF' indicates no configure."
+        DEFVAL { 2147483647 }
+        ::= { zxAnAclHybridRuleEntry 36 }
+        
+    zxAnAclHybridRuleTimeRangeName OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..32))
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Name of the time range.
+            Empty string means all the time the rule is valid."
+        DEFVAL { "" }
+        ::= { zxAnAclHybridRuleEntry 45 }
+                
+        
+    zxAnAclHybridRuleRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclHybridRuleEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAclHybridRuleEntry 50 }
+ 
+  
+--------------------------------------------------------------------------------
+-- 7. zxAnAclIpv6HybridRuleTable
+--------------------------------------------------------------------------------
+    zxAnAclIpv6HybridRuleTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnAclIpv6HybridRuleEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "ACL IPv6 rule table.                
+            Provide ACL hybrid rule configuration."
+    ::= { zxAnAclBaseObjects 7 }
+
+    zxAnAclIpv6HybridRuleEntry OBJECT-TYPE
+        SYNTAX ZxAnAclIpv6HybridRuleEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "An entry in zxAnAclIpv6HybridRuleEntry.
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+                    
+            To create an entry of this table, all the variable are optional.
+                            
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue. "
+        INDEX { zxAnAclIpv6HybridAclNumber, zxAnAclIpv6HybridRuleId }
+        ::= { zxAnAclIpv6HybridRuleTable 1 }
+    
+    ZxAnAclIpv6HybridRuleEntry ::=
+        SEQUENCE { 
+            zxAnAclIpv6HybridAclNumber         Integer32,
+            zxAnAclIpv6HybridRuleId            Integer32,
+            zxAnAclIpv6HybridAccessCtrl        INTEGER,
+            zxAnAclIpv6HybridSrcIpType         InetAddressType,
+            zxAnAclIpv6HybridSrcIp             InetAddress,
+            zxAnAclIpv6HybridSrcIpMask         InetAddress,
+            zxAnAclIpv6HybridSrcIpPfxLen       InetAddressPrefixLength,
+            zxAnAclIpv6HybridDestIpType        InetAddressType,
+            zxAnAclIpv6HybridDestIp            InetAddress,
+            zxAnAclIpv6HybridDestIpMask        InetAddress,
+            zxAnAclIpv6HybridDestIpPfxLen      InetAddressPrefixLength,          
+            zxAnAclIpv6HybridIpProto           Integer32,
+            zxAnAclIpv6HybridEthProto          Integer32,
+            zxAnAclIpv6HybridSrcPortOper       ZxAnAclPortOperator,
+            zxAnAclIpv6HybridStartSrcPort      Integer32,
+            zxAnAclIpv6HybridEndSrcPort        Integer32,
+            zxAnAclIpv6HybridDestPortOper      ZxAnAclPortOperator,
+            zxAnAclIpv6HybridStartDestPort     Integer32,
+            zxAnAclIpv6HybridEndDestPort       Integer32,
+            zxAnAclIpv6HybridPrecedence        Integer32,
+            zxAnAclIpv6HybridTos               Integer32,
+            zxAnAclIpv6HybridDscp              Integer32,
+            zxAnAclIpv6HybridStagCos           Integer32,
+            zxAnAclIpv6HybridSVid              Integer32,
+            zxAnAclIpv6HybridCtagCos           Integer32,
+            zxAnAclIpv6HybridCVid              Integer32,
+            zxAnAclIpv6HybridSrcMac            MacAddress,
+            zxAnAclIpv6HybridSrcMacMask        MacAddress,
+            zxAnAclIpv6HybridDestMac           MacAddress,
+            zxAnAclIpv6HybridDestMacMask       MacAddress,     
+            zxAnAclIpv6HybridTrafficClass      Integer32,
+            zxAnAclIpv6HybridFlowLabel         Integer32,
+            zxAnAclIpv6HybridIcmpType          Integer32,
+            zxAnAclIpv6HybridIcmpCode          Integer32,
+            zxAnAclIpv6HybridSrcIpGrpName      DisplayString,
+            zxAnAclIpv6HybridDestIpGrpName     DisplayString,
+            zxAnAclIpv6HybridIcmpTypeOper      ZxAnAclOperator,            
+            zxAnAclIpv6HybridStartIcmpType     Integer32,
+            zxAnAclIpv6HybridEndIcmpType       Integer32,
+            zxAnAclIpv6HybridTimeRangeName     DisplayString,         
+            zxAnAclIpv6HybridRowStatus         RowStatus                 
+        }
+    
+    zxAnAclIpv6HybridAclNumber OBJECT-TYPE
+        SYNTAX   Integer32(1..699)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The number of an IPv6 hybrid ACL."
+        ::= { zxAnAclIpv6HybridRuleEntry 1 }
+        
+    zxAnAclIpv6HybridRuleId  OBJECT-TYPE
+        SYNTAX   Integer32(1..2147483644)
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "The index of a rule within an IPv6 hybrid ACL."
+        ::= { zxAnAclIpv6HybridRuleEntry 2 } 
+
+    zxAnAclIpv6HybridAccessCtrl  OBJECT-TYPE
+        SYNTAX INTEGER    {
+            permit(1),
+            deny(2)
+            }
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specify packets to be rejected or to be forwarded."
+        DEFVAL { permit }
+        ::= { zxAnAclIpv6HybridRuleEntry 3 }    
+
+    zxAnAclIpv6HybridSrcIpType  OBJECT-TYPE
+        SYNTAX InetAddressType
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The type of source IP address used by this rule entry."
+        DEFVAL { unknown }
+        ::= { zxAnAclIpv6HybridRuleEntry 4 }    
+    
+    zxAnAclIpv6HybridSrcIp  OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source IP address to be matched against for this rule.      
+            The object value has to be consistent with the type specified in 
+            zxAnAclIpv6HybridSrcIpType."
+        DEFVAL { "" }
+        ::= { zxAnAclIpv6HybridRuleEntry 5 }    
+
+    zxAnAclIpv6HybridSrcIpMask  OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclIpv6HybridSrcIp bits that
+            must match.0 bits in the mask indicate the corresponding bits in
+            the zxAnAclIpv6HybridSrcIp must match in order for the matching 
+            to be successful, and 1 bits are not care bits in the matching.
+            A value of zero causes only IP packets of source address the same
+            as zxAnAclIpv6HybridSrcIp to match.
+            Only valid when zxAnAclIpv6HybridSrcIpType is ipv4."
+        DEFVAL { 'FFFFFFFF'h }
+        ::= { zxAnAclIpv6HybridRuleEntry 6 }    
+        
+    zxAnAclIpv6HybridSrcIpPfxLen  OBJECT-TYPE
+        SYNTAX   InetAddressPrefixLength
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+            "Source IP address prefix length.
+            Only valid when zxAnAclIpv6HybridSrcIpType is ipv6."
+        DEFVAL { 0 }
+        ::= { zxAnAclIpv6HybridRuleEntry 7 }        
+        
+    zxAnAclIpv6HybridDestIpType  OBJECT-TYPE
+        SYNTAX InetAddressType
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The type of destination IP address used by this rule entry."
+        DEFVAL { unknown }
+        ::= { zxAnAclIpv6HybridRuleEntry 8 } 
+        
+    zxAnAclIpv6HybridDestIp  OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The destination IP address to be matched against for this rule.
+            The object value has to be consistent with the type specified in 
+            zxAnAclIpv6HybridDestIpType."
+        DEFVAL{ "" }
+        ::= { zxAnAclIpv6HybridRuleEntry 9 } 
+           
+    zxAnAclIpv6HybridDestIpMask  OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclIpv6HybridDestIpMask bits 
+            that must match. 0 bits in the mask indicate the corresponding 
+            bits in the zxAnAclIpv6HybridDestIp must match in order for the
+            matching to be successful, and 1 bits are not care bits in the
+            matching. A value of zero causes only IP packets of destination 
+            address the same as zxAnAclIpv6HybridDestIp to match.
+            Only valid when zxAnAclIpv6HybridDestIpType is ipv4."
+        DEFVAL { 'FFFFFFFF'h }
+        ::= { zxAnAclIpv6HybridRuleEntry 10 }   
+        
+    zxAnAclIpv6HybridDestIpPfxLen  OBJECT-TYPE
+        SYNTAX   InetAddressPrefixLength
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+            "Destination IP address prefix length.
+            Only valid when zxAnAclIpv6HybridDestIpType is ipv6."
+        DEFVAL{ 0 }
+        ::= { zxAnAclIpv6HybridRuleEntry 11 }  
+         
+    zxAnAclIpv6HybridIpProto  OBJECT-TYPE
+        SYNTAX   Integer32(0..255)
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+            "<0-254>  An IP protocol number         
+            icmpv6   Internet Control Message Protocol  for Ipv6(58)   
+            igmp     Internet Group Management Protocol (2)            
+            ospf     Open Shortest Path First Protocol (89)
+            pim      Protocol Independent Multicast (103)
+            tcp      Transmission Control Protocol (6)
+            udp      User Datagram Protocol (17)
+            vrrp     Virtual Router Redundancy Protocol (112)
+            255      Any internet protocol
+            "
+        DEFVAL { 255 }
+        ::= { zxAnAclIpv6HybridRuleEntry 12 }
+        
+    zxAnAclIpv6HybridEthProto  OBJECT-TYPE
+        SYNTAX Integer32 (1537..65535)
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+            "0xHHHH      Ethernet protocol number
+             any         Any ether protocol type
+             arp         Address resolution protocol (2054)
+             ip          Internet protocol (2048)"
+        DEFVAL { 65535 }
+        ::= { zxAnAclIpv6HybridRuleEntry 13 }
+            
+    zxAnAclIpv6HybridSrcPortOper  OBJECT-TYPE
+        SYNTAX ZxAnAclPortOperator
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates how a packet's source TCP/UDP port number is to 
+            be compared.
+            
+            If the zxAnAclIpv6HybridIpProto object in the same row does not 
+            indicate TCP or UDP, this object has to be 'none(1)' and cannot 
+            be changed.
+            
+            'none(1)',which is the default value, means that no comparison is
+            to be made with the source TCP/UDP port number.
+            
+            eq(2) means equal, ge(3) means greater than or equal, 
+            le(4) means less than or equal.
+            Those 3 operators are using the zxAnAclIpv6HybridStartSrcPort 
+            object as an operand which is the only one needed. 
+            
+            range(5) means that it compares the port value between two numbers,
+            so this operator needs 2 operands. One operand is the starting port
+            number of the range which is zxAnAclIpv6HybridStartSrcPort object,
+            and the other operand is the ending port number of the range which
+            the zxAnAclIpv6HybridEndSrcPort object is in."
+        DEFVAL { none }
+        ::= { zxAnAclIpv6HybridRuleEntry 14 }    
+        
+    zxAnAclIpv6HybridStartSrcPort  OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source port number of the TCP or UDP protocol. If the 
+            zxAnAclIpv6HybridSrcPortOper object in the same row is range(5),
+            this object will be the starting port number of the port range.
+            This object cannot be configured if zxAnAclIpv6HybridSrcPortOper
+            in the same row is none(1)."
+        DEFVAL { 0 }
+        ::= { zxAnAclIpv6HybridRuleEntry 15 }    
+        
+    zxAnAclIpv6HybridEndSrcPort  OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source port number of the TCP or UDP protocol. If the 
+            zxAnAclIpv6HybridSrcPortOper object in the same row is range(5),
+            this object will be the ending port number of the port range. 
+            This object cannot be configured if zxAnAclIpv6HybridSrcPortOper 
+            in the same row is not range(5)."
+        DEFVAL { 0 }
+        ::= { zxAnAclIpv6HybridRuleEntry 16 }    
+        
+    zxAnAclIpv6HybridDestPortOper  OBJECT-TYPE
+        SYNTAX ZxAnAclPortOperator
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates how a packet's destination TCP/UDP port number is to 
+            be compared.
+            
+            If the zxAnAclIpv6HybridIpProto object in the same row does not 
+            indicate TCP or UDP, this object has to be 'none(1)' and cannot
+            be changed.
+            
+            'none(1)', which is the default value, means that no comparison is
+            to be made with the source TCP/UDP port number.
+            
+            eq(1) means equal, ge(2) means greater than or equal, 
+            le(3) means less than or equal.
+            Those 3 operators are using the zxAnAclIpv6HybridStartDestPort 
+            object as an operand which is the only one needed. 
+            
+            range(5) means that it compares the port value between two numbers,
+            so this operator needs 2 operands. One operand is the starting port 
+            number of the range which is zxAnAclIpv6HybridStartDestPort object, 
+            and the other operand is the ending port number of the range which 
+            the zxAnAclIpv6HybridEndDestPort object is in."
+        DEFVAL { none }
+        ::= { zxAnAclIpv6HybridRuleEntry 17 }    
+        
+    zxAnAclIpv6HybridStartDestPort  OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The destination port number of the TCP or UDP protocol. If the 
+            zxAnAclIpv6HybridDestPortOper object in the same row is range(5), 
+            this object will be the starting port number of the port range. 
+            This object cannot be configured if zxAnAclIpv6HybridDestPortOper
+            in the same row is none(1)."
+        DEFVAL { 0 }
+        ::= { zxAnAclIpv6HybridRuleEntry 18 }    
+        
+    zxAnAclIpv6HybridEndDestPort  OBJECT-TYPE
+        SYNTAX Integer32 (0..65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The destination port number of the TCP or UDP protocol. If the 
+            zxAnAclIpv6HybridDestPortOper object in the same row is range(5), 
+            this object will be the ending port number of the port range. 
+            This object cannot be configured if zxAnAclIpv6HybridDestPortOper 
+            in the same row is not range(5)."
+        DEFVAL { 0 }
+        ::= { zxAnAclIpv6HybridRuleEntry 19 } 
+    
+    zxAnAclIpv6HybridPrecedence  OBJECT-TYPE
+        SYNTAX Integer32 (0..7 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the IP precedence value to be matched against. 
+            Packets can be matched the IP precedence value from 0 to 7.
+            This object can't be configured simultaneously with 
+            zxAnAclIpv6HybridDscp. 
+            A value of '0xFF' indicates not care about this field."
+        DEFVAL { 255 }
+        ::= { zxAnAclIpv6HybridRuleEntry 20 }
+        
+    zxAnAclIpv6HybridTos  OBJECT-TYPE
+        SYNTAX Integer32 (0..15 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the TOS value to be matched against. Packets can 
+            be matched the TOS value from 0 to 15. This object can't 
+            be configured simultaneously with zxAnAclIpv6HybridDscp. 
+            A value of '0xFF' indicates not care about this field."
+        DEFVAL { 255 }
+        ::= { zxAnAclIpv6HybridRuleEntry  21 } 
+          
+    zxAnAclIpv6HybridDscp  OBJECT-TYPE
+        SYNTAX Integer32 (0..63 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies the DSCP value to be matched against. 
+            Packets can be matched the DSCP level from 0 to 63. 
+            This object can't be configured simultaneously with 
+            zxAnAclIpv6HybridTos and zxAnAclIpv6HybridPrecedence.
+            A value of '0xFF' indicates not care about this field."
+        DEFVAL { 255 }
+        ::= { zxAnAclIpv6HybridRuleEntry 22 } 
+        
+    zxAnAclIpv6HybridStagCos  OBJECT-TYPE
+        SYNTAX Integer32 (0..7 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates the packet CoS value to be matched. If there are two 
+            tags in the packets, this object will be the CoS value in outer 
+            tag.
+            A value of '0xFF' indicates not care about this field."
+        DEFVAL { 255 }   
+        ::= { zxAnAclIpv6HybridRuleEntry 23 }    
+        
+    zxAnAclIpv6HybridSVid  OBJECT-TYPE
+        SYNTAX Integer32 (1..4094 | 65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates the packet VLAN number to be matched. If there are 
+            two tags in the packets, this object will be the VLAN number in 
+            outer tag.
+            A value of '0xFFFF' indicates not care about this field."
+        DEFVAL { 65535 }
+        ::= { zxAnAclIpv6HybridRuleEntry 24 } 
+        
+    zxAnAclIpv6HybridCtagCos  OBJECT-TYPE
+        SYNTAX Integer32 (0..7 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates the packet CoS value to be matched. If there are two 
+            tags in the packets, this object will be the CoS value in inner 
+            tag. The value of this object is ignored whenever there is only 
+            one tag in the packets.
+            A value of '0xFF' indicates not care about this field."
+        DEFVAL { 255 } 
+        ::= { zxAnAclIpv6HybridRuleEntry 25 }    
+        
+    zxAnAclIpv6HybridCVid  OBJECT-TYPE
+        SYNTAX Integer32 (1..4094 | 65535)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Indicates the packet VLAN number to be matched. If there are two 
+            tags in the packets, this object will be the VLAN number in inner 
+            tag. The value of this object is ignored whenever there is only 
+            one tag in the packets.
+            A value of '0xFFFF' indicates not care about this field."
+        DEFVAL { 65535 }
+        ::= { zxAnAclIpv6HybridRuleEntry 26 }    
+        
+    zxAnAclIpv6HybridSrcMac  OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The source MAC address to be matched against for this rule.
+            A 0 value of this variable and a 0xFFFFFFFFFFFF value of variable
+            zxAnAclIpv6HybridSrcMacMask indicates not care about this field."
+        DEFVAL { '000000000000'h }
+        ::= { zxAnAclIpv6HybridRuleEntry 27 }    
+        
+    zxAnAclIpv6HybridSrcMacMask  OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclIpv6HybridSrcMac bits 
+            that must match. 0 bits in the mask indicate the corresponding 
+            bits in the zxAnAclIpv6HybridSrcMac must match in order for the 
+            matching to be successful, and 1 bits are not care bits 
+            in the matching. A value of zero causes only packets of source 
+            address the same as zxAnAclIpv6HybridSrcMac to match."
+        DEFVAL { 'FFFFFFFFFFFF'h }
+        ::= { zxAnAclIpv6HybridRuleEntry 28 }    
+        
+    zxAnAclIpv6HybridDestMac  OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The destination MAC address to be matched against for this rule.  
+            A 0 value of this variable and a 0xFFFFFFFFFFFF value of variable
+            zxAnAclIpv6HybridDestMacMask indicates not care about this field."
+        DEFVAL { '000000000000'h }
+        ::= { zxAnAclIpv6HybridRuleEntry 29 }  
+          
+    zxAnAclIpv6HybridDestMacMask  OBJECT-TYPE
+        SYNTAX MacAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "This is the wildcard mask for the zxAnAclIpv6HybridDestMac bits 
+            that must match. 0 bits in the mask indicate the corresponding bits 
+            in the zxAnAclIpv6HybridDestMac must match in order for the 
+            matching to be successful, and 1 bits are not care bits in the 
+            matching. 
+            A value of zero causes only packets of source address the same as 
+            zxAnAclIpv6HybridDestMac to match."
+        DEFVAL { 'FFFFFFFFFFFF'h }
+        ::= { zxAnAclIpv6HybridRuleEntry 30 }         
+          
+
+    zxAnAclIpv6HybridTrafficClass  OBJECT-TYPE
+        SYNTAX      Integer32(0..255|65535)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic class field of IPv6.
+            65535 means unconfigured."
+        DEFVAL{65535}
+        ::= { zxAnAclIpv6HybridRuleEntry 31 }  
+
+    zxAnAclIpv6HybridFlowLabel  OBJECT-TYPE
+        SYNTAX      Integer32(0..1048575|16777215)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Flow label field of IPv6.
+            16777215(0xFFFFFF) means unconfigured."
+        DEFVAL{16777215}
+        ::= { zxAnAclIpv6HybridRuleEntry 32 }  
+    
+    zxAnAclIpv6HybridIcmpType  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Specifies the ICMPv6 type value to be matched against.
+            A value of '0xFF' indicates not care about this field.
+            If the zxAnAclIpv6HybridIpProto object in the same row does not 
+            indicate ICMPv6(58), or zxAnAclIpv6HybridIcmpTypeOper indicates 
+            none(1) or range(5), this object has to be '0xFF' and 
+            cannot be changed."
+        DEFVAL{255}
+        ::= { zxAnAclIpv6HybridRuleEntry 33 }  
+        
+    zxAnAclIpv6HybridIcmpCode   OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Specifies the ICMPv6 code value to be matched against.
+            A value of '0xFF' indicates not care about this field.
+            If the zxAnAclIpv6HybridIpProto object in the same row does not 
+            indicate ICMPv6(58), this object has to be '0xFF' and cannot 
+            be changed."
+        DEFVAL{255}
+        ::= { zxAnAclIpv6HybridRuleEntry 34 }
+
+    zxAnAclIpv6HybridSrcIpGrpName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Name of the ACL rule parameter group for source IP.
+            Empty string means the rule param group is unused."
+        DEFVAL { "" }
+        ::= { zxAnAclIpv6HybridRuleEntry 35 }
+        
+    zxAnAclIpv6HybridDestIpGrpName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Name of the ACL rule parameter group for destination IP.
+            Empty string means the rule param group is unused."
+        DEFVAL { "" }
+        ::= { zxAnAclIpv6HybridRuleEntry 36 }
+
+    zxAnAclIpv6HybridIcmpTypeOper  OBJECT-TYPE
+        SYNTAX ZxAnAclOperator
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Specifies how an ICMP type is to be compared.
+            
+            If the zxAnAclIpv6HybridIpProto object in the same row does not 
+            indicate ICMPv6(58), this object has to be 'none(1)' and cannot 
+            be changed.
+            
+            'none(1)', which is the default value, means that no comparison is
+            to be made with the ICMP type.
+            
+            equal(2) means ICMP type should be equal to 
+            zxAnAclIpv6HybridIcmpType.
+            greater(3) means ICMP type should be greater than or equal to 
+              zxAnAclIpv6HybridIcmpType. 
+            less(4) means ICMP type should be less than or equal to 
+              zxAnAclIpv6HybridIcmpType.
+            Those 3 operators are using the zxAnAclIpv6HybridIcmpType 
+            object as an operand which is the only one needed. 
+            
+            range(5) means that it compares the ICMP type between two numbers,
+            so this operator needs 2 operands. One operand is the starting type
+            value of the range which is zxAnAclIpv6HybridStartIcmpType object,
+            and the other operand is the ending type value of the range which
+            is the zxAnAclIpv6HybridEndIcmpType object."
+        DEFVAL { none }
+        ::= { zxAnAclIpv6HybridRuleEntry 37 }        
+        
+        zxAnAclIpv6HybridStartIcmpType  OBJECT-TYPE
+            SYNTAX      Integer32(0..255)
+            MAX-ACCESS  read-create
+            STATUS      current
+            DESCRIPTION
+                "Specifies the ICMP type starting value to be matched against.
+                A value of '0xFF' indicates not care about this field.
+                If the zxAnAclIpv6HybridIpProto object in the same row does not 
+                indicate ICMPv6(58) or zxAnAclIpv6HybridIcmpTypeOper does not 
+                indicate range(5), this object has to be '0xFF' and cannot 
+                be changed."
+            DEFVAL {255}
+        ::= { zxAnAclIpv6HybridRuleEntry 38 }  
+        
+       zxAnAclIpv6HybridEndIcmpType  OBJECT-TYPE
+            SYNTAX      Integer32(0..255)
+            MAX-ACCESS  read-create
+            STATUS      current
+            DESCRIPTION
+                "Specifies the ICMP type ending value to be matched against.
+                A value of '0xFF' indicates not care about this field.
+                If the zxAnAclIpv6HybridIpProto object in the same row does not 
+                indicate ICMPv6(58) or zxAnAclIpv6HybridIcmpTypeOper does not 
+                indicate range(5), this object has to be '0xFF' and cannot 
+                be changed."
+            DEFVAL {255}
+        ::= { zxAnAclIpv6HybridRuleEntry 39 }  
+        
+    zxAnAclIpv6HybridTimeRangeName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Name of the time range.
+            Empty string means all the time the rule is valid."
+        DEFVAL { "" }
+        ::= { zxAnAclIpv6HybridRuleEntry 45 }      
+        
+    zxAnAclIpv6HybridRowStatus  OBJECT-TYPE
+        SYNTAX       RowStatus 
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The status of this conceptual row.
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclIpv6HybridRuleEntry.
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAclIpv6HybridRuleEntry 50 }   
+
+        
+--------------------------------------------------------------------------------
+-- 9. zxAnAclTimeRangeTable
+--------------------------------------------------------------------------------
+    zxAnAclTimeRangeTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnAclTimeRangeEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "ACL time range table."
+        ::= { zxAnAclAdvancedObjects 2 }
+
+    
+    zxAnAclTimeRangeEntry OBJECT-TYPE
+        SYNTAX ZxAnAclTimeRangeEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "ACL time range entry."
+        INDEX { zxAnAclTimeRangeName }
+        ::= { zxAnAclTimeRangeTable 1 }
+
+    
+    ZxAnAclTimeRangeEntry ::=
+        SEQUENCE { 
+            zxAnAclTimeRangeName            DisplayString,
+            zxAnAclTimeRangeType            INTEGER,
+            zxAnAclOnceStartTime            DateAndTime,
+            zxAnAclOnceEndTime              DateAndTime,
+            zxAnAclWeeklyDay                BITS,
+            zxAnAclWeeklyStartTime          DisplayString,
+            zxAnAclWeeklyEndTime            DisplayString,
+            zxAnAclTimeRangeRowStatus       RowStatus
+         }
+
+    zxAnAclTimeRangeName OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (1..32))
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Name of the time range."
+        ::= { zxAnAclTimeRangeEntry 1 }
+
+    
+    zxAnAclTimeRangeType OBJECT-TYPE
+        SYNTAX INTEGER
+            {
+            onlyOnce(1),
+            weekly(2)
+            }
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "For example:
+            onlyOnce: from 10:01:01 05-01-2007 to 12:01:01 05-01-2007
+            weekly: 14:00:00 to 22:00:00 friday."
+        ::= { zxAnAclTimeRangeEntry 2 }
+
+    
+    zxAnAclOnceStartTime OBJECT-TYPE
+        SYNTAX DateAndTime
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Once range start time."
+        ::= { zxAnAclTimeRangeEntry 3 }
+
+    
+    zxAnAclOnceEndTime OBJECT-TYPE
+        SYNTAX DateAndTime
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Once range end time."
+        ::= { zxAnAclTimeRangeEntry 4 }
+
+    
+    zxAnAclWeeklyDay OBJECT-TYPE
+        SYNTAX      BITS
+            {
+             sunday(0),
+             monday(1),
+             tuesday(2),
+             wednesday(3),
+             thursday(4),
+             friday(5),
+             saturday(6)
+            } 
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Week day of the weekly time range."
+        ::= { zxAnAclTimeRangeEntry 5 }
+
+    
+    zxAnAclWeeklyStartTime OBJECT-TYPE
+        SYNTAX DisplayString( SIZE (0..8))
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Week range start time.
+            For example: HH:MM:SS.(02:22:33)."
+        ::= { zxAnAclTimeRangeEntry 6 }
+
+    
+    zxAnAclWeeklyEndTime OBJECT-TYPE
+        SYNTAX DisplayString( SIZE (0..8))
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Week range end time.
+            For example: HH:MM:SS.(02:22:33)."
+        ::= { zxAnAclTimeRangeEntry 7 }
+
+    
+    zxAnAclTimeRangeRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4).
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAclTimeRangeEntry 50 }
+            
+            
+    zxAnAclIfConfTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnAclIfConfEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            " This table is to provide service that a specific Acl apply to 
+            a specific inteface with direction. 
+            
+            Then the traffic that through this interface is managed 
+            according to the acl."
+        ::= { zxAnAclIfConfObjects 2 }
+
+    
+    zxAnAclIfConfEntry OBJECT-TYPE
+        SYNTAX ZxAnAclIfConfEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "An entry in zxAnAclIfConfTable. 
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+                    
+            To create an entry of this table, all the variable are mandatory.
+            Agent just support zxAnAclIfConfDirection with value ingress(1).
+            
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue.
+            
+            Inner port only supports direction ingress.  
+            "
+        INDEX { ifIndex, zxAnSubIfIndex, zxAnAclIfConfDirection }
+        ::= { zxAnAclIfConfTable 1 }
+
+    
+    ZxAnAclIfConfEntry ::=
+        SEQUENCE { 
+            zxAnAclIfConfDirection    INTEGER,
+            zxAnAclIfConfAclNumber    Integer32,
+            zxAnAclIfConfRowStatus    RowStatus
+         }
+
+    zxAnAclIfConfDirection OBJECT-TYPE
+        SYNTAX INTEGER
+            {
+            ingress(1),
+            egress(2)
+            }
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Indicates whether this row's parameters are to be applied 
+            for ingress or for egress traffic."
+        ::= { zxAnAclIfConfEntry 1 }
+
+    
+    zxAnAclIfConfAclNumber OBJECT-TYPE
+        SYNTAX Integer32 (1..699)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The number of an ACL.
+             Reference to the description of zxAnAclNumber."
+        ::= { zxAnAclIfConfEntry 2 }
+
+    
+    zxAnAclIfConfRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclIfConfEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAclIfConfEntry 50 }
+        
+--------------------------------------------------------------------------------
+-- 10. zxAnAclRuleParamGroupTable
+--------------------------------------------------------------------------------
+    zxAnAclRuleParamGroupTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnAclRuleParamGroupEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ACL rule parameter group table."
+        ::= { zxAnAclRuleParamGroupObjects 1 }
+        
+    zxAnAclRuleParamGroupEntry   OBJECT-TYPE
+        SYNTAX      ZxAnAclRuleParamGroupEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ACL rule parameter group entry."
+        INDEX { zxAnAclRuleParamGroupName }
+        ::= { zxAnAclRuleParamGroupTable 1 }    
+        
+    ZxAnAclRuleParamGroupEntry ::= SEQUENCE {
+        zxAnAclRuleParamGroupName       DisplayString,
+        zxAnAclRuleParamGroupType       INTEGER,
+        zxAnAclRuleParamGroupRowStatus  RowStatus
+    }       
+        
+    zxAnAclRuleParamGroupName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ACL rule parameter group name."
+        ::= { zxAnAclRuleParamGroupEntry 1 }        
+        
+    zxAnAclRuleParamGroupType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            ip(1)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "ACL rule parameter group type.
+             ip(1): IP."
+        DEFVAL  { ip }
+        ::= { zxAnAclRuleParamGroupEntry 2 }        
+        
+    zxAnAclRuleParamGroupRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4).
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnAclRuleParamGroupEntry 50 }           
+
+--------------------------------------------------------------------------------
+-- 11. zxAnAclRuleIpGroupTable
+--------------------------------------------------------------------------------
+    zxAnAclRuleIpGroupTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnAclRuleIpGroupEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ACL IP address group table."
+        ::= { zxAnAclRuleParamGroupObjects 2 }        
+        
+    zxAnAclRuleIpGroupEntry   OBJECT-TYPE
+        SYNTAX      ZxAnAclRuleIpGroupEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ACL IP address group entry."
+        INDEX   { zxAnAclRuleParamGroupName, zxAnAclRuleIpGroupId }
+        ::= { zxAnAclRuleIpGroupTable 1 }
+
+    ZxAnAclRuleIpGroupEntry ::= SEQUENCE {
+        zxAnAclRuleIpGroupId           Integer32,
+        zxAnAclRuleIpGroupIpType       InetAddressType,
+        zxAnAclRuleIpGroupIp           InetAddress,
+        zxAnAclRuleIpGroupIpPfxLen     InetAddressPrefixLength,
+        zxAnAclRuleIpGroupIpMask       InetAddress,
+        zxAnAclRuleIpGroupRowStatus    RowStatus
+    }
+
+    zxAnAclRuleIpGroupId  OBJECT-TYPE
+        SYNTAX      Integer32(1..8)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Index of the IP."
+        ::= { zxAnAclRuleIpGroupEntry 1 }
+        
+    zxAnAclRuleIpGroupIpType  OBJECT-TYPE
+        SYNTAX InetAddressType
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "IP type."
+        ::= { zxAnAclRuleIpGroupEntry 2 }    
+        
+    zxAnAclRuleIpGroupIp  OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "IP address."
+        ::= { zxAnAclRuleIpGroupEntry 3 }  
+
+    zxAnAclRuleIpGroupIpPfxLen  OBJECT-TYPE
+        SYNTAX   InetAddressPrefixLength
+        MAX-ACCESS  read-create
+        STATUS  current
+        DESCRIPTION
+            "IP address prefix length.
+            Only valid when zxAnAclRuleIpGroupIpType is ipv6."
+        DEFVAL { 0 }
+        ::= { zxAnAclRuleIpGroupEntry 4 }   
+
+    zxAnAclRuleIpGroupIpMask  OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "IP mask.
+            Only valid when zxAnAclRuleIpGroupIpType is ipv4."
+        DEFVAL { 'FFFFFFFF'h }
+        ::= { zxAnAclRuleIpGroupEntry 5 }        
+        
+    zxAnAclRuleIpGroupRowStatus  OBJECT-TYPE
+        SYNTAX       RowStatus 
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The status of this conceptual row.
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4).
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnAclRuleIpGroupEntry 50 }         
+    
+    zxAnAclCompliances OBJECT IDENTIFIER ::= { zxAnAclConformance 1 }
+
+    
+    zxAnAclCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION 
+            "The compliance statement for the ZTE-AN-ACL-MIB."
+        MODULE -- this module
+            MANDATORY-GROUPS { zxAnAclGroup, 
+                               zxAnAclStandardRuleGroup, 
+                               zxAnAclHybridRuleGroup, 
+                               zxAnAclIfConfGroup }
+        ::= { zxAnAclCompliances 1 }
+
+    
+    zxAnAclGroups OBJECT IDENTIFIER ::= { zxAnAclConformance 2 }
+
+    
+    zxAnAclGroup OBJECT-GROUP
+        OBJECTS { zxAnAclName, zxAnAclRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the access control list 
+            configuration information."
+        ::= { zxAnAclGroups 1 }
+
+    
+    zxAnAclStandardRuleGroup OBJECT-GROUP
+        OBJECTS { zxAnAclStdRuleAccessCtrl, 
+                  zxAnAclStdRuleSrcIpType, 
+                  zxAnAclStdRuleSrcIp, 
+                  zxAnAclStdRuleSrcIpMask, 
+                  zxAnAclStdRuleRowStatus
+             }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the standard ACL rule 
+            configuration information."
+        ::= { zxAnAclGroups 2 }
+
+    
+    zxAnAclHybridRuleGroup OBJECT-GROUP
+        OBJECTS { zxAnAclHybridRuleAccessCtrl, 
+                  zxAnAclHybridRuleSrcIpType, 
+                  zxAnAclHybridRuleSrcIp, 
+                  zxAnAclHybridRuleSrcIpMask, 
+                  zxAnAclHybridRuleDestIpType, 
+                  zxAnAclHybridRuleDestIp, 
+                  zxAnAclHybridRuleDestIpMask, 
+                  zxAnAclHybridRuleIpProto, 
+                  zxAnAclHybridRuleEthProto, 
+                  zxAnAclHybridRuleSrcPortOper, 
+                  zxAnAclHybridRuleStartSrcPort, 
+                  zxAnAclHybridRuleEndSrcPort, 
+                  zxAnAclHybridRuleDestPortOper, 
+                  zxAnAclHybridRuleStartDestPort, 
+                  zxAnAclHybridRuleEndDestPort, 
+                  zxAnAclHybridRulePrecedence, 
+                  zxAnAclHybridRuleTos, 
+                  zxAnAclHybridRuleDscp, 
+                  zxAnAclHybridRuleStagCos, 
+                  zxAnAclHybridRuleSVid, 
+                  zxAnAclHybridRuleCtagCos, 
+                  zxAnAclHybridRuleCVid, 
+                  zxAnAclHybridRuleSrcMac, 
+                  zxAnAclHybridRuleSrcMacMask, 
+                  zxAnAclHybridRuleDestMac, 
+                  zxAnAclHybridRuleDestMacMask, 
+                  zxAnAclHybridRuleStagTpid,
+                  zxAnAclHybridRuleCtagTpid,
+                  zxAnAclHybridRuleItagTpid,
+                  zxAnAclHybridRuleIsid,
+                  zxAnAclHybridRuleRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the hybrid ACL rule 
+            configuration information."
+        ::= { zxAnAclGroups 3 }
+
+    
+    zxAnAclIfConfGroup OBJECT-GROUP
+        OBJECTS { zxAnAclIfConfAclNumber, zxAnAclIfConfRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the configuration 
+            information of ACL apply to the interface."
+        ::= { zxAnAclGroups 4 }
+
+        
+    
+    END
+
+--
+-- 
+--

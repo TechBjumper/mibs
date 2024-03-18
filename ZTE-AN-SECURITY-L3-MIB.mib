@@ -1,0 +1,257 @@
+ZTE-AN-SECURITY-L3-MIB    DEFINITIONS ::= BEGIN
+    IMPORTS
+        OBJECT-TYPE, MODULE-IDENTITY, 
+        Integer32                                            FROM SNMPv2-SMI
+        zxAnServiceSecurity                                  FROM ZTE-AN-SMI;
+        
+    zxAnSecurityL3Mib MODULE-IDENTITY
+        LAST-UPDATED "201409040000Z"
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO             "Zhou Guobin     ZTE Corporation
+            Mail: wang.yuke@zte.com.cn
+            Tel : +86-21-68897227"
+        DESCRIPTION     "The MIB module for the layer 3 security management."        
+        REVISION        "201409040000Z"
+        DESCRIPTION       "Initial version of this MIB module."        
+        ::= { zxAnServiceSecurity 37 }
+        
+-------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnSecL3Objects
+    -- 1.1 zxAnSecL3IpObjects
+        -- 1.1.1 zxAnSecL3IpGlobalObjects
+    -- 1.2 zxAnSecL3TcpObjects
+        -- 1.2.1 zxAnSecL3TcpGlobalObjects
+            -- 1.2.1.1 zxAnSecL3TcpSynFloodGlbObjects
+        
+-------------------------------------------------------------------------------
+    zxAnSecL3Objects            OBJECT IDENTIFIER  ::= { zxAnSecurityL3Mib 2 }
+    
+    zxAnSecL3IpObjects          OBJECT IDENTIFIER  ::= { zxAnSecL3Objects 2 }
+    zxAnSecL3TcpObjects         OBJECT IDENTIFIER  ::= { zxAnSecL3Objects 3 }
+    
+-------------------------------------------------------------------------------
+-- 1.1.1 zxAnSecL3IpGlobalObjects
+-------------------------------------------------------------------------------
+
+    zxAnSecL3IpGlobalObjects OBJECT IDENTIFIER ::= { zxAnSecL3IpObjects 1 }
+                                   
+    zxAnSecL3IpSrcDstIpAddrCheckEn  OBJECT-TYPE    
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable source and destination IP address check function.
+            When this object is set to enabled(1), the source and destination 
+            IP address of the received packets will be checked, if both 
+            addresses are the same, the packets will be dropped.
+            "
+        DEFVAL  { disabled }
+        ::= { zxAnSecL3IpGlobalObjects 1 }
+
+    zxAnSecL3IpSrcRouteCheckEn  OBJECT-TYPE    
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable IP source route check function.
+            When this object is set to enabled(1), the received packets with 
+            IP source route option will be dropped.
+            "
+        DEFVAL  { disabled }
+        ::= { zxAnSecL3IpGlobalObjects 2 }
+    
+-------------------------------------------------------------------------------
+-- 1.2.1.1 zxAnSecL3TcpSynFloodGlbObjects
+-------------------------------------------------------------------------------
+
+    zxAnSecL3TcpGlobalObjects 
+        OBJECT IDENTIFIER ::= { zxAnSecL3TcpObjects 1 }
+    
+    zxAnSecL3TcpSynFloodGlbObjects 
+        OBJECT IDENTIFIER ::= { zxAnSecL3TcpGlobalObjects 1 }
+
+    zxAnSecL3TcpSynFldProtectEnable  OBJECT-TYPE    
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable TCP SYN flooding protection function."
+        DEFVAL  { disabled }
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 1 }
+        
+    zxAnSecL3TcpSynFldProtectType  OBJECT-TYPE    
+        SYNTAX      INTEGER {
+            delHalfOpenAndAccelerateTimeout(1),
+            delHalfOpen(2),
+            accelerateTimeout(3)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "TCP SYN flooding protection type.
+            
+            delHalfOpenAndAccelerateTimeout(1) -- Both delHalfOpen(2) and 
+                accelerateTimeout(3) will be performed when 
+                zxAnSecL3TcpSynFldProtectStatus is defence(3).
+            
+            delHalfOpen(2)  -- TCP half-open connections specified by 
+                zxAnSecL3TcpHalfOpenDels will be deleted, this 
+                action will be performed automatically and periodically 
+                until zxAnSecL3TcpSynFldProtectStatus is not defence(3).
+                when 
+                zxAnSecL3TcpSynFldProtectStatus is defence(3).
+                          
+            accelerateTimeout(3) -- The system TCP half-open timeout 
+                parameter will be forcely set to the value specified by 
+                zxAnSecL3TcpHalfOpenTimeout when 
+                zxAnSecL3TcpSynFldProtectStatus is defence(3)."
+        DEFVAL  { delHalfOpenAndAccelerateTimeout }
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 2 }
+        
+    zxAnSecL3TcpHalfOpenTimeout     OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        UNITS       "seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Timeout of TCP half-open (SYN-RCVD) status.
+            This object will be activated when 
+            zxAnSecL3TcpSynFldProtectStatus is defence(3)."
+        DEFVAL { 30 }
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 3 }
+
+    zxAnSecL3TcpHalfOpenDels     OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Deleting number of TCP half-open connections that cannot be 
+            established each time. This action will be performed automatically
+            and periodically until zxAnSecL3TcpSynFldProtectStatus 
+            is not defence(3)."
+        DEFVAL { 1 }
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 4 }
+        
+    zxAnSecL3TcpHalfOpenLoThresh     OBJECT-TYPE
+        SYNTAX      Integer32(0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "TCP half-open connections lowest ratio threshold between
+            zxAnSecL3TcpHalfOpenConns and zxAnSecL3TcpTotalConns." 
+        DEFVAL { 60 }
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 5 }
+        
+    zxAnSecL3TcpHalfOpenHiThresh     OBJECT-TYPE
+        SYNTAX      Integer32(0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "TCP half-open connections highest ratio threshold between
+             zxAnSecL3TcpHalfOpenConns and zxAnSecL3TcpTotalConns."   
+        DEFVAL { 90 }
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 6 }
+        
+    zxAnSecL3TcpC1MHalfOpenLoThresh     OBJECT-TYPE
+        SYNTAX      Integer32(0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-write
+        STATUS      current
+                DESCRIPTION
+            "TCP half-open connections lowest ratio threshold 
+            between zxAnSecL3TcpC1MHalfOpenConns and zxAnSecL3TcpC1MTotalConns 
+            in current 1 minute.
+            " 
+            DEFVAL { 50 }
+
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 7 }
+        
+    zxAnSecL3TcpC1MHalfOpenHiThresh     OBJECT-TYPE
+        SYNTAX      Integer32(0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-write
+        STATUS      current
+               DESCRIPTION
+            "TCP half-open connections highest ratio threshold 
+            between zxAnSecL3TcpC1MHalfOpenConns and zxAnSecL3TcpC1MTotalConns
+            in current 1 minute.
+            "   
+             DEFVAL { 80 }
+
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 8 }
+        
+    zxAnSecL3TcpSynFldProtectStatus  OBJECT-TYPE    
+        SYNTAX      INTEGER {
+            safety(1),
+            warning(2),
+            defence(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "TCP SYN flooding protection status.
+            This object will be automatically set as following:
+            
+            CurrentHoRatio     = 100 * zxAnSecL3TcpHalfOpenConns
+                                      / zxAnSecL3TcpTotalConns                     
+            Current1MinHoRatio = 100 * zxAnSecL3TcpC1MHalfOpenConns
+                                      / zxAnSecL3TcpC1MTotalConns
+            
+            If CurrentHoRatio < zxAnSecL3TcpHalfOpenLoThresh 
+                and Current1MinHoRatio < zxAnSecL3TcpC1MHalfOpenLoThresh
+            zxAnSecL3TcpSynFldProtectStatus will be set to safety(1);
+            
+            If CurrentHoRatio >= zxAnSecL3TcpHalfOpenHiThresh 
+                or Current1MinHoRatio >= zxAnSecL3TcpC1MHalfOpenHiThresh
+            zxAnSecL3TcpSynFldProtectStatus will be set to defence(3);
+            
+            In other cases, 
+            zxAnSecL3TcpSynFldProtectStatus will be set to warning(2)."
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 20 }
+        
+    zxAnSecL3TcpTotalConns OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Number of all TCP connections."
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 21 }
+        
+    zxAnSecL3TcpHalfOpenConns OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Number of TCP half-open connections that cannot be established."
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 22 }
+        
+    zxAnSecL3TcpC1MTotalConns OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Number of all TCP connections in current 1 minute."
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 23 }
+        
+    zxAnSecL3TcpC1MHalfOpenConns OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Number of TCP half-open connections that cannot be established in 
+            current 1 minute."
+        ::= { zxAnSecL3TcpSynFloodGlbObjects 24 }
+        
+END

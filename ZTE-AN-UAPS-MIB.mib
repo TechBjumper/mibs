@@ -1,0 +1,495 @@
+ZTE-AN-UAPS-MIB  DEFINITIONS ::= BEGIN
+    IMPORTS
+        MODULE-IDENTITY     FROM SNMPv2-SMI
+        RowStatus           FROM SNMPv2-TC
+        DisplayString       FROM SNMPv2-TC
+        TruthValue          FROM SNMPv2-TC
+        NOTIFICATION-TYPE   FROM SNMPv2-SMI 
+        OBJECT-TYPE         FROM SNMPv2-SMI
+        Integer32, Unsigned32  FROM SNMPv2-SMI 
+        InetAddressType     FROM INET-ADDRESS-MIB       
+        InetAddress         FROM INET-ADDRESS-MIB
+        ifIndex             FROM IF-MIB
+        zxAnBridge          FROM ZTE-AN-SMI;      
+
+    zxAnUapsMib  MODULE-IDENTITY
+        LAST-UPDATED  "201304071530Z"
+        ORGANIZATION  "ZTE Corporation"
+        CONTACT-INFO  "luhanxiong
+                      Mail: lu.hanxiong@zte.com.cn
+                      Tel : 021-68896292"
+        DESCRIPTION   "The MIB module for the management of UAPS function."
+        ::=  {  zxAnBridge 80  }
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1.Uaps Group Table
+-- 2.Notifications
+--------------------------------------------------------------------------------
+
+    zxAnUapsGlobalObjects       OBJECT IDENTIFIER ::= { zxAnUapsMib 1 }
+    zxAnUapsObjects             OBJECT IDENTIFIER ::= { zxAnUapsMib 2 }
+    zxAnUapsNotifications       OBJECT IDENTIFIER ::= { zxAnUapsMib 3 }
+
+------------------------------------------------------------------------------
+-- Uaps Global Objects
+------------------------------------------------------------------------------
+
+    zxAnUapsCapabilities OBJECT-TYPE 
+        SYNTAX BITS {
+           portsTableSupported(0)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     
+            "The UAPS management capabilities of this equipment. 
+             The bit value 1 means the function represented by this bit is 
+             supported.
+             portsTableSupported(0): value 1 means zxAnUapsPrimaryPortsTable 
+                 and zxAnUapsSecondaryPortsTable are supported. In this case, 
+                 the UAPS primary port list and second port list should be 
+                 created or deleted by zxAnUapsPrimaryPortsTable and 
+                 zxAnUapsSecondaryPortsTable, instead of the 
+                 zxAnUapsPrimaryPortList and zxAnUapsPrimaryPortList."
+        ::=  { zxAnUapsGlobalObjects  1 }
+        
+------------------------------------------------------------------------------
+-- 1.Uaps Group Table
+------------------------------------------------------------------------------
+
+    zxAnUapsGroupTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnUapsGroupEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the managed objects of the UAPS group."
+        ::=  { zxAnUapsObjects  2 }
+
+    zxAnUapsGroupEntry   OBJECT-TYPE
+        SYNTAX      ZxAnUapsGroupEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnUapsGroupTable."
+        INDEX       { zxAnUapsGroupIndex  }
+        ::=  { zxAnUapsGroupTable 1 }
+
+    ZxAnUapsGroupEntry  ::=  SEQUENCE {
+        zxAnUapsGroupIndex                  Integer32,
+        zxAnUapsGroupName                   DisplayString,
+        zxAnUapsPrimaryPortList             OBJECT IDENTIFIER,
+        zxAnUapsSecondaryPortList           OBJECT IDENTIFIER,
+        zxAnUapsPortWorkingStatus           INTEGER,
+        zxAnUapsAutoFailbackEnable          INTEGER,
+        zxAnUapsNextHopIpType               InetAddressType,
+        zxAnUapsNextHopIp                   InetAddress,
+        zxAnUapsIpLinkType                  INTEGER,
+        zxAnUapsIpLinkCheckRetries          Integer32,
+        zxAnUapsIpLinkCheckTimeout          Integer32,
+        zxAnUapsIpLinkStatus                INTEGER,
+        zxAnUapsSwapMode                    INTEGER,
+        zxAnUapsForceSwap                   INTEGER,        
+        zxAnUapsSwapReason                  INTEGER,
+        zxAnUapsSwapRequestInCache          BITS,
+        zxAnUapsSwapLastRequest             INTEGER,
+        zxAnUapsProtectionTime              Integer32,
+        zxAnUapsIsInProtectionTime          TruthValue,
+        zxAnUapsSlavePortTxOptShutdown      INTEGER,
+        zxAnUapsFailureTime                 Unsigned32,
+        zxAnUapsGroupRowStatus              RowStatus
+        }
+
+    zxAnUapsGroupIndex OBJECT-TYPE
+        SYNTAX      Integer32(1..16)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The index of UAPS group."
+        ::= { zxAnUapsGroupEntry 1}
+
+    zxAnUapsGroupName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1 .. 20))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The name of UAPS group."
+        ::= { zxAnUapsGroupEntry 2}
+                        
+    zxAnUapsPrimaryPortList OBJECT-TYPE
+        SYNTAX      OBJECT IDENTIFIER
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The primary UAPS ports. The maximum port numbers joined in this 
+            port list should not be more than 4.
+            Each member of this variable is ifIndex of a port."
+        ::= { zxAnUapsGroupEntry 3}
+
+    zxAnUapsSecondaryPortList OBJECT-TYPE
+        SYNTAX      OBJECT IDENTIFIER
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The secondary UAPS ports. The maximum port numbers joined in this 
+            port list should not be more than 4. Furthermore, the port numbers 
+            joined in this port list should be equal to the 
+            zxAnUapsPrimaryPortList's. Each number of this variable is ifIndex 
+            of a port."
+        ::= { zxAnUapsGroupEntry 4}
+    
+    zxAnUapsPortWorkingStatus  OBJECT-TYPE
+        SYNTAX      INTEGER{
+            primaryPortInWorking(1),
+            secondaryPortInWorking(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "It indicates which port group is in working state."
+        ::= { zxAnUapsGroupEntry 5}   
+
+    zxAnUapsAutoFailbackEnable OBJECT-TYPE
+        SYNTAX      INTEGER{
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enables or disables recovery to the UAPS primary port 
+             automatically when the primary port is normal again."
+        DEFVAL  { disabled }
+        ::= { zxAnUapsGroupEntry 6}
+                  
+    zxAnUapsNextHopIpType OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Next hop IP type. "
+          ::= { zxAnUapsGroupEntry 7 }
+
+    zxAnUapsNextHopIp OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Next hop IP. Only IPv4 is supported now. If it is 0.0.0.0, 
+             UAPS will not check the link of next hop. "
+        ::= { zxAnUapsGroupEntry 8 }
+
+    zxAnUapsIpLinkType OBJECT-TYPE
+        SYNTAX      INTEGER{
+            defaultIpLink(1),
+            serviceIpLink(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The link type used to check IP link status."
+        DEFVAL  { defaultIpLink }
+        ::= { zxAnUapsGroupEntry 9}
+
+    zxAnUapsIpLinkCheckRetries OBJECT-TYPE
+        SYNTAX      Integer32(1..10)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The retries of checking link status."
+        DEFVAL  { 5 }
+          ::= { zxAnUapsGroupEntry 10}
+
+    zxAnUapsIpLinkCheckTimeout OBJECT-TYPE
+        SYNTAX      Integer32(1..10)
+        UNITS       "seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The timeout of checking link status."
+        DEFVAL  { 3 }
+        ::= { zxAnUapsGroupEntry 11}
+
+    zxAnUapsIpLinkStatus OBJECT-TYPE
+        SYNTAX      INTEGER{
+            up(1),
+            down(2),
+            testing(3),
+            invalid(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The status of IP link."
+          ::= { zxAnUapsGroupEntry 12}
+     
+    zxAnUapsSwapMode OBJECT-TYPE
+        SYNTAX      INTEGER{
+            common(1),
+            trunk(2),
+            upPortNum(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "It indicates swap mode. 
+            common: If one port of working port list down, all ports will 
+                swap to slave port list.
+            trunk: Only when all working ports down, ports will swap to 
+                slave port list.
+            upPortNum: If the number of up working ports is less than
+                the number of up slave ports, swap to slave port list."
+        DEFVAL  { common }
+        ::= { zxAnUapsGroupEntry 13}      
+
+    zxAnUapsForceSwap OBJECT-TYPE
+        SYNTAX      INTEGER{
+            swap(1)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Force to swap the primary and secondary ports."
+        ::= { zxAnUapsGroupEntry 14}           
+
+    zxAnUapsSwapReason OBJECT-TYPE
+        SYNTAX      INTEGER{
+            failback(1), 
+            failoverByPhyLinkDown(2),
+            failoverByIpLinkDown(3),
+            forceSwap(4),
+            swapByPhyLinkUp(5),
+            swapByPortAdded(6),
+            swapByPortDeleted(7),
+            swapBySwapModeChanged(8),
+            noSwap(255)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "It indicates the reason of swap. 
+             failback(1):              Primary port is recovery.
+             failoverByPhyLinkDown(2): Primary port is in fault of physical 
+                                       layer.
+             failoverByIpLinkDown(3):  Primary port is in fault of IP layer.
+             forceSwap(4):             Force swap. 
+             swapByPhyLinkUp(5):       In upPortNum mode, swap may be caused by 
+                                       physical link up.
+             swapByPortAdded(6):       Swap caused by adding new port.
+             swapByPortDeleted(7):     Swap caused by deleting port.
+             swapBySwapModeChanged(8): Swap caused by changing swap mode.
+             noSwap(255):              No swap."
+        ::= { zxAnUapsGroupEntry 15}
+
+    zxAnUapsSwapRequestInCache OBJECT-TYPE
+        SYNTAX      BITS{
+            failback(0),
+            failoverByPhyLinkDown(1),
+            failoverByIpLinkDown(2),
+            forceSwap(3),
+            swapByPhyLinkUp(4),
+            swapByPortAdded(5),
+            swapByPortDeleted(6),
+            swapBySwapModeChanged(7)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "It indicates the swap request in memory. "
+        ::= { zxAnUapsGroupEntry 16}
+
+    zxAnUapsSwapLastRequest OBJECT-TYPE
+        SYNTAX      INTEGER{
+            failback(1),
+            failoverByPhyLinkDown(2),
+            failoverByIpLinkDown(3),
+            forceSwap(4),
+            swapByPhyLinkUp(5),
+            swapByPortAdded(6),
+            swapByPortDeleted(7),
+            swapBySwapModeChanged(8),
+            noSwap(255)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "It indicates the last swap request. "
+        ::= { zxAnUapsGroupEntry 17}
+
+    zxAnUapsProtectionTime OBJECT-TYPE
+        SYNTAX      Integer32(0..900)
+        UNITS       "seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The protection time of UAPS. When the fail time of port is larger 
+            than it, the UAPS module should failover to the secondary port."
+        DEFVAL { 300 }            
+        ::= { zxAnUapsGroupEntry 18}
+
+    zxAnUapsIsInProtectionTime OBJECT-TYPE
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "It indicates if the UAPS is in protection time status. "
+        ::= { zxAnUapsGroupEntry 19}        
+  
+    zxAnUapsSlavePortTxOptShutdown OBJECT-TYPE
+        SYNTAX      INTEGER{
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "If it is enabled, the slave port transmitted optical signal will
+            be shutdown. "
+        DEFVAL { disabled }
+        ::= { zxAnUapsGroupEntry 20}
+        
+    zxAnUapsFailureTime    OBJECT-TYPE 
+        SYNTAX      Unsigned32
+        UNITS       "Seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "It indicates the time since the secondary UAPS ports became in 
+             working or any port of this UAPS group was down.
+             After the primary UAPS ports become in working and all ports of 
+             this UAPS group are up, it's value will be zero."
+        ::= { zxAnUapsGroupEntry 21 }           
+          
+    zxAnUapsGroupRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             To delete a row in this table, a manager must
+             set this object to destroy(6). "
+        ::= { zxAnUapsGroupEntry 50 }
+
+------------------------------------------------------------------------------
+-- 2.Uaps Primary Ports Table
+------------------------------------------------------------------------------
+
+    zxAnUapsPrimaryPortsTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnUapsPrimaryPortsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the primary ports of the UAPS group."
+        ::=  { zxAnUapsObjects  3 }
+        
+    zxAnUapsPrimaryPortsEntry   OBJECT-TYPE
+        SYNTAX      ZxAnUapsPrimaryPortsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnUapsPrimaryPortsTable."
+        INDEX       { zxAnUapsGroupIndex, ifIndex }
+        ::=  { zxAnUapsPrimaryPortsTable 1 }
+        
+    ZxAnUapsPrimaryPortsEntry  ::=  SEQUENCE {
+        zxAnUapsPrimaryPortsRowStatus          RowStatus
+        }
+
+    zxAnUapsPrimaryPortsRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             To delete a row in this table, a manager must
+             set this object to destroy(6). "
+        ::= { zxAnUapsPrimaryPortsEntry 50 }
+    
+
+------------------------------------------------------------------------------
+-- 2.Uaps Secondary Ports Table
+------------------------------------------------------------------------------
+
+    zxAnUapsSecondaryPortsTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnUapsSecondaryPortsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the secondary ports of the UAPS group."
+        ::=  { zxAnUapsObjects  4 }
+        
+    zxAnUapsSecondaryPortsEntry   OBJECT-TYPE
+        SYNTAX      ZxAnUapsSecondaryPortsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnUapsSecondaryPortsTable."
+        INDEX       { zxAnUapsGroupIndex, ifIndex }
+        ::=  { zxAnUapsSecondaryPortsTable 1 }
+        
+    ZxAnUapsSecondaryPortsEntry  ::=  SEQUENCE {
+        zxAnUapsSecondaryPortsRowStatus          RowStatus
+        }
+
+    zxAnUapsSecondaryPortsRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             To delete a row in this table, a manager must
+             set this object to destroy(6). "
+        ::= { zxAnUapsSecondaryPortsEntry 50 }
+           
+
+------------------------------------------------------------------------------
+-- 2.Notifications
+------------------------------------------------------------------------------
+    
+    zxAnUapsSwappedTrap    NOTIFICATION-TYPE
+        OBJECTS {
+                    zxAnUapsPortWorkingStatus,
+                    zxAnUapsSwapReason,
+                    zxAnUapsGroupName,
+                    zxAnUapsPrimaryPortList,
+                    zxAnUapsSecondaryPortList
+                }
+        STATUS             current
+        DESCRIPTION
+           "It indicates the primary and secondary port of UAPS module has 
+            swapped."
+        ::= { zxAnUapsNotifications 1 } 
+
+    zxAnUapsSwappedAlm NOTIFICATION-TYPE
+        OBJECTS {
+                    zxAnUapsPortWorkingStatus,
+                    zxAnUapsSwapReason,
+                    zxAnUapsGroupName,
+                    zxAnUapsPrimaryPortList,
+                    zxAnUapsSecondaryPortList
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnUapsSwappedAlm is sent when the agent has detected that 
+           the primary/secondary ports of UAPS module have swapped."
+        ::= { zxAnUapsNotifications 2 } 
+       
+    zxAnUapsSwappedClr NOTIFICATION-TYPE
+        STATUS             current
+        DESCRIPTION
+            "A zxAnUapsSwappedClr trap is sent when the agent 
+            has detected that the zxAnUapsSwappedAlm is cleared manually."            
+        ::= { zxAnUapsNotifications 3 }        
+
+END

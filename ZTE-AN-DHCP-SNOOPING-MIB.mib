@@ -1,0 +1,1698 @@
+ZTE-AN-DHCP-SNOOPING-MIB DEFINITIONS ::= BEGIN 
+IMPORTS 
+    OBJECT-TYPE, MODULE-IDENTITY, IpAddress,
+    Counter32, Integer32, Unsigned32, 
+    NOTIFICATION-TYPE                            FROM SNMPv2-SMI
+    MODULE-COMPLIANCE, OBJECT-GROUP              FROM SNMPv2-CONF
+    MacAddress, RowStatus, TruthValue, 
+    DateAndTime, DisplayString                   FROM SNMPv2-TC
+    InetAddress,InetAddressIPv6,InetAddressType,
+    InetAddressPrefixLength                      FROM INET-ADDRESS-MIB
+    ifIndex                                      FROM IF-MIB
+    VlanId, ZxAnSubIfIndex                       FROM ZTE-AN-TC-MIB
+    zxAnSubIfIndex                               FROM ZTE-AN-IF-MIB
+    zxAnServiceSecurity                          FROM ZTE-AN-SMI;
+
+    zxAnDhcpSnoopingMib   MODULE-IDENTITY
+        LAST-UPDATED    "201407310000Z"
+        ORGANIZATION    "ZTE Corporation."
+        CONTACT-INFO    
+               "Xu LiRong  ZTE Corporation
+                Mail: xu.lirong@zte.com.cn
+                Tel : +86-21-68897225
+                
+                Wang YaNan ZTE Corporation
+                Mail: wang.yanan@zte.com.cn
+                Tel : +86-21-68897224"
+        DESCRIPTION     
+               "This MIB defines DHCP Snooping managed objects for 
+                Access Node Service Security and DHCP Snooping is 
+                a security mechanism which uses information gathered
+                from DHCP packets to provide per-interface security
+                capabilities"
+        REVISION        "201407310000Z"
+        DESCRIPTION
+               "The modification of this MIB file is the following:
+                - Adding zxAnIpv4SrcGuardIpBindIpMask 
+                  in the zxAnIpv4SrcGuardIpBindingTable
+                - Modifying the status of zxAnDsDhcpV4IfBindingLimitTable
+                  and zxAnDsDhcpV6IfBindingLimitTable"
+        REVISION        "201404010000Z"
+        DESCRIPTION
+               "The modification of this MIB file is the following:
+                - Adding zxAnDsDhcpV4MasVlanTable"
+        REVISION        "201307010000Z"
+        DESCRIPTION
+               "The modification of this MIB file is the following:
+                - Adding zxAnIpv4SrcGuardBindingTable and 
+                  zxAnIpv6SrcGuardBindingTable
+                - Adding zxAnIpv4SrcGuardBindingGroup and 
+                  zxAnIpv6SrcGuardBindingGroup
+                - Adding zxAnDhcpSnoopingCapabilities"
+        REVISION        "201108100000Z"
+        DESCRIPTION
+               "The modification of this MIB file is the following:
+                - Modifying all the ip source guard mibs's description
+                - Deleting zxAnIpSrcGuardGlobalObjects and 
+                  zxAnIpSrcGuardGlobalEnable
+                - Adding a variable of zxAnDsDhcpV6StaticIpBindingTable:
+                  zxAnDsDhcpV6StaticBindIpType
+                - Adding ip source guard conformance"
+        REVISION        "201106240000Z"
+        DESCRIPTION     
+               "Modifying all MIBs's names,including replacing Ds with DsDhcpV4
+                and Dsv6 with DsDhcpv6 etc."
+        REVISION        "201106200000Z"
+        DESCRIPTION     
+               "The modification of this MIB file is the following:
+                - Modifying zxAnDsDhcpV4IpBindingTable's index
+                - Modifying zxAnDsDhcpV4IfStatsTable's index
+                - Modifying zxAnDsDhcpV6IpBindingTable's index."
+        REVISION        "201106010000Z"
+        DESCRIPTION     
+               "Adding zxAnIpSrcGuardObjects and zxAnDhcpSnoopingConformance"
+        REVISION        "201012160000Z"
+        DESCRIPTION
+               "The modification of this MIB file is the following:
+                - replacing zxAnDsPortBindViewTable with zxAnDsBindingsTable
+                - replacing zxAnDsv6PortBindViewTable with zxAnDsv6BindingsTable
+                - Adding zxAnDhcpSnoopingIfStatTable."               
+        REVISION        "200612060000Z"
+        DESCRIPTION     "Initial version of this MIB module."
+        ::= { zxAnServiceSecurity 40 }
+
+-------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. DHCP Snooping Global Objects
+-- 2. IPv4 DHCP Snooping Objects
+-- 2.1 IPv4 DHCP Snooping Global Objects
+-- 2.2 IPv4 DHCP Snooping VLAN Table
+-- 2.3 IPv4 DHCP Snooping Interface Table
+-- 2.4 IPv4 DHCP Snooping Bindings Table
+-- 2.5 IPv4 Static DHCP Snooping Bindings Table
+-- 2.6 IPv4 user Port Binding Limit Table
+-- 2.7 IPv4 DHCP Snooping Session Limit Table
+-- 2.8 IPv4 DHCP Snooping MAC-anti-spoofing VLAN Table
+-- 2.9 IPv4 DHCP Snooping Packets Statistics Table
+-- 3. IPv6 DHCP Snooping Objects
+-- 3.1 IPv6 DHCP Snooping Global Objects
+-- 3.2 IPv6 DHCP Snooping VLAN Table
+-- 3.3 IPv6 DHCP Snooping Interface Table
+-- 3.4 IPv6 DHCP Snooping Bindings Table
+-- 3.5 IPv6 Static DHCP Snooping Bindings Table
+-- 3.6 IPv6 User Port Binding Limit Table
+-- 3.7 IPv6 DHCP Snooping Session Limit Table
+-- 3.8 IPv6 DHCP Snooping Packets Statistics Table
+-- 4. IP Source Guard Objects
+-- 4.1 IP Source Guard Global Objects
+-- 4.1.1 IP Spoofing Global Objects
+-- 4.2 IP Source Guard Interface Table
+-- 4.3 IP Source Guard VLAN Table
+-- 4.4 IPv4 Source Guard Objects
+-- 4.4.1 IPv4 Source Guard IP Bindings Table
+-- 4.5 IPv6 Source Guard Objects
+-- 4.5.1 IPv6 Source Guard IP Bindings Table
+-- 5. DHCP Snooping Notifications
+-- 5.1 IP Source Guard Trap
+
+
+-- Following conformance information is defined.
+-- 5.1 IP Source Guard Trap
+-------------------------------------------------------------------------------
+    
+    zxAnDhcpSnoopingGlobalObjects
+                                 OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingMib 1 }
+    
+    zxAnDhcpSnoopingObjects      OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingMib 2 }
+    
+    zxAnDhcpSnoopingNotifications
+                                 OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingMib 3 }
+
+    zxAnDsDhcpV4Objects      OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingObjects 1 }
+    zxAnDsDhcpV6Objects      OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingObjects 2 }
+    zxAnIpSrcGuardObjects    OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingObjects 3 }
+        
+    zxAnIpSrcGuardTraps
+                       OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingNotifications 1 }
+
+--------------------------------------------------------------------------------
+-- 1. DHCP Snooping Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnDhcpSnoopingCapabilities  OBJECT-TYPE 
+        SYNTAX      BITS 
+        {
+            supportIpSrcGuardIpBindingTable(0), 
+            supportIpv4SrcGuardIpBindIpMask(1)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION   
+            "The management capabilities of DHCP snooping.
+             The bit value 1 means the function represented by this bit is 
+             supported by this equipment.           
+             supportIpSrcGuardIpBindingTable(0): value 1 means supporting 
+                                       zxAnIpv4SrcGuardIpBindingTable and 
+                                       zxAnIpv6SrcGuardIpBindingTable,
+                                       zxAnDsDhcpV4StaticIpBindingTable and
+                                       zxAnDsDhcpV6StaticIpBindingTable were 
+                                       deprecated.
+                                       
+             supportIpv4SrcGuardIpBindIpMask(1): value 1 means supporting
+                                      IPv4 mask configuration: 
+                                      zxAnIpv4SrcGuardIpBindIpMask.
+             NOTE: No recommended to display it in NMS."
+        ::= { zxAnDhcpSnoopingGlobalObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2. IPv4 DHCP Snooping Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.1 IPv4 DHCP Snooping Global Objects
+--------------------------------------------------------------------------------
+    
+    zxAnDsDhcpV4GlobalObjects    OBJECT IDENTIFIER ::= { zxAnDsDhcpV4Objects 1 }
+
+    zxAnDsDhcpV4GlobalEnable OBJECT-TYPE
+       SYNTAX      INTEGER
+           {
+               enabled(1),   
+               disabled(2)
+           }
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION
+           "Enable or disable DHCPv4 snooping."
+       DEFVAL { disabled }               
+       ::= { zxAnDsDhcpV4GlobalObjects 1 }    
+    
+    zxAnDsDhcpV4ClearIpBindingEnable OBJECT-TYPE
+       SYNTAX      INTEGER
+           {
+               enabled(1),   
+               disabled(2)
+           }
+       MAX-ACCESS  read-write
+       STATUS      deprecated
+       DESCRIPTION
+           "If this object is set to 'enabled', when interface become
+            offline this interface's records in zxAnDsDhcpV4IpBindingTable 
+            will be deleted. 
+            Otherwise, this interface's records will not be deleted."
+       DEFVAL { disabled }               
+       ::= { zxAnDsDhcpV4GlobalObjects 2 } 
+   
+    zxAnDsDhcpV4OnlineUsers OBJECT-TYPE
+       SYNTAX      Integer32 
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+           "The total number of DHCPv4 snooping online users."           
+       ::= { zxAnDsDhcpV4GlobalObjects 3 }
+    
+--------------------------------------------------------------------------------
+-- 2.2 IPv4 DHCP Snooping VLAN Table
+--------------------------------------------------------------------------------
+
+    zxAnDsDhcpV4VlanTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV4VlanEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "This table provides the mechanism to control 
+                ipv4 dhcp snooping per vlan. 
+                
+                When a vlan is created in a device supporting this
+                table, a corresponding entry of this table will be added.
+                
+                When a vlan is destroyed in a device supporting this
+                table, a corresponding entry of this table will be deleted." 
+        ::= { zxAnDsDhcpV4Objects 2 }
+    
+    zxAnDsDhcpV4VlanEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDsDhcpV4VlanEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "A row instance contains the configuration to create
+                 or destroy ipv4 dhcp snooping at each existing vlan."
+        INDEX { zxAnDsDhcpV4Vid } 
+        ::= { zxAnDsDhcpV4VlanTable 1 }
+    
+    ZxAnDsDhcpV4VlanEntry ::= SEQUENCE {
+        zxAnDsDhcpV4Vid            VlanId,
+        zxAnDsDhcpV4VlanRowStatus  RowStatus
+        }
+ 
+    zxAnDsDhcpV4Vid    OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the vlan number on which 
+                ipv4 dhcp snooping feature is configured." 
+        ::= { zxAnDsDhcpV4VlanEntry 1 }
+    
+    zxAnDsDhcpV4VlanRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+               "This object is used to manage the creation and deletion
+                of rows in this table. It only supports 'active(1)'
+                ,'createAndGo(4)'and 'destroy(6)' value.
+                
+                If this object is set to 'createAndGo(4)', the vlan 
+                number on which dhcp snooping is active(1).
+                
+                Setting this object value to destroy(6),
+                the vlan number on which dhcp snooping is deleted."
+        ::= { zxAnDsDhcpV4VlanEntry 50 }    
+             
+                     
+--------------------------------------------------------------------------------
+-- 2.4 IPv4 DHCP Snooping Bindings Table
+--------------------------------------------------------------------------------
+
+    zxAnDsDhcpV4IpBindingTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV4IpBindingEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "This table provides the ipv4 dhcp snooping 
+                bindings information learnt by the interface
+                capable of this feature.
+                
+                The interfaces for which this feature must 
+                be applicable are:
+                IfType = Physical Interface(1)
+                for PON card:
+                SubIfType = ONU service port sub-interface(3)
+                for DSL card:
+                SubIfType = DSL PVC sub-interface(6)"        
+        ::= { zxAnDsDhcpV4Objects 6 }
+    
+    zxAnDsDhcpV4IpBindingEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDsDhcpV4IpBindingEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "A row instance contains the interface number,
+                Mac address, service vlan number, IP address, 
+                leased time, user vlan number, and status of 
+                this instance."
+        INDEX { ifIndex,
+                zxAnSubIfIndex,
+                zxAnDsDhcpV4IpBindingMac,
+                zxAnDsDhcpV4IpBindingSVid } 
+        ::= { zxAnDsDhcpV4IpBindingTable 1 }
+    
+    ZxAnDsDhcpV4IpBindingEntry ::= SEQUENCE {
+        zxAnDsDhcpV4IpBindingMac            MacAddress,
+        zxAnDsDhcpV4IpBindingSVid           VlanId,
+        zxAnDsDhcpV4IpBindingIpAddress      IpAddress,
+        zxAnDsDhcpV4IpBindingLeasedTime     DateAndTime,
+        zxAnDsDhcpV4IpBindingUserVid        VlanId,
+        zxAnDsDhcpV4IpBindingRowStatus      RowStatus
+        }
+        
+    zxAnDsDhcpV4IpBindingMac  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the MAC address of 
+                an ipv4 dhcp client host."
+        ::= { zxAnDsDhcpV4IpBindingEntry 1 }
+        
+    zxAnDsDhcpV4IpBindingSVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the service vlan to
+                which an ipv4 dhcp client host belongs. 
+                Vlan range is from 1 to 4094."
+        ::= { zxAnDsDhcpV4IpBindingEntry 2 }
+    
+    zxAnDsDhcpV4IpBindingIpAddress OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the allocated ipv4
+                address of an ipv4 dhcp client host."
+        ::= { zxAnDsDhcpV4IpBindingEntry 3 }
+
+    zxAnDsDhcpV4IpBindingLeasedTime OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the leased time of this ipv4 dhcp 
+               bindings.The format is 2d-1d-1d,1d:1d:1d.1d.
+                For example,  1992-5-26,13:30:15.0."
+        ::= { zxAnDsDhcpV4IpBindingEntry 4 }
+        
+    zxAnDsDhcpV4IpBindingUserVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the vlan to which 
+                an ipv4 dhcp client host belongs. 
+                Vlan range is from 1 to 4094."
+        ::= { zxAnDsDhcpV4IpBindingEntry 5 }
+        
+    zxAnDsDhcpV4IpBindingRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+               "This object is used to manage the deletion of rows
+                in this table. This object only supports 'active(1)', 
+                and 'destroy(6)' value. 
+
+                Whenever an ipv4 dhcp binding is learnt by the interface, 
+                an entry will be created in this table with its RowStatus
+                object set to 'active(1)'. 
+                
+                Setting this object value to 'destroy(6)' will clear 
+                the ipv4 dhcp binding information."
+        ::= { zxAnDsDhcpV4IpBindingEntry 50}  
+        
+        
+--------------------------------------------------------------------------------
+-- 2.7 IPv4 DHCP Snooping Session Limit Table
+--------------------------------------------------------------------------------
+
+    zxAnDsDhcpV4IfSessionLimitTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV4IfSessionLimitEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "This object specifies the maximum number of DHCPv4 bindings
+                allowed on this interface. This objects value will limit
+                the number of entries in zxAnDsDhcpV4IpBindingTable. 
+                
+                The interfaces for which this feature must be applicable 
+                are:
+                IfType = Physical Interface(1)
+                for PON card:
+                SubIfType = ONU vport sub-interface(1)
+                for DSL card:
+                SubIfType = DSL PVC sub-interface(6)"
+        ::= { zxAnDsDhcpV4Objects 9 }
+    
+    zxAnDsDhcpV4IfSessionLimitEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDsDhcpV4IfSessionLimitEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current 
+        DESCRIPTION 
+               "A row instance contains the configuration of binding limit 
+                at each interface capable of this feature."
+        INDEX { ifIndex, 
+                zxAnSubIfIndex }
+        ::= { zxAnDsDhcpV4IfSessionLimitTable 1 }
+    
+    ZxAnDsDhcpV4IfSessionLimitEntry ::= SEQUENCE {
+        zxAnDsDhcpV4IfSessionLimit    Integer32
+         }
+       
+    zxAnDsDhcpV4IfSessionLimit OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+               "This object specifies the maximum number of DHCPv4 bindings
+                allowed on this interface. This objects value will limit
+                the number of entries in zxAnDsDhcpV4IpBindingTable.when 
+                the value is 0, that means no limit in the user interface."
+        DEFVAL { 0 }
+        ::= { zxAnDsDhcpV4IfSessionLimitEntry 1 }                                                                  
+                                                                                                            
+--------------------------------------------------------------------------------
+-- 2.9 IPv4 DHCP Snooping Packets Statistics Table
+--------------------------------------------------------------------------------
+ 
+    zxAnDsDhcpV4IfStatsTable OBJECT-TYPE         
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV4IfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+               "This table provides the ipv4 dhcp statistics 
+                information received by by the interface
+                capable of this feature.
+                
+                The interfaces for which this feature must 
+                be applicable are:
+                IfType = Physical Interface(1)
+                for PON card:
+                SubIfType = ONU vport sub-interface(2)
+                for DSL card:
+                SubIfType = DSL PVC sub-interface(6)"
+        ::= { zxAnDsDhcpV4Objects 50 }
+
+    zxAnDsDhcpV4IfStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnDsDhcpV4IfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+               "A row instance contains the interface number,
+                ipv4 dhcp packet information and reset ipv4
+                dhcp packet statistics."
+        INDEX { ifIndex, 
+                zxAnSubIfIndex}
+        ::= {zxAnDsDhcpV4IfStatsTable 1 }
+
+    ZxAnDsDhcpV4IfStatsEntry ::= SEQUENCE {
+        zxAnDsDhcpV4IfStatsDiscoverPkts   Counter32,
+        zxAnDsDhcpV4IfStatsOfferPkts      Counter32,
+        zxAnDsDhcpV4IfStatsRequestPkts    Counter32,
+        zxAnDsDhcpV4IfStatsAckPkts        Counter32,
+        zxAnDsDhcpV4IfStatsNackPkts       Counter32,
+        zxAnDsDhcpV4IfStatsReleasePkts    Counter32,
+        zxAnDsDhcpV4IfStatsDeclinePkts    Counter32,
+        zxAnDsDhcpV4IfStatsInformPkts     Counter32,
+        zxAnDsDhcpV4IfStatsReset          INTEGER
+        }
+    
+    zxAnDsDhcpV4IfStatsDiscoverPkts    OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the discover number of 
+                packets subjected to ipv4 dhcp snooping is received."
+        ::= { zxAnDsDhcpV4IfStatsEntry 1 }      
+        
+    zxAnDsDhcpV4IfStatsOfferPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the offer number of 
+                packets subjected to ipv4 dhcp snooping is received."
+        ::= { zxAnDsDhcpV4IfStatsEntry 2 }         
+       
+    zxAnDsDhcpV4IfStatsRequestPkts    OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the request number of 
+                packets subjected to ipv4 dhcp snooping is received."
+        ::= { zxAnDsDhcpV4IfStatsEntry 3 }      
+        
+    zxAnDsDhcpV4IfStatsAckPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the ack number of 
+                packets subjected to ipv4 dhcp snooping is received."
+        ::= { zxAnDsDhcpV4IfStatsEntry 4 } 
+        
+    zxAnDsDhcpV4IfStatsNackPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the nack number of 
+                packets subjected to ipv4 dhcp snooping is received."
+        ::= { zxAnDsDhcpV4IfStatsEntry 5 }      
+        
+    zxAnDsDhcpV4IfStatsReleasePkts   OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the release number of 
+                packets subjected to ipv4 dhcp snooping is received."
+        ::= { zxAnDsDhcpV4IfStatsEntry 6 } 
+        
+    zxAnDsDhcpV4IfStatsDeclinePkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the decline number of 
+                packets subjected to ipv4 dhcp snooping is received."
+        ::= { zxAnDsDhcpV4IfStatsEntry 7 }      
+        
+    zxAnDsDhcpV4IfStatsInformPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the inform number of 
+                packets subjected to ipv4 dhcp snooping is received."
+        ::= { zxAnDsDhcpV4IfStatsEntry 8 }
+        
+    zxAnDsDhcpV4IfStatsReset  OBJECT-TYPE
+        SYNTAX      INTEGER 
+            { 
+                reset(1) 
+            }        
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+               "This object indicates whether ipv4 dhcp statistics
+                is cleared at this interface. 
+                
+                If this object is set to 'reset(1)', ipv4 dhcp
+                statistics at this interface will be cleared."
+        ::= { zxAnDsDhcpV4IfStatsEntry 100 }
+        
+     
+
+--------------------------------------------------------------------------------
+-- 3. IPv6 DHCP Snooping Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 3.1 IPv6 DHCP Snooping Global Objects
+--------------------------------------------------------------------------------
+    zxAnDsDhcpV6GlobalObjects 
+    OBJECT IDENTIFIER ::= { zxAnDsDhcpV6Objects 1 }  
+         
+    zxAnDsDhcpV6GlobalEnable OBJECT-TYPE
+       SYNTAX      INTEGER
+           {
+               enabled(1),   
+               disabled(2)
+           }
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION
+           "Enable or disable DHCPv6 snooping."
+       DEFVAL { disabled }               
+       ::= { zxAnDsDhcpV6GlobalObjects 1 }   
+              
+       
+    zxAnDsDhcpV6OnlineUsers OBJECT-TYPE
+       SYNTAX      Integer32 
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+           "The total number of DHCPv6 snooping online users."           
+       ::= { zxAnDsDhcpV6GlobalObjects 3 }  
+  
+
+--------------------------------------------------------------------------------
+-- 3.2 IPv6 DHCP Snooping VLAN Table
+--------------------------------------------------------------------------------
+
+    zxAnDsDhcpV6VlanTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV6VlanEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "This table provides the mechanism to control 
+                ipv6 dhcp snooping per vlan. 
+                
+                When a vlan is created in a device supporting this
+                table, a corresponding entry of this table will be added.
+                
+                When a vlan is destroyed in a device supporting this
+                table, a corresponding entry of this table will be deleted." 
+        ::= { zxAnDsDhcpV6Objects 2 }
+    
+    zxAnDsDhcpV6VlanEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDsDhcpV6VlanEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "A row instance contains the configuration to create
+                or destroy ipv6 dhcp snooping at each existing vlan."
+        INDEX { zxAnDsDhcpV6Vid } 
+        ::= { zxAnDsDhcpV6VlanTable 1 }
+    
+    ZxAnDsDhcpV6VlanEntry ::= SEQUENCE {
+        zxAnDsDhcpV6Vid           VlanId,
+        zxAnDsDhcpV6VlanRowStatus RowStatus
+        }
+ 
+    zxAnDsDhcpV6Vid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the vlan number on which 
+                ipv6 dhcp snooping feature is configured." 
+    ::= { zxAnDsDhcpV6VlanEntry 1 }
+    
+    zxAnDsDhcpV6VlanRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+               "This object is used to manage the creation and deletion
+                of rows in this table. It only supports 'active(1)'
+                ,'createAndGo(4)'and 'destroy(6)' value.
+                
+                If this object is set to 'createAndGo(4)', the vlan 
+                number on which ipv6 dhcp snooping is active(1).
+                
+                Setting this object value to destroy(6),the vlan number 
+                on which ipv6 dhcp snooping is deleted."
+    ::= { zxAnDsDhcpV6VlanEntry 2 }
+        
+--------------------------------------------------------------------------------
+-- 3.4 IPv6 DHCP Snooping Bindings Table
+--------------------------------------------------------------------------------
+    
+    zxAnDsDhcpV6IpBindingTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV6IpBindingEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "This table provides the ipv6 dhcp snooping 
+                bindings information learnt by the interface
+                capable of this feature.
+                
+                The interfaces for which this feature must 
+                be applicable are:
+                IfType = Physical Interface(1)
+                for PON card:
+                SubIfType = ONU service port sub-interface(3)
+                for DSL card:
+                SubIfType = DSL PVC sub-interface(6)"   
+        ::= { zxAnDsDhcpV6Objects 6 }
+    
+    zxAnDsDhcpV6IpBindingEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDsDhcpV6IpBindingEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "A row instance contains the interface number,
+                Mac address, service vlan number, IP address, 
+                IP address prefixlen,leased time, 
+                user vlan number, and status of this instance."
+        INDEX { ifIndex,
+                zxAnSubIfIndex,
+                zxAnDsDhcpV6IpBindingMac,
+                zxAnDsDhcpV6IpBindingSVid,
+                zxAnDsDhcpV6IpBindingIpAddress} 
+        ::= { zxAnDsDhcpV6IpBindingTable 1 }
+    
+    ZxAnDsDhcpV6IpBindingEntry ::= SEQUENCE {
+        zxAnDsDhcpV6IpBindingMac            MacAddress,
+        zxAnDsDhcpV6IpBindingSVid           VlanId,
+        zxAnDsDhcpV6IpBindingIpAddress      InetAddress,
+        zxAnDsDhcpV6IpBindingIpPfxLen       InetAddressPrefixLength,
+        zxAnDsDhcpV6IpBindingLeasedTime     DateAndTime, 
+        zxAnDsDhcpV6IpBindingUserVid        VlanId,
+        zxAnDsDhcpV6IpBindingDuid           DisplayString,
+        zxAnDsDhcpV6IpBindingIaid           Unsigned32,
+        zxAnDsDhcpV6IpBindingIaType         INTEGER,
+        zxAnDsDhcpV6IpBindingRowStatus      RowStatus
+        }
+    
+    zxAnDsDhcpV6IpBindingMac  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the MAC address of an
+                ipv6 dhcp client host."
+        ::= { zxAnDsDhcpV6IpBindingEntry 1 }
+        
+    zxAnDsDhcpV6IpBindingSVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the service vlan to which 
+                an ipv6 dhcp client host belongs. 
+                Vlan range is from 1 to 4094."
+        ::= { zxAnDsDhcpV6IpBindingEntry 2 }
+    
+    zxAnDsDhcpV6IpBindingIpAddress OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the allocated ipv6 address of
+                an ipv6 dhcp client host."
+        ::= { zxAnDsDhcpV6IpBindingEntry 3 }
+        
+    zxAnDsDhcpV6IpBindingIpPfxLen OBJECT-TYPE
+        SYNTAX      InetAddressPrefixLength
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the allocated ipv6 address pfxlen of
+                an ipv6 dhcp client host."
+        ::= { zxAnDsDhcpV6IpBindingEntry 4 }
+
+    zxAnDsDhcpV6IpBindingLeasedTime OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the leased time of this ipv6 dhcp
+                bindings.The format is 2d-1d-1d,1d:1d:1d.1d.
+                For example,  1992-5-26,13:30:15.0."
+        ::= { zxAnDsDhcpV6IpBindingEntry 5 }
+         
+    zxAnDsDhcpV6IpBindingUserVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the vlan to which 
+                an ipv6 dhcp client host belongs. 
+                Vlan range is from 1 to 4094.."
+        ::= { zxAnDsDhcpV6IpBindingEntry 6 }
+        
+    zxAnDsDhcpV6IpBindingDuid OBJECT-TYPE
+        SYNTAX      DisplayString( SIZE(3..40))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+               "This object indicates the DUID(DHCP Unique Identifier) of 
+                this DHCPv6 IP binding." 
+        ::= { zxAnDsDhcpV6IpBindingEntry 7 }
+        
+    zxAnDsDhcpV6IpBindingIaid OBJECT-TYPE
+        SYNTAX      Unsigned32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+               "This object indicates the IAID(Identity Association) of 
+                this DHCPv6 IP binding." 
+        ::= { zxAnDsDhcpV6IpBindingEntry 8 }  
+    
+    zxAnDsDhcpV6IpBindingIaType OBJECT-TYPE
+        SYNTAX      INTEGER {
+            iaNa(3),
+            iaTa(4),
+            iaPd(25)
+        }        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+               "This object indicates the type of IA(Identity Association) of 
+                this DHCPv6 IP binding." 
+        ::= { zxAnDsDhcpV6IpBindingEntry 9 }
+            
+    zxAnDsDhcpV6IpBindingRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+               "This object is used to manage the deletion of rows
+                in this table. This object only supports 'active(1)', 
+                and 'destroy(6)' value. 
+
+                Whenever an ipv6 dhcp binding is learnt by the interface, 
+                an entry will be created in this table with its RowStatus
+                object set to 'active(1)'. 
+                
+                Setting this object value to 'destroy(6)' will clear 
+                the ipv6 dhcp binding information."
+        ::= { zxAnDsDhcpV6IpBindingEntry 50}        
+    
+                                                         
+--------------------------------------------------------------------------------
+-- 3.7 IPv6 DHCP Snooping Session Limit Table
+--------------------------------------------------------------------------------
+
+    zxAnDsDhcpV6IfSessionLimitTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV6IfSessionLimitEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+               "This object specifies the maximum number of DHCPv6 bindings
+                allowed on this interface. This objects value will limit
+                the number of entries in zxAnDsDhcpV6IpBindingTable 
+                
+                The interfaces for which this feature must be applicable 
+                are:
+                IfType = Physical Interface(1)
+                SubIfType = ONU vport sub-interface(1)"
+        ::= { zxAnDsDhcpV6Objects 9 }
+    
+    zxAnDsDhcpV6IfSessionLimitEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDsDhcpV6IfSessionLimitEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current 
+        DESCRIPTION 
+               "A row instance contains the configuration of binding limit 
+                at each interface capable of this feature."
+        INDEX { ifIndex, 
+                zxAnSubIfIndex }
+        ::= { zxAnDsDhcpV6IfSessionLimitTable 1 }
+    
+    ZxAnDsDhcpV6IfSessionLimitEntry ::= SEQUENCE {
+        zxAnDsDhcpV6IfSessionLimit    Integer32
+         }
+       
+    zxAnDsDhcpV6IfSessionLimit OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+               "This object specifies the maximum number of DHCPv6 bindings
+                allowed on this interface. This objects value will limit
+                the number of entries in zxAnDsDhcpV6IpBindingTable.when 
+                the value is 0, that means no limit in the user interface."
+        DEFVAL { 0 }
+        ::= { zxAnDsDhcpV6IfSessionLimitEntry 1 }
+        
+--------------------------------------------------------------------------------
+-- 3.8 IPv6 DHCP Snooping Packets Statistics Table
+--------------------------------------------------------------------------------
+
+    zxAnDsDhcpV6IfStatsTable OBJECT-TYPE         
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV6IfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+               "This table provides the ipv6 dhcp statistics 
+                information received by by the interface
+                capable of this feature.
+                
+                The interfaces for which this feature must 
+                be applicable are:
+                IfType = Physical Interface(1)
+                for PON card:
+                SubIfType = ONU vport sub-interface(2)
+                for DSL card:
+                SubIfType = DSL PVC sub-interface(6)"
+        ::= { zxAnDsDhcpV6Objects 50 }
+
+    zxAnDsDhcpV6IfStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnDsDhcpV6IfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+               "A row instance contains the interface number,
+                ipv6 dhcp packet information and reset ipv6
+                dhcp packet statistics."
+        INDEX { ifIndex, 
+                zxAnSubIfIndex}
+        ::= {zxAnDsDhcpV6IfStatsTable 1 }
+
+    ZxAnDsDhcpV6IfStatsEntry ::= SEQUENCE {
+        zxAnDsDhcpV6IfStatsSolicitPkts    Counter32,
+        zxAnDsDhcpV6IfStatsAdvertisePkts  Counter32,
+        zxAnDsDhcpV6IfStatsRequestPkts    Counter32,
+        zxAnDsDhcpV6IfStatsConfirmPkts    Counter32,
+        zxAnDsDhcpV6IfStatsRenewPkts      Counter32,
+        zxAnDsDhcpV6IfStatsRebindPkts     Counter32,
+        zxAnDsDhcpV6IfStatsReplyPkts      Counter32,        
+        zxAnDsDhcpV6IfStatsReleasePkts    Counter32,        
+        zxAnDsDhcpV6IfStatsDeclinePkts    Counter32,
+        zxAnDsDhcpV6IfStatsReconfigPkts   Counter32,        
+        zxAnDsDhcpV6IfStatsInformPkts     Counter32,
+        zxAnDsDhcpV6IfStatsRelayFwdPkts   Counter32,
+        zxAnDsDhcpV6IfStatsRelayRlyPkts   Counter32,        
+        zxAnDsDhcpV6IfStatsReset          INTEGER
+        }
+    
+    zxAnDsDhcpV6IfStatsSolicitPkts    OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the solicit number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 1 }      
+        
+    zxAnDsDhcpV6IfStatsAdvertisePkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the advertise number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 2 }         
+       
+    zxAnDsDhcpV6IfStatsRequestPkts    OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the request number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 3 }      
+        
+    zxAnDsDhcpV6IfStatsConfirmPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the confirm number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 4 } 
+        
+    zxAnDsDhcpV6IfStatsRenewPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the renew number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 5 }      
+        
+    zxAnDsDhcpV6IfStatsRebindPkts   OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the rebind number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 6 } 
+        
+    zxAnDsDhcpV6IfStatsReplyPkts   OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the reply number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 7 } 
+        
+    zxAnDsDhcpV6IfStatsReleasePkts   OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the release number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 8 }       
+
+    zxAnDsDhcpV6IfStatsDeclinePkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the decline number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 9 }      
+        
+    zxAnDsDhcpV6IfStatsReconfigPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the reconfigure number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 10 }
+        
+    zxAnDsDhcpV6IfStatsInformPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the Information-request number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 11 }    
+        
+    zxAnDsDhcpV6IfStatsRelayFwdPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the relay-forward number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 12 }
+        
+    zxAnDsDhcpV6IfStatsRelayRlyPkts  OBJECT-TYPE
+        SYNTAX      Counter32        
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+               "This object indicates the relay-reply number of 
+                packets subjected to ipv6 dhcp snooping is received."
+        ::= { zxAnDsDhcpV6IfStatsEntry 13 }
+                            
+    zxAnDsDhcpV6IfStatsReset  OBJECT-TYPE
+        SYNTAX      INTEGER 
+            { 
+                reset(1) 
+            }        
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+               "This object indicates whether ipv6 dhcp statistics
+                is cleared at this interface. 
+                
+                If this object is set to 'reset(1)', ipv6 dhcp
+                statistics at this interface will be cleared."
+        ::= { zxAnDsDhcpV6IfStatsEntry 100 }   
+
+--------------------------------------------------------------------------------
+-- 4. IP Source Guard Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 4.1 IP Source Guard Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnIpSrcGuardGlobalObjects
+                               OBJECT IDENTIFIER ::= { zxAnIpSrcGuardObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 4.1.1 IP Spoofing Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnIpsgIpSpoofingGlobalObjects
+                         OBJECT IDENTIFIER ::= { zxAnIpSrcGuardGlobalObjects 1 }
+
+    zxAnIpsgIpSpoofTrapRptInterval OBJECT-TYPE
+        SYNTAX      Integer32(1..300)
+        UNITS       "minutes"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The interval that the same IP spoofing trap report."
+        DEFVAL  { 5 }
+        ::= { zxAnIpsgIpSpoofingGlobalObjects 6 }
+
+    zxAnIpsgIpSpoofingBlockIfEnable  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable IP source guard blocking port function."
+        DEFVAL  { disabled }
+        ::= { zxAnIpsgIpSpoofingGlobalObjects 7 }
+
+    zxAnIpsgIpSpoofingBlockDuration  OBJECT-TYPE
+        SYNTAX      Integer32(1..120)
+        UNITS       "minutes"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Indicates the port blocked duration."
+        DEFVAL  { 5 }
+        ::= { zxAnIpsgIpSpoofingGlobalObjects 8 }
+
+    zxAnIpsgIpSpoofingTrapEnable  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable zxAnIpsgIpSpoofingTrap."
+        DEFVAL  { disabled }
+        ::= { zxAnIpsgIpSpoofingGlobalObjects 9 }
+
+     zxAnIpSrcGuardEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),   
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable IP source guard."
+        DEFVAL  { disabled }
+        ::= { zxAnIpSrcGuardGlobalObjects 21 }
+
+    zxAnIpSrcGuardBindType OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            ip(1),
+            ipAndMac(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "IP source guard binding type. 
+             ip(1) - IP source guard bind IP address only.
+             ipAndMac(2) - IP source guard bind both IP address and MAC 
+                           address."
+        DEFVAL  { ip }
+        ::= { zxAnIpSrcGuardGlobalObjects 22 }
+
+--------------------------------------------------------------------------------
+-- 4.2 IP Source Guard Interface Table
+--------------------------------------------------------------------------------
+
+    zxAnIpSrcGuardIfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIpSrcGuardIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table provides the mechanism to enable or disable IP Source 
+             Guard at each user port capable of this feature. 
+             
+             When DHCP Snooping is enabled at an interface, a list of IP 
+             addresses is obtained through DHCP Snooping for this particular 
+             interface. another list of IP addresses is obtained through static 
+             configuration.
+             
+             If IP Source Guard at this interface and the VLAN number on which 
+             IP Source Guard at this interface is enabled, only traffic from 
+             these IP addresses is allowed to pass through the interface.
+             
+             The interfaces for which this feature must be applicable are:
+             IfType = Physical Interface(1)
+             for PON card:
+             SubIfType = ONU service port sub-interface(3)
+             for DSL card:
+             SubIfType = DSL PVC sub-interface(6)"
+        ::= { zxAnIpSrcGuardObjects 2 }
+
+    zxAnIpSrcGuardIfEntry OBJECT-TYPE
+        SYNTAX      ZxAnIpSrcGuardIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A row instance contains the configuration to enable or disable IP 
+             Source Guard at each user interface capable of this feature."
+        INDEX
+        {
+            ifIndex,
+            zxAnSubIfIndex
+        }
+        ::= { zxAnIpSrcGuardIfTable 1 }
+
+    ZxAnIpSrcGuardIfEntry ::= SEQUENCE {
+        zxAnIpSrcGuardIfEnable        TruthValue
+        }
+
+    zxAnIpSrcGuardIfEnable OBJECT-TYPE
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This object indicates whether IP Source Guard is enabled at this 
+             interface.If this object is set to 'true', IP Source Guard at this 
+             interface is enabled. 
+             
+             If IP Source Guard at this interface and the VLAN number on which 
+             IP Source Guard at this interface are both enabled, Traffic coming 
+             to this interface will be forwarded if it is from the list of IP 
+             addresses obtained through DHCP Snooping or static configuration.
+             Otherwise, it is denied. 
+             
+             If this object is set to 'false', IP Source Guard at this interface
+             is  disabled. 1-true,2-false."
+       DEFVAL  { false }
+       ::= { zxAnIpSrcGuardIfEntry 1 }
+
+
+--------------------------------------------------------------------------------
+-- 4.4 IPv4 Source Guard Objects
+--------------------------------------------------------------------------------
+
+    zxAnIpv4SrcGuardObjects   OBJECT IDENTIFIER ::= { zxAnIpSrcGuardObjects 20 }
+
+--------------------------------------------------------------------------------
+-- 4.4.1 IPv4 Source Guard IP Bindings Table
+--------------------------------------------------------------------------------
+
+    zxAnIpv4SrcGuardIpBindingTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIpv4SrcGuardIpBindingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table provides the information on static IPv4 addresses used 
+             for IP source guard purpose at each interface capable of this 
+             feature.
+             
+             The interfaces for which this feature must be applicable are:
+             IfType = Physical Interface(1)
+             for PON card:
+             SubIfType = ONU service port sub-interface(3)
+             for DSL card:
+             SubIfType = DSL PVC sub-interface(6)"
+        ::= { zxAnIpv4SrcGuardObjects 2 }
+
+    zxAnIpv4SrcGuardIpBindingEntry  OBJECT-TYPE
+        SYNTAX      ZxAnIpv4SrcGuardIpBindingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnIpv4SrcGuardIpBindingTable."
+        INDEX
+        {
+           ifIndex,
+           zxAnSubIfIndex,
+           zxAnIpv4SrcGuardIpBindIpAddress
+        }
+        ::= { zxAnIpv4SrcGuardIpBindingTable 1 }
+
+    ZxAnIpv4SrcGuardIpBindingEntry ::= SEQUENCE {
+        zxAnIpv4SrcGuardIpBindIpAddress     IpAddress,
+        zxAnIpv4SrcGuardIpBindMac           MacAddress,
+        zxAnIpv4SrcGuardIpBindType          INTEGER,
+        zxAnIpv4SrcGuardIpBindIpMask        IpAddress,
+        zxAnIpv4SrcGuardIpBindRowStatus     RowStatus
+        }
+
+    zxAnIpv4SrcGuardIpBindIpAddress OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "IP address."
+        ::= { zxAnIpv4SrcGuardIpBindingEntry 1 }
+
+    zxAnIpv4SrcGuardIpBindMac OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "MAC address.
+            FF-FF-FF-FF-FF-FF means N/A."
+        ::= { zxAnIpv4SrcGuardIpBindingEntry 2 }
+
+    zxAnIpv4SrcGuardIpBindType  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            static(1),
+            dynamic(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "IP address binding type.
+             If zxAnIpv4SrcGuardIpBindType is static(1), this item can't be 
+             inactive."    
+        ::= { zxAnIpv4SrcGuardIpBindingEntry 3 }
+        
+    zxAnIpv4SrcGuardIpBindIpMask OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "IP mask."
+        DEFVAL {"255.255.255.255"}       
+        ::= { zxAnIpv4SrcGuardIpBindingEntry 4 }
+
+    zxAnIpv4SrcGuardIpBindRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnIpv4SrcGuardIpBindingEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."                                   
+        ::= { zxAnIpv4SrcGuardIpBindingEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 4.5 IPv6 Source Guard Objects
+--------------------------------------------------------------------------------
+
+    zxAnIpv6SrcGuardObjects   OBJECT IDENTIFIER ::= { zxAnIpSrcGuardObjects 21 }
+
+--------------------------------------------------------------------------------
+-- 4.5.1 IPv6 Source Guard IP Bindings Table
+--------------------------------------------------------------------------------
+
+    zxAnIpv6SrcGuardIpBindingTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIpv6SrcGuardIpBindingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table provides the information on IPv6 addresses used for IP 
+             source guard purpose at each interface capable of this feature.  
+
+             The interfaces for which this feature must be applicable are:
+             IfType = Physical Interface(1)
+             for PON card:
+             SubIfType = ONU service port sub-interface(3)
+             for DSL card:
+             SubIfType = DSL PVC sub-interface(6)"
+        ::= { zxAnIpv6SrcGuardObjects 2 }
+
+    zxAnIpv6SrcGuardIpBindingEntry OBJECT-TYPE
+        SYNTAX      ZxAnIpv6SrcGuardIpBindingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnIpv6SrcGuardIpBindingTable."
+        INDEX
+        {
+           ifIndex,
+           zxAnSubIfIndex,
+           zxAnIpv6SrcGuardIpBindIpType,
+           zxAnIpv6SrcGuardIpBindIpAddress
+        }
+        ::= { zxAnIpv6SrcGuardIpBindingTable 1 }
+
+    ZxAnIpv6SrcGuardIpBindingEntry  ::= SEQUENCE {
+        zxAnIpv6SrcGuardIpBindIpType        InetAddressType,
+        zxAnIpv6SrcGuardIpBindIpAddress     InetAddressIPv6,
+        zxAnIpv6SrcGuardIpBindPfxLen        InetAddressPrefixLength,
+        zxAnIpv6SrcGuardIpBindMac           MacAddress,
+        zxAnIpv6SrcGuardIpBindType          INTEGER,
+        zxAnIpv6SrcGuardIpBindRowStatus     RowStatus
+        }
+        
+    zxAnIpv6SrcGuardIpBindIpType  OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "IP adress type."
+        ::= { zxAnIpv6SrcGuardIpBindingEntry 1 }
+
+    zxAnIpv6SrcGuardIpBindIpAddress  OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "IP adress."
+        ::= { zxAnIpv6SrcGuardIpBindingEntry 2 }
+
+    zxAnIpv6SrcGuardIpBindPfxLen  OBJECT-TYPE
+        SYNTAX      InetAddressPrefixLength
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "IP address prefix length."
+        ::= { zxAnIpv6SrcGuardIpBindingEntry 3 }
+
+    zxAnIpv6SrcGuardIpBindMac  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "MAC address."
+        ::= { zxAnIpv6SrcGuardIpBindingEntry 4 }
+
+    zxAnIpv6SrcGuardIpBindType  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            static(1),
+            dynamic(2),
+            ndUser(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current  
+        DESCRIPTION
+            "IP address binding type.
+             If zxAnIpv6SrcGuardBindType is static(1), this item can't be 
+             inactive."
+        ::= { zxAnIpv6SrcGuardIpBindingEntry 5 }
+
+    zxAnIpv6SrcGuardIpBindRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnIpv6SrcGuardIpBindingEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnIpv6SrcGuardIpBindingEntry 50}
+
+--------------------------------------------------------------------------------
+-- 5. DHCP Snooping Notifications
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 5.1 IP Source Guard Trap
+--------------------------------------------------------------------------------
+
+    zxAnIpsgIpSpoofingTrap NOTIFICATION-TYPE
+        OBJECTS 
+            {
+                zxAnIpsgIpSpoofingIfIndex, 
+                zxAnIpsgIpSpoofingSubIfIndex, 
+                zxAnIpsgIpSpoofingIpAddrType, 
+                zxAnIpsgIpSpoofingIpAddr,
+                zxAnIpsgIpSpoofingMac
+            }
+        STATUS  current
+        DESCRIPTION
+            "This notification means the agent has detected that the IP 
+             spoofing occurs."
+        ::= { zxAnIpSrcGuardTraps 1 }   
+        
+    zxAnIpsgIpSpoofingIfBlockedAlm        NOTIFICATION-TYPE
+        OBJECTS { 
+                    zxAnIpsgIpSpoofingIfIndex,
+                    zxAnIpsgIpSpoofingSubIfIndex
+                }
+        STATUS             current
+        DESCRIPTION
+           "It indicate that the user port was blocked when IP spoofing 
+           occured."
+       ::= { zxAnIpSrcGuardTraps 2 }            
+
+    zxAnIpsgIpSpoofingIfBlockedClr NOTIFICATION-TYPE
+        OBJECTS { 
+                    zxAnIpsgIpSpoofingIfIndex,
+                    zxAnIpsgIpSpoofingSubIfIndex
+                }
+        STATUS             current
+        DESCRIPTION
+           "It indicate that the user port was unblocked after a setting
+            interval."
+       ::= { zxAnIpSrcGuardTraps 3 }                    
+                
+-------------------------------------------------------------------
+-- 6. DHCP Snooping Conformance
+-------------------------------------------------------------------         
+    
+    zxAnDhcpSnoopingConformance  OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingMib 4 }
+    
+    zxAnDhcpSnoopingCompliances
+                         OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingConformance 1 }
+    zxAnDhcpSnoopingGroups
+                         OBJECT IDENTIFIER ::= { zxAnDhcpSnoopingConformance 2 }
+
+    zxAnDsDhcpV4Compliances MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+               "The compliance statement for implementing 
+                IPV4 dhcp snooping MIB."
+        MODULE  -- this module
+        MANDATORY-GROUPS { 
+                            zxAnDsDhcpV4VlanGroup,
+                            zxAnDsDhcpV4IpBindingGroup,
+                            zxAnDsDhcpV4IfSessionLimitGroup
+                            
+                         }
+        GROUP           zxAnDsDhcpV4IfStatsGroup
+        DESCRIPTION
+               "This group is mandatory only for the platform which supports
+                to statistic user port ipv4 dhcp packets."
+        ::= { zxAnDhcpSnoopingCompliances 1 }
+        
+    zxAnDsDhcpV6Compliances MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+               "The compliance statement for implementing 
+                IPV6 dhcp snooping MIB."
+        MODULE  -- this module
+        MANDATORY-GROUPS { 
+                            zxAnDsDhcpV6VlanGroup,
+                            zxAnDsDhcpV6IpBindingGroup,                                                     
+                            zxAnDsDhcpV6IfSessionLimitGroup                            
+                         }
+        GROUP           zxAnDsDhcpV6IfStatsGroup
+        DESCRIPTION
+               "This group is mandatory only for the platform which supports
+                to statistic user port ipv6 dhcp packets."
+        ::= { zxAnDhcpSnoopingCompliances 2 }
+        
+   zxAnIpSrcGuardCompliances MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+               "The compliance statement for implementing IP source guard MIB."
+        MODULE  -- this module
+        MANDATORY-GROUPS { 
+                            zxAnIpSrcGuardIfGroup,
+                            zxAnIpv4SrcGuardBindingGroup,
+                            zxAnIpv6SrcGuardBindingGroup,
+                            zxAnIpSrcGuardTrapGroup
+                         }
+        ::= { zxAnDhcpSnoopingCompliances 3 }        
+
+    zxAnDsDhcpV4VlanGroup OBJECT-GROUP
+        OBJECTS         { zxAnDsDhcpV4VlanRowStatus }
+        STATUS          current
+        DESCRIPTION
+               "The object is used to configure as well as 
+                show information regarding the ipv4 dhcp snooping 
+                feature per VLAN."
+        ::= { zxAnDhcpSnoopingGroups 1 }
+        
+    zxAnDsDhcpV4IpBindingGroup OBJECT-GROUP
+        OBJECTS         {                          
+                          zxAnDsDhcpV4IpBindingIpAddress,
+                          zxAnDsDhcpV4IpBindingLeasedTime,
+                          zxAnDsDhcpV4IpBindingUserVid,
+                          zxAnDsDhcpV4IpBindingRowStatus
+                        }
+        STATUS          current
+        DESCRIPTION
+               "A collection of objects which are used to delete as
+                well as show information regarding the ipv4 dhcp bindings
+                data."
+        ::= { zxAnDhcpSnoopingGroups 2 }
+    
+     
+    
+    zxAnDsDhcpV4IfSessionLimitGroup OBJECT-GROUP
+        OBJECTS         {
+                          zxAnDsDhcpV4IfSessionLimit                                              
+                              
+                        }
+        STATUS          current
+        DESCRIPTION
+               "The object is used to configure as well as
+                show information regarding the ipv4 dhcp  
+                session limit data."
+        ::= { zxAnDhcpSnoopingGroups 6 }     
+                 
+    zxAnDsDhcpV4IfStatsGroup OBJECT-GROUP
+        OBJECTS         { 
+                          zxAnDsDhcpV4IfStatsDiscoverPkts,
+                          zxAnDsDhcpV4IfStatsOfferPkts,
+                          zxAnDsDhcpV4IfStatsRequestPkts,
+                          zxAnDsDhcpV4IfStatsAckPkts,
+                          zxAnDsDhcpV4IfStatsNackPkts,
+                          zxAnDsDhcpV4IfStatsReleasePkts,
+                          zxAnDsDhcpV4IfStatsDeclinePkts,
+                          zxAnDsDhcpV4IfStatsInformPkts,
+                          zxAnDsDhcpV4IfStatsReset                  
+                        }
+        STATUS          current
+        DESCRIPTION
+               "A collection of objects which are used to reset as 
+                well ad show additional ipv4 dhcp snooping 
+                statistics information."
+        ::= { zxAnDhcpSnoopingGroups 7 }
+          
+    zxAnDsDhcpV6VlanGroup OBJECT-GROUP
+        OBJECTS         { zxAnDsDhcpV6VlanRowStatus }
+        STATUS          current
+        DESCRIPTION
+               "The object is used to configure as well as
+                show information regarding the ipv6 dhcp snooping 
+                feature per VLAN."
+        ::= { zxAnDhcpSnoopingGroups 30 }
+       
+    zxAnDsDhcpV6IpBindingGroup OBJECT-GROUP
+        OBJECTS         {                          
+                          zxAnDsDhcpV6IpBindingLeasedTime,
+                          zxAnDsDhcpV6IpBindingIpPfxLen,
+                          zxAnDsDhcpV6IpBindingUserVid,
+                          zxAnDsDhcpV6IpBindingRowStatus
+                        }
+        STATUS          current
+        DESCRIPTION
+               "A collection of objects which are used to delete as
+                well as show information regarding the ipv6 dhcp bindings
+                data."
+        ::= { zxAnDhcpSnoopingGroups 31 }
+      
+     
+    zxAnDsDhcpV6IfSessionLimitGroup OBJECT-GROUP
+        OBJECTS         {
+                          zxAnDsDhcpV6IfSessionLimit                                              
+                              
+                        }
+        STATUS          current
+        DESCRIPTION
+               "The object is used to configure as well as
+                show information regarding the ipv6 dhcp  
+                session limit data."
+        ::= { zxAnDhcpSnoopingGroups 34 }   
+
+    zxAnDsDhcpV6IfStatsGroup OBJECT-GROUP
+        OBJECTS         { 
+                          zxAnDsDhcpV6IfStatsSolicitPkts,
+                          zxAnDsDhcpV6IfStatsAdvertisePkts,
+                          zxAnDsDhcpV6IfStatsRequestPkts,
+                          zxAnDsDhcpV6IfStatsConfirmPkts,
+                          zxAnDsDhcpV6IfStatsRenewPkts,
+                          zxAnDsDhcpV6IfStatsRebindPkts,
+                          zxAnDsDhcpV6IfStatsReplyPkts,        
+                          zxAnDsDhcpV6IfStatsReleasePkts,        
+                          zxAnDsDhcpV6IfStatsDeclinePkts,
+                          zxAnDsDhcpV6IfStatsReconfigPkts,        
+                          zxAnDsDhcpV6IfStatsInformPkts,
+                          zxAnDsDhcpV6IfStatsRelayFwdPkts,
+                          zxAnDsDhcpV6IfStatsRelayRlyPkts,        
+                          zxAnDsDhcpV6IfStatsReset                
+                        }
+        STATUS          current
+        DESCRIPTION
+               "A collection of objects which are used to reset as 
+                well ad show additional ipv6 dhcp snooping 
+                statistics information."
+        ::= { zxAnDhcpSnoopingGroups 35 }    
+                 
+     zxAnIpSrcGuardIfGroup OBJECT-GROUP
+        OBJECTS         { zxAnIpSrcGuardIfEnable }
+        STATUS          current
+        DESCRIPTION
+               "The object is used to configure as well as
+                show information regarding the IP source guard 
+                feature per user interface."
+        ::= { zxAnDhcpSnoopingGroups 36 }        
+  
+    
+     zxAnIpv4SrcGuardBindingGroup OBJECT-GROUP
+        OBJECTS         {
+                          zxAnIpv4SrcGuardIpBindMac,
+                          zxAnIpv4SrcGuardIpBindType,
+                          zxAnIpv4SrcGuardIpBindRowStatus
+                        }
+        STATUS          current
+        DESCRIPTION
+               "A collection of objects which are used to configure as
+                well as show information regarding the ipv4 source guard 
+                bindings data."
+        ::= { zxAnDhcpSnoopingGroups 38 }
+        
+     zxAnIpv6SrcGuardBindingGroup OBJECT-GROUP
+        OBJECTS         {
+                          zxAnIpv6SrcGuardIpBindPfxLen,
+                          zxAnIpv6SrcGuardIpBindMac,
+                          zxAnIpv6SrcGuardIpBindType,
+                          zxAnIpv6SrcGuardIpBindRowStatus
+                        }
+        STATUS          current
+        DESCRIPTION
+               "A collection of objects which are used to configure as
+                well as show information regarding the ipv6 source guard 
+                bindings data."
+        ::= { zxAnDhcpSnoopingGroups 39 }
+            
+   zxAnIpSrcGuardTrapGroup OBJECT-GROUP
+        OBJECTS         { zxAnIpsgIpSpoofingTrap }
+        STATUS          current
+        DESCRIPTION
+               "The object is used to indicate the IP spoofing notification."
+        ::= { zxAnDhcpSnoopingGroups 40 }         
+END

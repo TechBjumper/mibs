@@ -1,0 +1,371 @@
+ZTE-AN-LOOPBACKDETECT-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+        ifIndex            
+            FROM IF-MIB            
+        Integer32,OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE            
+            FROM SNMPv2-SMI            
+        zxAnSubIfIndex        
+            FROM ZTE-AN-IF-MIB
+        zxAnOam   
+            FROM ZTE-AN-SMI;
+
+    zxAnLoopbackDetectMib MODULE-IDENTITY 
+        LAST-UPDATED "201211010000Z"
+        ORGANIZATION 
+            "ZTE Corporation"
+        CONTACT-INFO 
+            "ZTE NMS dept"
+        DESCRIPTION 
+            "This MIB defines managed objects of ZTE loopback detection
+            management. "
+        REVISION      "201211010000Z"
+        DESCRIPTION   "Initial version of this MIB module."
+        ::= { zxAnOam 20 }
+        
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnLoopbackDetectGlobalObjects
+-- 2. zxAnLoopbackDetectIfConfTable
+-- 3. zxAnLoopbackDetectIfStatusTable
+-- 4. zxAnLoopbackManualDetectIfTable
+
+-- Following notification objects are defined.
+-- 21. Loopback Detection Notification
+
+--------------------------------------------------------------------------------   
+
+zxAnLoopbackDetectGlobalObjects 
+                            OBJECT IDENTIFIER ::= { zxAnLoopbackDetectMib 1 }
+
+zxAnLoopbackDetectObjects   OBJECT IDENTIFIER ::= { zxAnLoopbackDetectMib 2 }
+
+zxAnLoopbackDetectNotifications 
+                            OBJECT IDENTIFIER ::= { zxAnLoopbackDetectMib 3 }
+      
+--------------------------------------------------------------------------------
+-- 1. zxAnLoopbackDetectGlobalObjects
+--------------------------------------------------------------------------------
+
+    zxAnLoopbackDetectGlobalEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                enabled(1),
+                disabled(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The global switch of loopback detection function.
+             enabled(1) means the global switch is on,
+             disabled(2) means the global switch is off."
+        DEFVAL      { disabled }
+        ::= { zxAnLoopbackDetectGlobalObjects 1 }  
+    
+    zxAnLoopbackDetectIfShutdown OBJECT-TYPE
+        SYNTAX     INTEGER
+            {
+                enabled(1),
+                disabled(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS current
+        DESCRIPTION
+            "Indicate whether shutdown the upstream flow of the interface which
+             is loopbackd.
+             enabled(1) means shutdown.
+             disabled(2) means not shutdown."
+        DEFVAL      { disabled }
+        ::= { zxAnLoopbackDetectGlobalObjects 2 }
+
+    
+    zxAnLoopbackDetectRechkInterval OBJECT-TYPE
+        SYNTAX      Integer32(1..3600)
+        UNITS       "seconds" 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "If a interface is loopbackd, the systerm will start
+             the rechecking mechanism.  
+             This object indicates the recheck interval."
+        DEFVAL      { 10 }
+        ::= { zxAnLoopbackDetectGlobalObjects 3 }
+    
+    zxAnLoopbackDetectActiveEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+          enabled(1),
+          disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The global switch of the active loopback detection function.
+             enabled(1) means the switch is on,
+             disabled(2) means the switch is off. 
+             For C600 Series, the default value is enabled.
+             For non-C600 Series, the default value is disabled."
+        ::= { zxAnLoopbackDetectGlobalObjects 4 }  
+  
+    zxAnLoopbackDetectActiveInterval OBJECT-TYPE
+        SYNTAX      Integer32(1..900)
+        UNITS       "seconds" 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The interval of the active loopback detection.
+             For C600 Series, the default value is 30.
+             For non-C600 Series, the default value is 120."
+        ::= { zxAnLoopbackDetectGlobalObjects 5 }
+
+    zxAnLoopbackSelfLoopCheckEthType OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The ethernet type of the self-loop detection packet. 
+             It is only defined for C600 series."
+        DEFVAL      { 35075 }  --  0x8903
+        ::= { zxAnLoopbackDetectGlobalObjects 6 }
+
+--------------------------------------------------------------------------------
+-- 2. zxAnLoopbackDetectIfConfTable
+--------------------------------------------------------------------------------  
+    zxAnLoopbackDetectIfConfTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnLoopbackDetectIfConfEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table represents the interface loopback detection 
+             configuration."
+        ::= { zxAnLoopbackDetectObjects 2 }
+   
+    zxAnLoopbackDetectIfConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnLoopbackDetectIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnLoopbackDetectIfConfTable.
+             Only physical port can be configured."
+        INDEX { ifIndex }
+        ::= { zxAnLoopbackDetectIfConfTable 1 }
+   
+    ZxAnLoopbackDetectIfConfEntry ::=
+        SEQUENCE { 
+            zxAnLoopbackDetectIfEnable        INTEGER,
+            zxAnLoopbackDetectIfActiveEnable  INTEGER,
+            zxAnLoopbackDetectIfStartVid      Integer32,
+            zxAnLoopbackDetectIfEndVid        Integer32,
+            zxAnLoopbackDetectIfConfMode      INTEGER
+         }
+
+    zxAnLoopbackDetectIfEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+            enabled(1),
+            disabled(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Indicate the interface switch of loopback detection function.
+             enabled(1) means the interface switch is on,
+             disabled(2) means the interface switch is off.
+             For non-C600 series, the default value is disabled.
+             For C600 series, it is just used as alarm switch and the default 
+             value is enabled."
+        ::= { zxAnLoopbackDetectIfConfEntry 1 }
+  
+    zxAnLoopbackDetectIfActiveEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Indicate the interface switch of the active loopback detection 
+             function.
+             enabled(1) means the switch is on,
+             disabled(2) means the switch is off.
+             For C600 series, the default value is enabled.
+             For non-C600 series, the default value is disabled."
+        ::= { zxAnLoopbackDetectIfConfEntry 2 }
+  
+    zxAnLoopbackDetectIfStartVid OBJECT-TYPE
+        SYNTAX      Integer32 (1..4094 | 65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The starting VLAN ID of the active loopback detection.
+             A value of '65535' means that the starting VLAN ID is not 
+             configured."
+        DEFVAL      { 65535 }
+        ::= { zxAnLoopbackDetectIfConfEntry 3 }
+  
+    zxAnLoopbackDetectIfEndVid OBJECT-TYPE
+        SYNTAX      Integer32 (1..4094 | 65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The ending VLAN ID of the active loopback detection.
+             A value of '65535' means that the ending VLAN ID is not 
+             configured.
+             zxAnLoopbackDetectIfEndVid must be greater than or equal to 
+             zxAnLoopbackDetectIfStartVid. 
+             Only one VLAN ID is configured When zxAnLoopbackDetectIfEndVid 
+             is equal to zxAnLoopbackDetectIfStartVid. "
+        DEFVAL      { 65535 }
+        ::= { zxAnLoopbackDetectIfConfEntry 4 }
+
+    zxAnLoopbackDetectIfConfMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+            autoDetection(1),
+            userSpecifiedVid(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The configured loopback detection mode.
+             autoDetection means the loopback detection VLAN ID is specified by
+             the VLAN translation configuration in user-side and the VLAN member 
+             list in network-side.
+             userSpecifiedVid means the loopback detection VLAN ID is specified 
+             by the zxAnLoopbackDetectIfStartVid and zxAnLoopbackDetectIfEndVid.
+             It is only defined for C600 series."
+        DEFVAL      { autoDetection } 
+        ::= { zxAnLoopbackDetectIfConfEntry 5 } 
+
+--------------------------------------------------------------------------------
+-- 3. zxAnLoopbackDetectIfStatusTable
+--------------------------------------------------------------------------------
+    zxAnLoopbackDetectIfStatusTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnLoopbackDetectIfStatusEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table represents the loopbacked interfaces."
+        ::= { zxAnLoopbackDetectObjects 3 }
+    
+    zxAnLoopbackDetectIfStatusEntry OBJECT-TYPE
+        SYNTAX      ZxAnLoopbackDetectIfStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnLoopbackDetectIfStatusTable."
+        INDEX { ifIndex, zxAnSubIfIndex } 
+        ::= { zxAnLoopbackDetectIfStatusTable 1 }
+    
+    ZxAnLoopbackDetectIfStatusEntry ::=
+        SEQUENCE { 
+            zxAnLoopbackDetectVid         Integer32,
+            zxAnLoopbackDetectIfStatus    INTEGER
+         }
+
+    zxAnLoopbackDetectVid OBJECT-TYPE
+        SYNTAX      Integer32(1..4094)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Indicate the VLAN ID when the interface is loopbackd."
+        ::= { zxAnLoopbackDetectIfStatusEntry 1 }
+
+    
+    zxAnLoopbackDetectIfStatus OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+            loopbacked(1),
+            interfaceShutdown(2),
+            loopbackCleared(3),
+            suspectedLoopback(4)
+            }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Indicate the interface status when the interface is loopbackd:
+             loopbacked(1) means the interface is loopbacked,
+             interfaceShutdown(2) means the interface is loopbacked, 
+             and shutdown the upstream flow,
+             loopbackCleared(3) means the loopback is recoverd.
+             suspectedLoopback(4) means there is no loopback in fact because of 
+             STP and VLAN configuration, but the loopback packet has reached the
+             device. It is only defined for C600 series."
+        ::= { zxAnLoopbackDetectIfStatusEntry 2 }
+
+--------------------------------------------------------------------------------
+-- 4. zxAnLoopbackManualDetectIfTable
+--------------------------------------------------------------------------------    
+     zxAnLoopbackManualDetectIfTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnLoopbackManualDetectIfEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table provides the parameters to start an interface manual 
+            loopback detection.
+            The parameters cann't be read after starting the detection."
+        ::= { zxAnLoopbackDetectObjects 4 }
+    
+    zxAnLoopbackManualDetectIfEntry OBJECT-TYPE
+        SYNTAX      ZxAnLoopbackManualDetectIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnLoopbackManualDetectIfTable."
+        INDEX { ifIndex, zxAnSubIfIndex } 
+        ::= { zxAnLoopbackManualDetectIfTable 1 }
+    
+    ZxAnLoopbackManualDetectIfEntry ::=
+        SEQUENCE {
+            zxAnLoopbackManualDetectIfAction      INTEGER,
+            zxAnLoopbackManualDetectIfVid         Integer32,
+            zxAnLoopbackManualDetectIfPkts        Integer32
+         }
+    
+    zxAnLoopbackManualDetectIfAction    OBJECT-TYPE
+        SYNTAX      INTEGER{
+            start (1)
+        } 
+        MAX-ACCESS      read-write 
+        STATUS          current 
+        DESCRIPTION     "The interface manual loopback detection action."
+        ::= { zxAnLoopbackManualDetectIfEntry 1 }
+         
+    zxAnLoopbackManualDetectIfVid OBJECT-TYPE
+        SYNTAX      Integer32(1..4094 | 65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The VLAN ID of the interface manual loopback detection.
+            A value of '65535' means that the VLAN ID is not configured."
+        DEFVAL      { 65535 }
+        ::= { zxAnLoopbackManualDetectIfEntry 2 }
+    
+    zxAnLoopbackManualDetectIfPkts OBJECT-TYPE
+        SYNTAX      Integer32(1..10)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The packet number of the interface manual loopback detection."
+        DEFVAL      { 3 }
+        ::= { zxAnLoopbackManualDetectIfEntry 3 } 
+          
+--------------------------------------------------------------------------------
+-- 21. Loopback Detection Notification
+--------------------------------------------------------------------------------   
+  
+    zxAnIfLoopbackedAlm NOTIFICATION-TYPE
+        OBJECTS { zxAnLoopbackDetectIfStatus }   
+        STATUS      current
+        DESCRIPTION
+           "A zxAnIfLoopbackedAlm trap is sent when the interface is 
+           loopbacked."
+        ::= { zxAnLoopbackDetectNotifications 1 }
+
+    zxAnIfLoopbackedClr NOTIFICATION-TYPE
+        OBJECTS { zxAnLoopbackDetectIfStatus }   
+        STATUS      current
+        DESCRIPTION
+           "A zxAnIfLoopbackedClr trap is sent when the interface's
+           loopback has been cleared."
+        ::= { zxAnLoopbackDetectNotifications 2 }
+
+    END
+

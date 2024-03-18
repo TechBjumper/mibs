@@ -1,0 +1,1033 @@
+
+ZTE-AN-FILE-MIB    DEFINITIONS ::= BEGIN
+    IMPORTS     
+        RowStatus                         FROM SNMPv2-TC
+        DisplayString                     FROM SNMPv2-TC
+        TruthValue                        FROM SNMPv2-TC
+        DateAndTime                       FROM SNMPv2-TC
+        MODULE-IDENTITY                   FROM SNMPv2-SMI
+        OBJECT-TYPE                       FROM SNMPv2-SMI
+        Integer32                         FROM SNMPv2-SMI
+        IpAddress                         FROM SNMPv2-SMI
+        Counter64                         FROM SNMPv2-SMI
+        Unsigned32                        FROM SNMPv2-SMI
+        NOTIFICATION-TYPE                 FROM SNMPv2-SMI
+        zxAccessNode                      FROM ZTE-AN-SMI
+        zxAnSystem                        FROM ZTE-AN-SMI
+        MODULE-COMPLIANCE                 FROM SNMPv2-CONF
+        OBJECT-GROUP                      FROM SNMPv2-CONF
+        NOTIFICATION-GROUP                FROM SNMPv2-CONF
+        InetAddressType                   FROM INET-ADDRESS-MIB
+        InetAddress                       FROM INET-ADDRESS-MIB;
+
+    zxAnFileMib  MODULE-IDENTITY
+        LAST-UPDATED    "201105260000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Hou Yuan     ZTE Corporation
+                         Mail: hou.yuan@zte.com.cn
+                         Tel : +86-21-68897315"
+        DESCRIPTION     "This MIB defines zte Access Node software management."
+
+        REVISION        "201105260000Z"
+        DESCRIPTION
+        "Initial version of this MIB module."
+        ::=  {  zxAnSystem  50  }  
+
+-------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. Load Configuration
+-- 2. File FTP Operation Objects
+-- 3. File Software Objects
+-- 3.1 File Table
+-- 3.2 File Synchronization Objects
+-- 4. File Explorer Objects
+-- 4.1 File Explorer Global Objects
+-- 4.2 File List Table
+
+-- Following conformance information is defined.
+-- 31. zxAnSwConformance
+
+-------------------------------------------------------------------------------
+   zxAnFileGlobalObjects        OBJECT IDENTIFIER::={zxAnFileMib              1}
+   zxAnFileObjects              OBJECT IDENTIFIER::={zxAnFileMib              2}
+   zxAnFileNotifications        OBJECT IDENTIFIER::={zxAnFileMib              3}
+   zxAnFileConformance          OBJECT IDENTIFIER::={zxAnFileMib              4}
+
+   zxAnFileFtpOperObjects       OBJECT IDENTIFIER::={zxAnFileObjects          1}
+   zxAnFileFtpOperGlobalObjects OBJECT IDENTIFIER::={zxAnFileFtpOperObjects   1}
+
+   zxAnFileSoftwareObjects      OBJECT IDENTIFIER::={zxAnFileObjects          2}
+   zxAnFileExplorerObjects      OBJECT IDENTIFIER::={zxAnFileObjects          3}
+   zxAnFileExplorerGlobalObjects 
+                                OBJECT IDENTIFIER::={zxAnFileExplorerObjects  1}
+   zxAnFileSyncObjects          OBJECT IDENTIFIER::={zxAnFileSoftwareObjects 10}
+   zxAnFileSyncGlobalObjects    OBJECT IDENTIFIER::={zxAnFileSyncObjects      1}
+
+   zxAnFileCompliances          OBJECT IDENTIFIER::={zxAnFileConformance      1}
+   zxAnFileGroups               OBJECT IDENTIFIER::={zxAnFileConformance      2}
+
+   zxAnFileFtpOperTraps         OBJECT IDENTIFIER::={zxAnFileNotifications    1}
+-------------------------------------------------------------------------------
+-- 1. Load Default Configuration
+-------------------------------------------------------------------------------
+    zxAnFileMgmtCapabilities OBJECT-TYPE
+        SYNTAX     BITS
+        {
+            supportDownloadFileToSdCard(0)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The file management capabilities of this equipment.
+            
+             The bit value 1 means the function represented by this bit is 
+             supported by this equipment.
+            
+             supportDownloadFileToSdCard(0): value 1 means 
+                 zxAnFileFtpDestStorageDevId is supported.
+                 
+             NOTE:
+                Not recommended to display it in NMS."
+        ::= { zxAnFileGlobalObjects 1 }
+
+    zxAnFileLoadDefaultConfiguration     OBJECT-TYPE
+        SYNTAX         INTEGER 
+        {
+            loadDefaultConfiguration(1)
+        }
+        MAX-ACCESS     read-write
+        STATUS         current
+        DESCRIPTION    "Use this parameter to load default Configuration."
+       ::=  {  zxAnFileGlobalObjects  2 }
+-------------------------------------------------------------------------------
+-- 2. File FTP Operation Objects
+-------------------------------------------------------------------------------
+    zxAnFileFtpFileType           OBJECT-TYPE 
+        SYNTAX      INTEGER
+        {
+            softwareNe(1),               -- 0x0001 NE software file
+            softwareRemoteUnit(2),       -- 0x0002 Remote unit software file
+            softwarePatch(3),            -- 0x0003 Patch file
+            softwarePackage(4),          -- 0x0004 NE Software Package File
+            softwareSet(5),              -- 0x0005 NE Software Set File
+            configurationStartup(11),    -- 0x000b configuration file for NE 
+                                         -- startup
+            configurationRunning(12),    -- 0x000c running configuration of NE
+            configurationRemoteUnit(13), -- 0x000d Remote unit configuration
+                                         -- file
+            configurationNarrowband(14), -- 0x000e Narrowband configuration file
+            licenseNarrowband(21),       -- 0x0015 Narrowband license file
+            license(22),                 -- 0x0016 ZTE license file
+            syslogDebug(31),             -- 0x001f Debugging Log file
+            syslogSnmp(32),              -- 0x0020 SNMP log file
+            syslogRunning(33),           -- 0x0021 Running log file
+            syslogCliOperation(34),      -- 0x0022 CLI log file
+            syslogEmergency(35),         -- 0x0023 Emergency log file
+            syslogAlarm(36),             -- 0x0024 Alarm log file
+            syslogAlarmDebug(37),        -- 0x0025 Alarm Log Debug File
+            syslogCapture(38),           -- 0x0026 CPU Capture File
+            perfMeasurementPoints(51),   -- 0x0033 Performance measurement
+                                         -- points file
+            perfThreshold(52),           -- 0x0034 Performance threshold file
+            perfLog(53),                 -- 0x0035 Performance data file
+            narrowbandDataV0100(61),     -- 0x003d Narrowband Data(V0100) File
+            narrowbandDataV0101(62),     -- 0x003e Narrowband Data(V0101) File
+            debugScript(71),             -- 0x0047 Debug Script File
+            debugResult(72),             -- 0x0048 Debug Result File
+            macSnapCollect(81),          -- 0x0051 MAC snapshot collecting file
+            macAccCollect(82),           -- 0x0052 MAC accumulation collecting 
+                                         -- file
+            allocation(90),              -- 0x005a Allocation File                                         
+            linkupLogVdsl(255),          -- 0x00ff Vdsl port linkup file
+            linkupLogShdsl(256),         -- 0x0100 Shdsl port linkup file
+            linkupLogAdsl(257),          -- 0x0101 Adsl port linkup file
+            dataBulkMeasurement(259),    -- 0x0103 Bulk measurement file
+            other(513)                   -- 0x0201 Other file
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "The ftp client function is used to implement the
+                    transmission of file between an agent and a manager."
+        ::=  {  zxAnFileFtpOperGlobalObjects  1  }
+
+    zxAnFileFtpOperType           OBJECT-TYPE     
+        SYNTAX      INTEGER
+        {
+            upload(1), 
+            downLoad(2)         
+        } 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "UpLoad:   put file to NMS ftp server..
+                     DownLoad: get file from NMS ftp server.
+                    "
+        ::=  {  zxAnFileFtpOperGlobalObjects  2  }
+
+    zxAnFileFtpAction                  OBJECT-TYPE     
+        SYNTAX          INTEGER  
+        { 
+            cancelCurrentFtpSession (1) 
+        } 
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     " Ftp administrative status."
+        ::=  {  zxAnFileFtpOperGlobalObjects  3 }
+        
+    zxAnFileFtpSvrIpAddressType     OBJECT-TYPE
+        SYNTAX          InetAddressType
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION      
+            "IP address type of the file server."
+        DEFVAL  { ipv4 }
+        ::=  {  zxAnFileFtpOperGlobalObjects  4 }
+
+    zxAnFileFtpSvrIpAddress         OBJECT-TYPE     
+        SYNTAX       InetAddress
+        MAX-ACCESS   read-write
+        STATUS       current
+        DESCRIPTION "
+             The IP Address for the FTP server used for downloading
+             and/or uploading files."
+        ::=  {  zxAnFileFtpOperGlobalObjects  5  }
+
+    zxAnFileFtpSvrUserName          OBJECT-TYPE     
+        SYNTAX       DisplayString  ( SIZE ( 0 .. 32  ) ) 
+        MAX-ACCESS   read-write
+        STATUS       current
+        DESCRIPTION  "The FTP username."
+        ::=  {  zxAnFileFtpOperGlobalObjects  6  }
+
+    zxAnFileFtpSvrUserPwd           OBJECT-TYPE     
+        SYNTAX          DisplayString  ( SIZE ( 0 .. 32  ) ) 
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "The FTP User Password."
+        ::=  {  zxAnFileFtpOperGlobalObjects  7  }
+                                           
+    zxAnFileFtpSvrProtocolType       OBJECT-TYPE     
+        SYNTAX          INTEGER 
+        {
+            ftp(1),
+            sftp(2)
+        } 
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "The  flag is used for indicating the ftp protocol
+                        when downing versions between EMS and NE.It include
+                        two protocols:one is ftp and another is sftp.
+                        "
+        ::=  {  zxAnFileFtpOperGlobalObjects  8 }        
+
+     zxAnFileFtpSvrFilePath       OBJECT-TYPE     
+        SYNTAX          DisplayString  ( SIZE ( 0 .. 256  ) ) 
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The FTP file path which starts from the root directory."
+        ::=  {  zxAnFileFtpOperGlobalObjects  9 }
+                                           
+    zxAnFileFtpSvrFileName           OBJECT-TYPE     
+        SYNTAX                  DisplayString  ( SIZE ( 0 .. 64  ) ) 
+        MAX-ACCESS              read-write
+        STATUS                  current
+        DESCRIPTION             "The FTP file name."
+        ::=  {  zxAnFileFtpOperGlobalObjects  10  }    
+
+    zxAnFileFtpDestStorageDevId  OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "The ID of the FTP destination storage device of the main control 
+             card.
+             The numbering rule is:
+             1: Flash1,
+             2: SD card,
+             3: RAM card,
+             4: Flash2,
+             ..."
+        DEFVAL          { 1 }
+        ::=  {  zxAnFileFtpOperGlobalObjects  11  }
+
+    zxAnFileFtpFileRetrieveStartTime   OBJECT-TYPE     
+        SYNTAX      DateAndTime 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+        "Specifies the start of the time for which the 
+         selected PM measurements shall be retrieved (this parameter 
+         only applies for the retrieval of historical PM data). "
+        ::=  {  zxAnFileFtpOperGlobalObjects  21 }        
+        
+    zxAnFileFtpFileRetrieveEndTime     OBJECT-TYPE     
+        SYNTAX      DateAndTime 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+        "Specifies the end of the time for which the selected 
+         PM measurements shall be retrieved (this parameter only 
+         applies for the retrieval of historical PM data). "
+        ::=  {  zxAnFileFtpOperGlobalObjects  22 }   
+    
+    zxAnFileFtpPerfLogType       OBJECT-TYPE 
+        SYNTAX          INTEGER  
+        {
+            for15Minutes(1), 
+            for24Hours(2)
+        }
+        MAX-ACCESS    read-write
+        STATUS        current
+        DESCRIPTION   "The time granularity of performance data 
+                       files retrieval."
+        ::=  {  zxAnFileFtpOperGlobalObjects  30  }   
+                                             
+    zxAnFileFtpOperStatus         OBJECT-TYPE     
+        SYNTAX           INTEGER  
+        {   notStarted (1) , 
+            downloading (2) , 
+            uploading (3) , 
+            synchronizing (4) , 
+            success (5) , 
+            failed (6) ,
+            masterSuccessSlaveFailed (7) 
+        } 
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     " Ftp operational status."
+        ::=  {  zxAnFileFtpOperGlobalObjects  50  }
+
+    zxAnFileFtpCurrFileName OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(0..64)) 
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The name of current file which is downloading or uploading."
+        ::=  {  zxAnFileFtpOperGlobalObjects  51  } 
+
+    zxAnFileFtpCurrFileSize OBJECT-TYPE 
+        SYNTAX      Integer32
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The size of current file which is downloading or uploading."
+        ::=  {  zxAnFileFtpOperGlobalObjects  52  }          
+    
+    zxAnFileFtpCurrFileProgress          OBJECT-TYPE     
+        SYNTAX          INTEGER  (0..100)
+        UNITS           "%"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The total progress of upload or download version ,
+                        including master and slave card."
+        ::=  {  zxAnFileFtpOperGlobalObjects  53  }
+
+    zxAnFileFtpTotalFiles OBJECT-TYPE     
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "Total count of files will be downloaded or uploaded."
+        ::=  {  zxAnFileFtpOperGlobalObjects  54  }     
+
+    zxAnFileFtpSuccessFiles OBJECT-TYPE     
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "Count of files which are downloaded or uploaded successfully."           
+        ::=  {  zxAnFileFtpOperGlobalObjects  55  }
+            
+    zxAnFileFtpFailedReason       OBJECT-TYPE     
+        SYNTAX           INTEGER  
+        {   noError(1),
+            fileNameTooLong(2),
+            fileServerConnectFailed(3),
+            fileServerProtocolTypeError(4), 
+            fileNotExist(5),
+            getFileSizeFailed(6),
+            fileCheckFailed(7),
+            fileAccessFailed(8),
+            diskFull(9),
+            otherOperationInProgress(10),
+            userCanceled(11),
+            ramFull(12),
+            unzipFailed(13),
+            sdCardOffline(21),
+            sdCardDisabled(22),
+            sdCardBusy(23),
+            otherErrors(255)
+        } 
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     " Ftp failed reason."
+        ::=  {  zxAnFileFtpOperGlobalObjects  56  }  
+
+    zxAnFileFtpFinishedNotify OBJECT-TYPE     
+        SYNTAX      INTEGER
+        {
+            finished(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION     
+            "Use this parameter to notify the agent that the FTP transfer 
+             has been finished.
+             To query this object, always return 1."
+        ::=  {  zxAnFileFtpOperGlobalObjects  80  }
+
+    zxAnFileFtpVrfName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..32)) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The VRF name.
+             Setting an empty string is not supported.
+             To query this object, always return an empty string."
+        ::=  {  zxAnFileFtpOperGlobalObjects  81  }
+
+-------------------------------------------------------------------------------
+-- 3. File Software Objects
+-- 3.1 File Table
+-------------------------------------------------------------------------------
+          
+     zxAnFileTable      OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnFileEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "A table entry containing file information ."
+        ::=  { zxAnFileSoftwareObjects  2 }
+
+     zxAnFileEntry      OBJECT-TYPE
+        SYNTAX      ZxAnFileEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "An entry of zxAnFileTable"
+        INDEX       { zxAnFileRack, zxAnFileShelf,
+                      zxAnFileSlot, zxAnFileDevId,
+                      zxAnFileType, zxAnFileName}
+        ::=  { zxAnFileTable 1 }
+                
+     ZxAnFileEntry  ::=  SEQUENCE {  
+        zxAnFileRack                Integer32,
+        zxAnFileShelf               Integer32,
+        zxAnFileSlot                Integer32,
+        zxAnFileDevId               Integer32,
+        zxAnFileType                INTEGER,
+        zxAnFileName                DisplayString,
+        zxAnFileSize                Integer32,  
+        zxAnFileModifyTime          DateAndTime,
+        zxAnFileStorageDevType      INTEGER,        
+        zxAnFileOperation           INTEGER
+        }
+
+     zxAnFileRack       OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     ""
+        ::=  {  zxAnFileEntry  1  }
+
+     zxAnFileShelf      OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     ""
+        ::=  {  zxAnFileEntry 2  }
+
+     zxAnFileSlot       OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     ""
+        ::=  {  zxAnFileEntry  3  }
+                
+     zxAnFileDevId        OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     
+            "The ID of the storage device.
+             The numbering rule is:
+             1: Flash1,
+             2: SD card,
+             3: RAM card,
+             4: Flash2,
+             ..."
+        ::=  {  zxAnFileEntry  4  }
+
+     zxAnFileType       OBJECT-TYPE 
+        SYNTAX      INTEGER
+        {   
+            softwareNe(1),                 -- 0x0001 NE software file
+            softwareRemoteUnit(2),         -- 0x0002 Remote unit software file
+            softwarePatch(3),              -- 0x0003 Patch file
+            configurationStartup(11),      -- 0x000b configuration file for NE startup
+            configurationRunning(12),      -- 0x000c running configuration of NE
+            configurationRemoteUnit(13),   -- 0x000d Remote unit configuration file
+            configurationNarrowband(14),   -- 0x000e Narrowband configuration file
+            configurationCliUser(15),      -- 0x000f CLI user configuration file            
+            licenseNarrowband(21),         -- 0x0015 Narrowband license file
+            license(22),                   -- 0x0016 ZTE license file
+            syslogDebug(31),               -- 0x001f Debugging Log file
+            syslogSnmp(32),                -- 0x0020 SNMP log file    
+            syslogRunning(33),             -- 0x0021 Running log file
+            syslogCliOperation(34),        -- 0x0022 CLI log file
+            syslogEmergency(35),           -- 0x0023 Emergency log file
+            syslogAlarm(36),               -- 0x0024 Alarm log file                        
+            perfMeasurementPoints(51),     -- 0x0033 Performance measurement points file           
+            perfThreshold(52),             -- 0x0034 Performance threshold file
+            perfLog(53),                   -- 0x0035 Performance data file
+            confPowerConsumption(61),      -- 0x003d Power consumption 
+                                           --        configuration file
+            linkupLogVdsl(255),            -- 0x00ff Vdsl port linkup file
+            linkupLogShdsl(256),           -- 0x0100 Shdsl port linkup file
+            linkupLogAdsl(257),            -- 0x0101 Adsl port linkup file
+            dataBulkMeasurement(258),      -- 0x0102 Bulk measurement file
+            confSelfswitchPhoneNumber(513) -- 0x0201 Self switch telephone number file           
+
+        }        
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "The type of the file."
+        ::=  {  zxAnFileEntry  5  }
+               
+     zxAnFileName       OBJECT-TYPE 
+        SYNTAX          DisplayString ( SIZE ( 1 .. 64  ) )
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "File name."
+        ::=  {  zxAnFileEntry  6  }
+        
+        
+     zxAnFileSize       OBJECT-TYPE 
+        SYNTAX          Integer32
+        UNITS           "byte"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "File size."
+        ::=  {  zxAnFileEntry  7  }   
+
+
+     zxAnFileModifyTime OBJECT-TYPE      
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION    "The last file modification time.The format is 
+                        yyyy-mm-dd HH:MM:SS.For example,  2001-01-01 02:22:33"
+        ::=  {  zxAnFileEntry  8  }        
+
+     zxAnFileStorageDevType  OBJECT-TYPE 
+        SYNTAX          INTEGER  
+            {                                           
+            flash(1),   
+            sdCard(2)               
+            }        
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The type of the device."                        
+        ::=  {  zxAnFileEntry  9  }
+                           
+     zxAnFileOperation  OBJECT-TYPE
+        SYNTAX          INTEGER
+        {
+             erase(1)         -- delete file
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The file operation type. 
+             This object is only used to erase the software file and the patch
+             file."
+        ::=  {  zxAnFileEntry  15  }     
+
+-------------------------------------------------------------------------------
+-- 3.2 File Synchronization Objects
+-------------------------------------------------------------------------------
+     zxAnFileSyncRack       OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     ""
+        ::=  {  zxAnFileSyncGlobalObjects  1  }
+
+     zxAnFileSyncShelf      OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     ""
+        ::=  {  zxAnFileSyncGlobalObjects  2  }
+
+     zxAnFileSyncFileType   OBJECT-TYPE 
+        SYNTAX      INTEGER
+        {   
+            softwareNe(1),                 -- 0x0001 NE software file
+            softwareRemoteUnit(2),         -- 0x0002 Remote unit software file
+            softwarePatch(3),              -- 0x0003 Patch file
+            configurationStartup(11),      -- 0x000b configuration file for NE startup
+            configurationRunning(12),      -- 0x000c running configuration of NE
+            configurationRemoteUnit(13),   -- 0x000d Remote unit configuration file
+            configurationNarrowband(14),   -- 0x000e Narrowband configuration file
+            configurationCliUser(15),      -- 0x000f CLI user configuration file                        
+            licenseNarrowband(21),         -- 0x0015 Narrowband license file
+            license(22),                   -- 0x0016 ZTE license file
+            syslogDebug(31),               -- 0x001f Debugging Log file
+            syslogSnmp(32),                -- 0x0020 SNMP log file    
+            syslogRunning(33),             -- 0x0021 Running log file
+            syslogCliOperation(34),        -- 0x0022 CLI log file
+            syslogEmergency(35),           -- 0x0023 Emergency log file
+            syslogAlarm(36),               -- 0x0024 Alarm log file                        
+            perfMeasurementPoints(51),     -- 0x0033 Performance measurement points file           
+            perfThreshold(52),             -- 0x0034 Performance threshold file
+            perfLog(53),                   -- 0x0035 Performance data file
+            confPowerConsumption(61),      -- 0x003d Power consumption 
+                                           --        configuration file
+            linkupLogVdsl(255),            -- 0x00ff Vdsl port linkup file
+            linkupLogShdsl(256),           -- 0x0100 Shdsl port linkup file
+            linkupLogAdsl(257),            -- 0x0101 Adsl port linkup file
+            dataBulkMeasurement(258),      -- 0x0102 Bulk measurement file
+            confSelfswitchPhoneNumber(513) -- 0x0201 Self switch telephone number file           
+        }        
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "The type of the file."
+        ::=  {  zxAnFileSyncGlobalObjects  3  }
+
+     zxAnFileSyncFileName       OBJECT-TYPE 
+        SYNTAX          DisplayString ( SIZE ( 0 .. 64  ) )
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "File name."
+        ::=  {  zxAnFileSyncGlobalObjects  4  }
+
+     zxAnFileSyncOperation  OBJECT-TYPE 
+        SYNTAX          INTEGER
+        {
+             syncToSlave(1),   -- synch file to slave control card
+             cancelSyncToSlave(2)  -- cancel the operation synchToSlave(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     " Adminstrative status of file or folder. "
+        ::=  {  zxAnFileSyncGlobalObjects  15  }     
+
+   zxAnFileSyncStatusTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnFileSyncStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "A table entry containing status information of 
+                    files synchronization from master card to slave card."
+        ::=  { zxAnFileSyncObjects  2 }
+
+    zxAnFileSyncStatusEntry   OBJECT-TYPE
+        SYNTAX      ZxAnFileSyncStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "An entry of zxAnFileSyncStatusTable."
+        INDEX       {   zxAnFileRack, zxAnFileShelf,
+                      zxAnFileSlot, zxAnFileDevId,
+                      zxAnFileType, zxAnFileName}
+        ::=  { zxAnFileSyncStatusTable 1 }
+
+    ZxAnFileSyncStatusEntry  ::=  SEQUENCE {   
+        zxAnFileSyncStatus           INTEGER,
+        zxAnFileSyncProgress         INTEGER,
+        zxAnFileSyncFailedReason     INTEGER,
+        zxAnFileSyncDevType          INTEGER                
+        }
+
+    zxAnFileSyncStatus       OBJECT-TYPE 
+        SYNTAX           INTEGER  
+        { 
+                notStarted(1),
+                inProgress(2),
+                success(3),
+                failed(4),
+                sameFiles(5)                 
+        } 
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Status of synchronization file from master card to 
+                         slave card."
+        ::=  {  zxAnFileSyncStatusEntry  2  }
+           
+    zxAnFileSyncProgress       OBJECT-TYPE     
+        SYNTAX          INTEGER  (0..100)
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The total progress of sync file."
+        ::=  {  zxAnFileSyncStatusEntry  3  }
+        
+    zxAnFileSyncFailedReason     OBJECT-TYPE     
+        SYNTAX           INTEGER  
+                         {  noError(1),
+                            fileNotExist(3),
+                            fileCheckFailed(4),
+                            diskFull(5),
+                            timeout(6),                            
+                            otherOperationInProgress(7),
+                            userCanceled(8),
+                            otherErrors(255)
+                         } 
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The failed reason of synchronization file 
+                        from master card to slave card."
+        ::=  {  zxAnFileSyncStatusEntry  4  }
+
+     zxAnFileSyncDevType  OBJECT-TYPE 
+        SYNTAX          INTEGER  
+            {                                           
+            flash(1),   
+            sdCard(2)               
+            }        
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The type of the device."                        
+        ::=  {  zxAnFileSyncStatusEntry  5  }
+
+-------------------------------------------------------------------------------
+-- 4. File Explorer Objects
+-- 4.1 File Explorer Global Objects
+-------------------------------------------------------------------------------
+    zxAnFileExplorerSourceFile     OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..128))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The source file.
+             The format is: 'rack/shelf/slot/devType/devId/directory/file'."
+        ::=  {  zxAnFileExplorerGlobalObjects  1  }
+
+    zxAnFileExplorerDestinationDir  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..128))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The destination directory.
+             The format is: 'rack/shelf/slot/devType/devId/directory'.
+             If the zxAnFileExplorerOperation is 'delete' or 'rename', this 
+             object will be set to empty string."
+        ::= { zxAnFileExplorerGlobalObjects 2 }
+
+    zxAnFileExplorerRenamedName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..128))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The renamed name.
+             If the zxAnFileExplorerOperation is 'delete', this object will be 
+             set to empty string.
+             If the zxAnFileExplorerOperation is 'copy' and this object is not 
+             empty string, the source file name will be changed to the 
+             zxAnFileExplorerRenamedName after the copying operation.
+             If the zxAnFileExplorerOperation is 'copy' and this object is empty 
+             string, the source file name will not be changed after the copy 
+             operation.
+             If the zxAnFileExplorerOperation is 'rename', this object means the 
+             renamed name."
+        ::= { zxAnFileExplorerGlobalObjects 3 }
+        
+    zxAnFileExplorerOperation  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            delete(1),
+            copy(2),
+            cancelCopy(3),
+            rename(4)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The file operation type."
+        ::= { zxAnFileExplorerGlobalObjects 4 }
+
+     zxAnFileExplorerOperStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            notStarted(1),
+            inProgress(2),
+            success(3),
+            failed(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The status of the file operation."
+        ::= { zxAnFileExplorerGlobalObjects 5 }
+
+     zxAnFileExplorerOperProgress  OBJECT-TYPE
+        SYNTAX      Integer32(0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The progress of the file operation."
+        ::= { zxAnFileExplorerGlobalObjects 6 }
+
+     zxAnFileExplorerOperFailedReason  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            noError(1),
+            fileNotExisted(2),
+            fileExisted(3),
+            diskFull(4),
+            timeout(5),
+            otherOperationInProgress(6),
+            systemFileNameUsed(7),
+            slaveControlCardNotReady(8),
+            dataTransmissionFailed(9),
+            otherErrors(255)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The failed reasion of the file operation."
+        ::= { zxAnFileExplorerGlobalObjects 7 }
+
+-------------------------------------------------------------------------------
+-- 4.2 File List Table
+-------------------------------------------------------------------------------
+    zxAnFileListTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnFileListEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The file list table.
+             This table is added to support the new index of the NE files: 
+             'rack-shelf-slot-devType-devId-directory-name'."
+        ::= { zxAnFileExplorerObjects  2 }
+
+    zxAnFileListEntry   OBJECT-TYPE
+        SYNTAX      ZxAnFileListEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnFileListTable. "
+        INDEX  { zxAnFileListRack, 
+                 zxAnFileListShelf,
+                 zxAnFileListSlot,
+                 zxAnFileListDevType,
+                 zxAnFileListDevId,
+                 zxAnFileListDirectory,
+                 zxAnFileListName
+               }
+        ::=  { zxAnFileListTable 1 }
+
+     ZxAnFileListEntry ::= SEQUENCE {
+        zxAnFileListRack                Integer32,
+        zxAnFileListShelf               Integer32,
+        zxAnFileListSlot                Integer32,
+        zxAnFileListDevType             INTEGER,
+        zxAnFileListDevId               Integer32,
+        zxAnFileListDirectory           DisplayString,
+        zxAnFileListName                DisplayString,
+        zxAnFileListSize                Integer32,
+        zxAnFileListWriteTime           DateAndTime,
+        zxAnFileListPermissions         BITS
+        }
+
+     zxAnFileListRack  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The rack number."
+        ::= { zxAnFileListEntry 1 }
+
+     zxAnFileListShelf  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The shelf number."
+        ::= { zxAnFileListEntry 2 }
+
+     zxAnFileListSlot  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The slot number."
+        ::= { zxAnFileListEntry 3 }
+
+     zxAnFileListDevType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            flash(1),
+            sdCard(2)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The device type.
+             1 means flash;
+             2 means SD card."
+        DEFVAL  { flash }
+        ::= { zxAnFileListEntry 4 }
+
+     zxAnFileListDevId  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The device ID. 
+             This object is not used now. "
+        DEFVAL  { 1 }
+        ::= { zxAnFileListEntry 5 }
+        
+     zxAnFileListDirectory  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..128))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The full directory of the file."
+        ::= { zxAnFileListEntry 6 }
+        
+     zxAnFileListName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..128))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The file name. "
+        ::= { zxAnFileListEntry 7 }
+
+     zxAnFileListSize  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The file size."
+        ::= { zxAnFileListEntry 8 }
+
+     zxAnFileListWriteTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The write time of the file."
+        ::= { zxAnFileListEntry 9 }
+
+     zxAnFileListPermissions  OBJECT-TYPE
+        SYNTAX      BITS{
+            read(0),
+            write(1)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The access permissions of the file."
+        ::= { zxAnFileListEntry 10 }
+
+-------------------------------------------------------------------------------
+-- 21. File Upload/Download Finished Notification
+-------------------------------------------------------------------------------
+        
+    zxAnFileFtpDownloadFinished NOTIFICATION-TYPE
+        OBJECTS { zxAnFileFtpFileType, zxAnFileFtpCurrFileName,
+                  zxAnFileFtpOperStatus,zxAnFileFtpFailedReason}
+        STATUS  current
+        DESCRIPTION
+            "A zxAnFileFtpDownloadFinished is sent when the agent has detected 
+            that the File download is finished."
+        ::= { zxAnFileFtpOperTraps 1 }
+        
+    zxAnFileFtpUploadFinished NOTIFICATION-TYPE
+        OBJECTS { zxAnFileFtpFileType, zxAnFileFtpCurrFileName,
+                  zxAnFileFtpOperStatus,zxAnFileFtpFailedReason}
+        STATUS  current
+        DESCRIPTION
+            "A zxAnFileFtpUploadFinished is sent when the agent has detected 
+            that the File upload is finished."
+        ::= { zxAnFileFtpOperTraps 2 }
+
+
+-------------------------------------------------------------------------------
+-- 31. zxAnSwConformance
+-------------------------------------------------------------------------------
+    zxAnFileCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION 
+            "The compliance statement for SNMP entities which implement the
+            ZTE-AN-SOFTWARE-MIB."
+        MODULE -- this module
+        
+            MANDATORY-GROUPS { 
+                  zxAnFileLoadDefConfGroup,            
+                  zxAnFileFtpOperGroup,
+                  zxAnFileMgmtGroup,
+                  zxAnFileSyncGroup,                  
+                  zxAnFileNotificationsGroup
+                }
+        ::= { zxAnFileCompliances 1 }
+
+    zxAnFileLoadDefConfGroup OBJECT-GROUP
+        OBJECTS { 
+                  zxAnFileLoadDefaultConfiguration
+                }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to to load default 
+            Configuration."
+             
+        ::= { zxAnFileGroups 1 }
+                                                                             
+    zxAnFileFtpOperGroup OBJECT-GROUP
+        OBJECTS { zxAnFileFtpFileType, zxAnFileFtpOperType, zxAnFileFtpAction,
+                  zxAnFileFtpSvrIpAddressType,zxAnFileFtpSvrIpAddress, 
+                  zxAnFileFtpSvrUserName, zxAnFileFtpSvrUserPwd,
+                  zxAnFileFtpSvrProtocolType, zxAnFileFtpSvrFilePath,
+                  zxAnFileFtpSvrFileName, zxAnFileFtpPerfLogType,
+                  zxAnFileFtpFileRetrieveStartTime, 
+                  zxAnFileFtpFileRetrieveEndTime,
+                  zxAnFileFtpOperStatus, zxAnFileFtpCurrFileName,
+                  zxAnFileFtpCurrFileSize,zxAnFileFtpCurrFileProgress,
+                  zxAnFileFtpTotalFiles, zxAnFileFtpSuccessFiles,
+                  zxAnFileFtpFailedReason
+                }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to implement transmission
+             of file between an agent and a manager (download & upload)."
+
+        ::= { zxAnFileGroups 2 }
+
+    zxAnFileMgmtGroup OBJECT-GROUP
+        OBJECTS { 
+                   zxAnFileSize, zxAnFileModifyTime, 
+                   zxAnFileStorageDevType, zxAnFileOperation
+                }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to implement file 
+            management such as display attribute of file, delete file, 
+            synchronize file to slave board."
+             
+        ::= { zxAnFileGroups 3 }
+
+    zxAnFileSyncGroup OBJECT-GROUP
+        OBJECTS { 
+                   zxAnFileSyncRack, zxAnFileSyncShelf,
+                   zxAnFileSyncFileType,zxAnFileSyncFileName,
+                   zxAnFileSyncOperation, zxAnFileSyncStatus, 
+                   zxAnFileSyncProgress,  zxAnFileSyncFailedReason,
+                   zxAnFileSyncDevType
+                }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to implement file
+             synchronization."
+             
+        ::= { zxAnFileGroups 4 }
+        
+    zxAnFileNotificationsGroup OBJECT-GROUP
+        OBJECTS {  
+                   zxAnFileFtpDownloadFinished,
+                   zxAnFileFtpUploadFinished
+                }
+        STATUS current
+        DESCRIPTION 
+            "The notifications which indicate specific changes, 
+            include file upload/download finished."
+
+        ::= { zxAnFileGroups 10 } 
+        
+END

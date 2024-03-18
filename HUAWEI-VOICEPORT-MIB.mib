@@ -1,0 +1,1182 @@
+-- ============================================================================
+-- Copyright (C) 2003 by  HUAWEI TECHNOLOGIES. All rights reserved.
+--
+-- Description:  
+-- Reference:  
+-- Version: V1.00
+-- History:
+-- ============================================================================
+
+ HUAWEI-VOICEPORT-MIB DEFINITIONS ::= BEGIN
+      IMPORTS
+        	MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, private
+        		FROM SNMPv2-SMI
+        	MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+        		FROM SNMPv2-CONF
+        	TEXTUAL-CONVENTION
+        		FROM SNMPv2-TC
+        	IpAddress,TimeTicks,Counter32
+        		FROM SNMPv2-SMI
+        	RowStatus,DisplayString
+        		FROM SNMPv2-TC;
+        
+      hwIASVoicePort MODULE-IDENTITY
+                LAST-UPDATED "200609190900Z"
+                ORGANIZATION "Fix-Net Dept, Huawei Technologies Co.,Ltd."
+                CONTACT-INFO 
+                             "Floor 4, Block 4, R&D Building,
+                	             Huawei Longgang Production Base,
+                	             Shenzhen,  P.R.C.
+                	             http://www.huawei.com
+                	             Zip: 518057
+                	            "
+                DESCRIPTION 
+                	            "
+                	            huawei VSPPORT  mib.
+                	            "
+                        ::= { huaweiUtility 113 }
+               
+hwIASVoicePortObjects OBJECT IDENTIFIER ::= { hwIASVoicePort 1 }
+ 
+ enterprises OBJECT IDENTIFIER ::= { private 1 }
+ 
+ huawei OBJECT IDENTIFIER ::= { enterprises 2011 }
+ 
+ huaweiUtility OBJECT IDENTIFIER ::= { huawei 6 }
+ 
+                   
+ 
+--hwPstnPTPConfigTable
+   hwPstnPTPConfigTable OBJECT-TYPE
+     SYNTAX      SEQUENCE OF HwPstnPTPConfigEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       "
+       A list of hwPstnPTPConfigEntry objects.
+       "
+     ::= { hwIASVoicePortObjects 1 }
+ 
+   hwPstnPTPConfigEntry OBJECT-TYPE
+     SYNTAX      HwPstnPTPConfigEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       ""
+     INDEX    {  
+               hwPstnPTPIndex
+              }
+     ::= { hwPstnPTPConfigTable 1 }
+ 
+   HwPstnPTPConfigEntry ::=
+     SEQUENCE
+     {
+       hwPstnPTPIndex	              INTEGER,
+       hwPstnPTPSendVoiceGain	      INTEGER,
+       hwPstnPTPRecvVoiceGain 	      INTEGER,
+       hwPstnPTPDialMode              INTEGER,
+       hwPstnPTPReversePoleEnable     INTEGER,
+       hwPstnPTPReversePoleLevel      INTEGER,
+       hwPstnPTPPolarityReverseMode   INTEGER, 
+       hwPstnPTPImpedance	      INTEGER,
+       hwPstnPTPCurrent	              INTEGER,
+       hwPstnPTPHighLevel             INTEGER,
+       hwPstnPTPLowLevel              INTEGER,
+       hwPstnPTPKCType                INTEGER,
+       hwPstnPTPVoltage               INTEGER,
+       hwPstnPTPActualSendGain        INTEGER,
+       hwPstnPTPActualRecvGain        INTEGER,
+       hwPstnPTPConfigState	      INTEGER
+     }
+ 
+   hwPstnPTPIndex OBJECT-TYPE
+     SYNTAX      INTEGER
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         "
+     ::= { hwPstnPTPConfigEntry 1 }
+ 
+   hwPstnPTPSendVoiceGain OBJECT-TYPE
+     SYNTAX      INTEGER(1..255)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         (dB)
+           1 :-4 db 
+           2 :-3 db
+           3 :-2.5 db
+           4 :-2 db
+           5 :-1 db
+           6 :0 db
+           7 :1 db
+           8 :1.5 db
+           9 :2 db
+          10 :3 db
+          11 :4 db
+         255 :agc
+         "
+         DEFVAL      { 6 }
+     ::= { hwPstnPTPConfigEntry 2 }
+         
+   hwPstnPTPRecvVoiceGain OBJECT-TYPE
+     SYNTAX      INTEGER(1..255)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+           (dB)
+           1 :-10 db
+           2 :-9 db
+           3 :-8.5 db
+           4 :-8 db
+           5 :-7.5 db 
+           6 :-7 db  
+           7 :-6 db
+           8 :-5 db
+           9 :-4 db
+          10 :-3.5 db
+          11 :-3 db
+          12 :-2 db
+          13 :-1 db
+          14 :0 db
+         255 :agc
+         "
+         DEFVAL      { 1 }
+     ::= { hwPstnPTPConfigEntry 3 }
+          
+   hwPstnPTPDialMode OBJECT-TYPE
+     SYNTAX      INTEGER{mode-DTMF-pulse-both(1),mode-DTMF-only(2),mode-pulse-only(3)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         :
+         mode-DTMF-pulse-both(1)
+         mode-DTMF-only(2)
+         mode-pulse-only(3)
+         "
+         DEFVAL      { mode-DTMF-pulse-both }
+     ::= { hwPstnPTPConfigEntry 4 }
+     
+   hwPstnPTPReversePoleEnable OBJECT-TYPE
+     SYNTAX      INTEGER{reversePoleDisable(1),reversePoleEnable(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         :
+         reversePoleDisable(1)
+         reversePoleEnable(2)
+         "
+         DEFVAL      { reversePoleDisable }
+     ::= { hwPstnPTPConfigEntry 5 }
+     
+   hwPstnPTPReversePoleLevel OBJECT-TYPE
+     SYNTAX      INTEGER(20..2560)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+         DEFVAL      { 300 }
+     ::= { hwPstnPTPConfigEntry 6 }
+     
+   hwPstnPTPPolarityReverseMode OBJECT-TYPE
+     SYNTAX      INTEGER{hardReversePole(1),softReversePole(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         reversePoleMode:
+         hardReversePole(1)
+         softReversePole(2)
+         
+   
+         "
+         DEFVAL      { hardReversePole }
+     ::= { hwPstnPTPConfigEntry 7 }     
+ 
+   hwPstnPTPImpedance OBJECT-TYPE
+     SYNTAX      INTEGER(1..15)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+        Port impedance of the port. The following values indicates different impedance with 
+ 	different application circumstances.
+ 	1  -- Bureau machine in China(200+680|| 100nf)
+ 	2  -- User Machine in China(200+560|| 100nf)
+ 	3  -- 600 ohm Interface
+ 	4  -- Interface of russian(150+510|| 47nf)
+ 	5  -- (220+820|| 115nf )
+ 	6  -- (220+820|| 120nf )
+ 	7  -- 900 ohm  Interface
+ 	8  -- Interface of Brazil(800|| 50nf)
+ 	9  -- BT0(Zin=87+1052||228nF+229||28.4nF, Zload=93+615||471nF+179||495nF+244||32nF)
+ 	10 -- HK-BT3(Zin=370+620|| 310nf,Zload=600)
+ 	11 -- HK-BT5(Zin=270+264|| 357nf+1434|| 265nf,Zload=600)
+ 	12 -- BT1(BT0 without AGC)
+ 	13 -- BT2(Zin=(87 +1052 //228nF+229 //28.4nF),Zload=(270 +264 //357nF+1434 //265nF))
+ 	14 -- BT3(Zin=(87 +1052 //228nF+229 //28.4nF),Zload=(164 +162 //363nF+1227 //350nF))
+ 	15 -- KPN(Zin= 270+750|| 150nf)     	
+ 	
+ 
+         "
+         DEFVAL { 3 }
+         ::= { hwPstnPTPConfigEntry 8 }
+ 
+   hwPstnPTPCurrent OBJECT-TYPE
+     SYNTAX      INTEGER(1..19)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+        Port current supported by the board. The value ranges from 1 to 19, 
+ 	which indicates the port current value supported under certain loopline impedence.
+ 	1  -- 25mA steady current
+ 	2  -- 16mA steady current
+ 	3  -- 32mA steady current
+ 	4  -- 40mA steady current
+ 	5  -- 35mA 2*200 ohm 
+ 	6  -- 35mA 2*250 ohm 
+ 	7  -- 35mA 2*400 ohm 
+ 	8  -- 47mA 2*200 ohm 
+ 	9  -- 47mA 2*250 ohm 
+ 	10 -- 47mA 2*400 ohm 
+ 	11 -- 20mA 2*200 ohm 
+ 	12 -- 20mA 2*250 ohm 
+ 	13 -- 20mA 2*400 ohm 
+ 	14 -- 30mA 2*200 ohm 
+ 	15 -- 30mA 2*250 ohm 
+ 	16 -- 30mA 2*400 ohm 
+ 	17 -- 40mA 2*200 ohm 
+ 	18 -- 40mA 2*250 ohm 
+ 	19 -- 40mA 2*400 ohm 
+ 	
+ 
+         "             
+     DEFVAL { 10 }      
+     ::= { hwPstnPTPConfigEntry 9 }  
+
+   hwPstnPTPHighLevel OBJECT-TYPE
+     SYNTAX      INTEGER(20..500)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+
+         "
+         DEFVAL { 100 }
+     ::= { hwPstnPTPConfigEntry 10 }
+     
+   hwPstnPTPLowLevel OBJECT-TYPE
+     SYNTAX      INTEGER(20..500)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+ 
+         "
+         DEFVAL { 300 }
+     ::= { hwPstnPTPConfigEntry 11 }
+     
+   hwPstnPTPKCType OBJECT-TYPE
+     SYNTAX      INTEGER{port1216kcselector16kc(1),port1216kcselector12kc(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         12KC/16KC:
+         port1216kcselector16kc(1)
+         port1216kcselector12kc(2)
+         "
+         DEFVAL { port1216kcselector16kc }
+     ::= { hwPstnPTPConfigEntry 12 }
+     
+   hwPstnPTPVoltage OBJECT-TYPE
+     SYNTAX      INTEGER{port1216kcvalidvoltage0(1),
+                         port1216kcvalidvoltage1(2),
+                         port1216kcvalidvoltage2(3),
+                         port1216kcvalidvoltage3(4),
+                         port1216kcvalidvoltage4(5),
+                         port1216kcvalidvoltage5(6),
+                         port1216kcvalidvoltage6(7),
+                         port1216kcvalidvoltage7(8),
+                         port1216kcvalidvoltage8(9),
+                         port1216kcvalidvoltage9(10)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+        12KC/16KC:
+        port1216kcvalidvoltage0(1):  0.45 Vrms   
+		port1216kcvalidvoltage1(2):  0.775 Vrms  
+		port1216kcvalidvoltage2(3):  1.0 Vrms    
+		port1216kcvalidvoltage3(4):  1.5 Vrms    
+		port1216kcvalidvoltage4(5):  2.0 Vrms    
+		port1216kcvalidvoltage5(6):  2.5 Vrms    
+		port1216kcvalidvoltage6(7):  3.0 Vrms    
+		port1216kcvalidvoltage7(8):  3.5 Vrms    
+		port1216kcvalidvoltage8(9):  4.0 Vrms    
+		port1216kcvalidvoltage9(10): 4.5 Vrms    
+         "
+         DEFVAL { 1 }
+     ::= { hwPstnPTPConfigEntry 13 }     
+             
+   hwPstnPTPActualSendGain OBJECT-TYPE
+     SYNTAX      INTEGER(1..11)
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         1 :-4 db 
+         2 :-3 db
+         3 :-2.5 db
+         4 :-2 db
+         5 :-1 db
+         6 :0 db
+         7 :1 db
+         8 :1.5 db
+         9 :2 db
+        10 :3 db
+        11 :4 db   
+         "
+     ::= { hwPstnPTPConfigEntry 14 }
+         
+  hwPstnPTPActualRecvGain OBJECT-TYPE
+     SYNTAX      INTEGER(1..14)
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         1 :-10 db
+         2 :-9 db
+         3 :-8.5 db
+         4 :-8 db
+         5 :-7.5 db 
+         6 :-7 db  
+         7 :-6 db
+         8 :-5 db
+         9 :-4 db
+        10 :-3.5 db
+        11 :-3 db
+        12 :-2 db
+        13 :-1 db
+        14 :0 db  
+         "
+     ::= { hwPstnPTPConfigEntry 15 }
+  hwPstnPTPConfigState OBJECT-TYPE
+     SYNTAX      INTEGER{notconfigusertype(1),configusertype(2)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwPstnPTPConfigEntry 16 }      
+ 
+ --hwPstnPTPOperTable
+   hwPstnPTPOperTable OBJECT-TYPE
+     SYNTAX      SEQUENCE OF HwPstnPTPOperEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       "
+       PSTN 
+       "
+     ::= { hwIASVoicePortObjects 2 }
+ 
+   hwPstnPTPOperEntry OBJECT-TYPE
+     SYNTAX      HwPstnPTPOperEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       ""
+     INDEX    {  
+               hwPstnPTPOperIndex
+              }
+     ::= { hwPstnPTPOperTable 1 }
+ 
+   HwPstnPTPOperEntry ::=
+     SEQUENCE
+     {
+       hwPstnPTPOperIndex                   INTEGER,
+       hwPstnPTPSrvState	            INTEGER,
+       hwPstnPTPLoopBackState           INTEGER,
+       hwPstnPTPTestState	            INTEGER,
+       hwPstnPTPAdminOper 	            INTEGER,
+       hwPstnPTPSrvStateChange	        TimeTicks,
+       hwPstnPTPLoopBackStateChange     TimeTicks,
+       hwPstnPTPTestStateChange	        TimeTicks
+       
+     }
+ 
+   hwPstnPTPOperIndex OBJECT-TYPE
+     SYNTAX      INTEGER
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         "
+     ::= { hwPstnPTPOperEntry 1 }
+ 
+   hwPstnPTPSrvState OBJECT-TYPE
+     SYNTAX      INTEGER{normal(1),fault(2),deactive(3),powerDenny(4)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+      
+         "
+     ::= { hwPstnPTPOperEntry 2 }
+ 
+   hwPstnPTPLoopBackState OBJECT-TYPE
+     SYNTAX      INTEGER{noLoop(1),remoteLoop(2),localLoop(3)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "                      
+         "
+     ::= { hwPstnPTPOperEntry 3 }
+ 
+   hwPstnPTPTestState OBJECT-TYPE
+     SYNTAX      INTEGER{noTest(1),test(2)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwPstnPTPOperEntry 4 }
+     
+   hwPstnPTPAdminOper OBJECT-TYPE
+     SYNTAX      INTEGER{reset(1),localLoop(2),remoteLoop(3),cancelLoop(4)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwPstnPTPOperEntry 5 }
+ 
+   hwPstnPTPSrvStateChange OBJECT-TYPE
+     SYNTAX      TimeTicks
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwPstnPTPOperEntry 6 }
+ 
+   hwPstnPTPLoopBackStateChange OBJECT-TYPE
+     SYNTAX      TimeTicks
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwPstnPTPOperEntry 7 }
+     
+    hwPstnPTPTestStateChange OBJECT-TYPE
+     SYNTAX      TimeTicks
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwPstnPTPOperEntry 8 }       
+  
+ ---------------------------------------/*hwBraPTPConfigTable*/------------------------------------
+   hwBraPTPConfigTable OBJECT-TYPE
+     SYNTAX      SEQUENCE OF HwBraPTPConfigEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       "
+       "
+     ::= { hwIASVoicePortObjects 3 }
+ 
+   hwBraPTPConfigEntry OBJECT-TYPE
+     SYNTAX      HwBraPTPConfigEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       ""
+     INDEX    {  
+               hwBraPTPIndex
+              }
+     ::= { hwBraPTPConfigTable 1 }
+ 
+   HwBraPTPConfigEntry ::=
+     SEQUENCE
+     {
+       hwBraPTPIndex	                INTEGER,
+       hwBraPTPRPower	                INTEGER,
+       hwBraPTPAutoDeactive	        INTEGER,
+       hwBraPTPAutoDeactiveDelay	INTEGER,
+       hwBraPTPWorkMode	                INTEGER,
+       hwBraPTPPowerState	        INTEGER,
+       hwBraPTPConfigState	        INTEGER 
+     }
+ 
+   hwBraPTPIndex OBJECT-TYPE
+     SYNTAX      INTEGER
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwBraPTPConfigEntry 1 }
+ 
+   hwBraPTPRPower OBJECT-TYPE
+     SYNTAX      INTEGER{disable(1), enable(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+         DEFVAL      { disable }
+     ::= { hwBraPTPConfigEntry 2 }
+ 
+   hwBraPTPAutoDeactive OBJECT-TYPE
+     SYNTAX      INTEGER{disable(1), enable(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+         DEFVAL      { disable }
+     ::= { hwBraPTPConfigEntry 3 }
+ 
+   hwBraPTPAutoDeactiveDelay OBJECT-TYPE
+     SYNTAX      INTEGER(10..360) 
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+         DEFVAL      { 10 }
+     ::= { hwBraPTPConfigEntry 4 }
+     
+  hwBraPTPWorkMode OBJECT-TYPE
+     SYNTAX      INTEGER{p2mp(1), p2p(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+         DEFVAL      { p2mp }
+     ::= { hwBraPTPConfigEntry 5 }
+ 
+   hwBraPTPPowerState OBJECT-TYPE
+     SYNTAX      INTEGER{state1(1),state2(2),state3(3),state4(4)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         " 
+     
+         "
+     ::= { hwBraPTPConfigEntry 6 }
+  hwBraPTPConfigState OBJECT-TYPE
+     SYNTAX      INTEGER{notconfigusertype(1),configusertype(2)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwBraPTPConfigEntry 7}
+
+--hwBraPTPOperTable
+
+   hwBraPTPOperTable OBJECT-TYPE
+     SYNTAX      SEQUENCE OF HwBraPTPOperEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       "
+       "
+     ::= { hwIASVoicePortObjects 4 }
+     
+   hwBraPTPOperEntry OBJECT-TYPE
+     SYNTAX      HwBraPTPOperEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       ""
+     INDEX    {  
+              hwBraPTPOperIndex
+              }
+     ::= { hwBraPTPOperTable 1 }
+ 
+   HwBraPTPOperEntry ::=
+     SEQUENCE
+     {
+       hwBraPTPOperIndex	              INTEGER,
+       hwBraPTPSrvState	              INTEGER,
+       hwBraPTPLoopBackState          INTEGER,
+       hwBraPTPTestState	          INTEGER,
+       hwBraPTPAdminOper	          INTEGER,
+       hwBraPTPSrvStateChange	      TimeTicks,
+       hwBraPTPLoopBackStateChange    TimeTicks,
+       hwBraPTPTestStateChange	      TimeTicks      
+     }
+ 
+   hwBraPTPOperIndex OBJECT-TYPE
+     SYNTAX      INTEGER
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         "
+     ::= { hwBraPTPOperEntry 1 }
+ 
+   hwBraPTPSrvState OBJECT-TYPE
+     SYNTAX      INTEGER{normal(1),fault(2),deactive(3)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwBraPTPOperEntry 2 }
+ 
+   hwBraPTPLoopBackState OBJECT-TYPE
+     SYNTAX      INTEGER{noloop(1),remoteloop(2),localloop(3)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "  
+         "
+     ::= { hwBraPTPOperEntry 3 }
+     
+   hwBraPTPTestState OBJECT-TYPE
+     SYNTAX      INTEGER{notest(1),test(2)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwBraPTPOperEntry 4 }
+ 
+   hwBraPTPAdminOper OBJECT-TYPE
+     SYNTAX      INTEGER{reset(1),localloop(2),remoteloop(3),cancelloop(4),active(5),deactive(6)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwBraPTPOperEntry 5 }
+ 
+   hwBraPTPSrvStateChange OBJECT-TYPE
+     SYNTAX      TimeTicks
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwBraPTPOperEntry 6 }
+ 
+   hwBraPTPLoopBackStateChange OBJECT-TYPE
+     SYNTAX      TimeTicks
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwBraPTPOperEntry 7 }
+     
+   hwBraPTPTestStateChange OBJECT-TYPE
+     SYNTAX      TimeTicks
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwBraPTPOperEntry 8 }
+ 
+ 
+   --hwBRAPTPPerformanceStatTable
+ 
+   hwBRAPTPPerformanceStatTable OBJECT-TYPE
+     SYNTAX      SEQUENCE OF HwBRAPTPPerformanceStatEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       "
+       BRA 
+       "
+     ::= { hwIASVoicePortObjects 5 }
+ 
+   hwBRAPTPPerformanceStatEntry OBJECT-TYPE
+     SYNTAX      HwBRAPTPPerformanceStatEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       ""
+     INDEX    {  
+               hwBraPTPPerforIndex
+              }
+     ::= { hwBRAPTPPerformanceStatTable 1 }
+ 
+   HwBRAPTPPerformanceStatEntry ::=
+     SEQUENCE
+     {
+       hwBraPTPPerforIndex	        INTEGER,
+       hwBraPTPPerformanceStatOprType	INTEGER,
+       hwBraPTPPerformanceStatPeri	    INTEGER,
+       hwBraPTPErrorcode	            INTEGER,
+       hwBraPTPNebeUas                  INTEGER,
+       hwBraPTPFebeUas                  INTEGER,
+       hwBraPTPNebeEs                   INTEGER,
+       hwBraPTPFebeEs                   INTEGER,
+       hwBraPTPNebeSes                  INTEGER,
+       hwBraPTPFebeSes                  INTEGER
+     }
+ 
+   hwBraPTPPerforIndex OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 1 }    
+    
+    hwBraPTPPerformanceStatOprType OBJECT-TYPE
+    SYNTAX      INTEGER{stop(1), start(2)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 2 }   
+    
+    hwBraPTPPerformanceStatPeri OBJECT-TYPE
+    SYNTAX      INTEGER(1..5)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 3 }   
+    
+    hwBraPTPErrorcode OBJECT-TYPE
+    SYNTAX      INTEGER(50..84)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 4 }
+    
+    hwBraPTPNebeUas OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "
+        NEBE(Near End Block Error) (s) 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 5 }   
+    
+    hwBraPTPFebeUas OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "
+        FEBE(Far End Block Error) (s) 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 6 }
+    
+    hwBraPTPNebeEs OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "
+        NEBE(Near End Block Error) (s) 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 7 }
+    
+    hwBraPTPFebeEs OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "
+        FEBE(Far End Block Error) (s) 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 8 }
+    
+    hwBraPTPNebeSes OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "
+        NEBE(Near End Block Error) (s) 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 9 }
+    
+    hwBraPTPFebeSes OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "
+        FEBE(Far End Block Error) (s) 
+        "
+    ::= { hwBRAPTPPerformanceStatEntry 10 } 
+    
+   ---------------------------/*hwE1PTPConfigTable*/-------------------------- 
+   hwE1PTPConfigTable OBJECT-TYPE
+     SYNTAX      SEQUENCE OF HwE1PTPConfigEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       "
+       E1 
+       "
+     ::= { hwIASVoicePortObjects 6 }
+   
+   hwE1PTPConfigEntry OBJECT-TYPE
+     SYNTAX      HwE1PTPConfigEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       ""
+     INDEX    {  
+               hwE1PTPIndex
+              }
+     ::= { hwE1PTPConfigTable 1 }
+ 
+   HwE1PTPConfigEntry ::=
+     SEQUENCE
+     {
+       hwE1PTPIndex  	        INTEGER,
+       hwE1PTPFrameVerifyMode	INTEGER,
+       hwE1PTPImpedance  	INTEGER,
+       hwE1PTPSignalType	INTEGER,
+       hwE1PTPConfigState       INTEGER
+     }
+ 
+   hwE1PTPIndex OBJECT-TYPE
+     SYNTAX      INTEGER
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         "
+     ::= { hwE1PTPConfigEntry 1 }
+ 
+   hwE1PTPFrameVerifyMode OBJECT-TYPE
+     SYNTAX      INTEGER{disable(1),enable(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         "
+         DEFVAL      { disable }
+     ::= { hwE1PTPConfigEntry 2 }
+ 
+   hwE1PTPImpedance OBJECT-TYPE
+     SYNTAX      INTEGER{ohm-75(1),ohm-120(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         "
+         DEFVAL      { ohm-75 }
+     ::= { hwE1PTPConfigEntry 3 }
+ 
+   hwE1PTPSignalType OBJECT-TYPE
+     SYNTAX      INTEGER{ccs(1),cas(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         "
+         DEFVAL      { ccs }
+     ::= { hwE1PTPConfigEntry 4 }
+     
+   hwE1PTPConfigState OBJECT-TYPE
+     SYNTAX      INTEGER{notconfigusertype(1),configusertype(2)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwE1PTPConfigEntry 5}
+     
+ --hwE1PTPOperTable   
+   hwE1PTPOperTable OBJECT-TYPE
+     SYNTAX      SEQUENCE OF HwE1PTPOperEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       "
+       "
+     ::= { hwIASVoicePortObjects 7 }
+ 
+   hwE1PTPOperEntry OBJECT-TYPE
+     SYNTAX      HwE1PTPOperEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       ""
+     INDEX    {  
+               hwE1PTPOperIndex
+              }
+     ::= { hwE1PTPOperTable 1 }
+ 
+   HwE1PTPOperEntry ::=
+     SEQUENCE
+     {
+       hwE1PTPOperIndex	          INTEGER,
+       hwE1PTPSrvState	          INTEGER,
+       hwE1PTPLoopBackState       INTEGER,
+       hwE1PTPAdminOper	          INTEGER,
+       hwE1PTPWarningState	  INTEGER
+     }
+ 
+   hwE1PTPOperIndex OBJECT-TYPE
+     SYNTAX      INTEGER
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwE1PTPOperEntry 1 }
+ 
+   hwE1PTPSrvState OBJECT-TYPE
+     SYNTAX      INTEGER{normal(1),fault(2),lineAbnormal(3)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwE1PTPOperEntry 2 }
+ 
+   hwE1PTPLoopBackState OBJECT-TYPE
+     SYNTAX      INTEGER{noLoop(1),remoteLoop(2),localLoop(3)}
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwE1PTPOperEntry 3 }
+ 
+   hwE1PTPAdminOper OBJECT-TYPE
+     SYNTAX      INTEGER{reset(1),localLoop(2),remoteLoop(3),cancelLoop(4)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         reset(1)
+         localLoop(2)
+         remoteLoop(3)
+         cancelLoop(4)
+         "
+     ::= { hwE1PTPOperEntry 4 }
+ 
+   hwE1PTPWarningState OBJECT-TYPE
+     SYNTAX      INTEGER('0'H..'3f'H)
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+         "
+
+         "
+     ::= { hwE1PTPOperEntry 5 }
+     
+  --------------------------/*hwGTCOperateTable*/---------------------------------
+ hwGTCOperateTable OBJECT-TYPE
+     SYNTAX      SEQUENCE OF HwGTCOperateEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       "
+       
+       "
+     ::= { hwIASVoicePortObjects 8 }
+ 
+   hwGTCOperateEntry OBJECT-TYPE
+     SYNTAX      HwGTCOperateEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+       ""
+     INDEX    {  
+               hwGTCIndex
+              }
+     ::= { hwGTCOperateTable 1 }
+ 
+   HwGTCOperateEntry ::=
+     SEQUENCE
+     {
+       hwGTCIndex  	                  INTEGER,
+       hwGTCTimer       	          INTEGER,
+       hwGTCOperate                       INTEGER
+     }
+ 
+   hwGTCIndex OBJECT-TYPE
+     SYNTAX      INTEGER
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+         "
+         
+         "
+     ::= { hwGTCOperateEntry 1 }
+ 
+   hwGTCTimer OBJECT-TYPE
+     SYNTAX      INTEGER(1..600)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         "
+     ::= { hwGTCOperateEntry 2 }
+ 
+   hwGTCOperate OBJECT-TYPE
+     SYNTAX      INTEGER{undertest(1),finishtest(2)}
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "
+         1: undertest(1) 
+         2: finishtest(2)
+         "
+     ::= { hwGTCOperateEntry 3 } 
+------------------------------------------------------------------------------ 
+ --   UserDefineRingTypeTable
+     hwUserDefineRingTypeTable     OBJECT-TYPE
+        SYNTAX         SEQUENCE OF HwUserDefineRingTypeEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+           "
+           "
+    ::= { hwIASVoicePortObjects 9 }
+
+    hwUserDefineRingTypeEntry         OBJECT-TYPE
+       SYNTAX         HwUserDefineRingTypeEntry
+       MAX-ACCESS     not-accessible
+       STATUS         current
+       DESCRIPTION    " "
+          INDEX    { 
+                     hwUserDefineRingType
+                   }
+    ::= { hwUserDefineRingTypeTable  1 }
+
+     HwUserDefineRingTypeEntry ::= SEQUENCE 
+     {
+        hwUserDefineRingType           INTEGER,
+        hwUserDefineRingPara1          INTEGER,
+        hwUserDefineRingPara2          INTEGER,
+        hwUserDefineRingPara3          INTEGER,
+        hwUserDefineRingPara4          INTEGER,
+        hwUserDefineRingPara5          INTEGER,
+        hwUserDefineRingPara6          INTEGER     
+           
+     }
+
+    hwUserDefineRingType         OBJECT-TYPE
+        SYNTAX      INTEGER(1..16) 
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+         " "
+    ::= { hwUserDefineRingTypeEntry 1 }
+
+    hwUserDefineRingPara1         OBJECT-TYPE
+        SYNTAX      INTEGER(0..65534) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+         " "
+    ::= { hwUserDefineRingTypeEntry 2 }
+
+
+    hwUserDefineRingPara2         OBJECT-TYPE
+        SYNTAX      INTEGER(0..65534) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+         " "
+    ::= { hwUserDefineRingTypeEntry 3 }
+
+    hwUserDefineRingPara3         OBJECT-TYPE
+        SYNTAX      INTEGER(0..65534) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+         " "
+    ::= { hwUserDefineRingTypeEntry 4 }
+
+    hwUserDefineRingPara4         OBJECT-TYPE
+        SYNTAX      INTEGER(0..65534) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+         " "
+    ::= { hwUserDefineRingTypeEntry 5 }
+
+    hwUserDefineRingPara5         OBJECT-TYPE
+        SYNTAX      INTEGER(0..65535) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+         " "
+    ::= { hwUserDefineRingTypeEntry 6 }
+
+    hwUserDefineRingPara6         OBJECT-TYPE
+        SYNTAX      INTEGER(0..65534) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+         " "
+    ::= { hwUserDefineRingTypeEntry 7 } 
+------------------------------------------------------------------------------ 
+    hwPortDataTrapSequence OBJECT IDENTIFIER ::= { hwIASVoicePortObjects 10 }
+		
+		hwPstnPortDataTrapSequence OBJECT-TYPE
+			SYNTAX INTEGER
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"
+				  
+                                "
+			::= { hwPortDataTrapSequence 1 }
+		
+		hwBraPortDataChangeSequence OBJECT-TYPE
+			SYNTAX INTEGER
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"
+                                "
+			::= { hwPortDataTrapSequence 2 }
+		
+		hwE1PortDataChangeSequence OBJECT-TYPE
+			SYNTAX INTEGER
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"
+                                "
+			::= { hwPortDataTrapSequence 3 }
+------------------------------------------------------------------------------ 
+END

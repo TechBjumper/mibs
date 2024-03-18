@@ -1,0 +1,787 @@
+HUAWEI-IAS-VRP-MIB DEFINITIONS ::= BEGIN
+IMPORTS
+	MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, private
+		FROM SNMPv2-SMI
+	MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+		FROM SNMPv2-CONF
+	TEXTUAL-CONVENTION
+		FROM SNMPv2-TC
+	Counter32,IpAddress
+		FROM SNMPv2-SMI
+	RowStatus
+		FROM SNMPv2-TC
+;
+
+hwIASVrpObjects MODULE-IDENTITY
+	LAST-UPDATED "0412031415Z"
+	ORGANIZATION ""
+	CONTACT-INFO ""
+	DESCRIPTION ""
+	::= { hwIASVrp 1 }
+
+
+
+hwVlanInfoTable OBJECT IDENTIFIER ::= { hwIASVrpObjects 7 }
+
+enterprises OBJECT IDENTIFIER ::= { private 1 }
+
+huawei OBJECT IDENTIFIER ::= { enterprises 2011 }
+
+huaweiUtility OBJECT IDENTIFIER ::= { huawei 6 }
+
+hwIASVrp OBJECT IDENTIFIER ::= { huaweiUtility 37 }
+
+
+  hwIfConfigureTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF HwIfConfigureEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	" "
+    ::= { hwIASVrpObjects 1 }
+
+  hwIfConfigureEntry OBJECT-TYPE
+    SYNTAX      HwIfConfigureEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      ""
+    INDEX    {  
+              hwIndex
+             }
+    ::= { hwIfConfigureTable 1 }
+
+  HwIfConfigureEntry ::=
+    SEQUENCE
+    {
+      hwIndex	INTEGER,
+      hwIfDescript	OCTET STRING,
+      hwIfType	INTEGER,
+      hwIfMTU	INTEGER,
+      hwIfPhyAddr	OCTET STRING,
+      hwIfMode	INTEGER,
+      hwIfFlowControl	INTEGER,
+      hwIfAdminStatus	INTEGER,
+      hwIfOperStatus	INTEGER,
+      hwIfInPackets	Counter32,
+      hwIfOutPackets	Counter32
+    }
+
+  hwIndex OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+  
+        "
+    ::= { hwIfConfigureEntry 1 }
+
+  hwIfDescript OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(1..47))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfConfigureEntry 2 }
+
+  hwIfType OBJECT-TYPE
+    SYNTAX      INTEGER{fe(1),ge(2)}
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfConfigureEntry 3 }
+
+  hwIfMTU OBJECT-TYPE
+    SYNTAX      INTEGER(46..1500)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfConfigureEntry 4 }
+
+  hwIfPhyAddr OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(17))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfConfigureEntry 5 }
+
+  hwIfMode OBJECT-TYPE
+    SYNTAX      INTEGER{auto(1),half10(2),full10(3),half100(4),full100(5),full1000(6)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfConfigureEntry 6 }
+
+  hwIfFlowControl OBJECT-TYPE
+    SYNTAX      INTEGER{on(1),off(2)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfConfigureEntry 7 }
+
+  hwIfAdminStatus OBJECT-TYPE
+    SYNTAX      INTEGER{reset(1),down(2),up(3)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+       
+        "
+    ::= { hwIfConfigureEntry 8 }
+
+  hwIfOperStatus OBJECT-TYPE
+    SYNTAX      INTEGER{down(1),up(2)}
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfConfigureEntry 9 }
+
+  hwIfInPackets OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfConfigureEntry 10 }
+
+  hwIfOutPackets OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfConfigureEntry 11 }
+
+  hwIpAddrConfTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF HwIpAddrConfEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      " 
+    
+      "
+    ::= { hwIASVrpObjects 2 }
+
+  hwIpAddrConfEntry OBJECT-TYPE
+    SYNTAX      HwIpAddrConfEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      ""
+    INDEX    {  
+              hwIpAddrIndex
+             }
+    ::= { hwIpAddrConfTable 1 }
+
+  HwIpAddrConfEntry ::=
+    SEQUENCE
+    {
+      hwIpAddrIndex	INTEGER,
+      hwIpAddrIpAddr	IpAddress,
+      hwIpAddrNetMask	IpAddress,
+      hwIpAddrBcastAddr	IpAddress,
+      hwIpAddrIpSecondary	INTEGER,
+      hwIpAddrRowStatus	RowStatus
+    }
+
+  hwIpAddrIndex OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+       
+        "
+    ::= { hwIpAddrConfEntry 1 }
+
+  hwIpAddrIpAddr OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpAddrConfEntry 2 }
+
+  hwIpAddrNetMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpAddrConfEntry 3 }
+
+  hwIpAddrBcastAddr OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpAddrConfEntry 4 }
+
+  hwIpAddrIpSecondary OBJECT-TYPE
+    SYNTAX      INTEGER{primary(1), secondary(2) }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIpAddrConfEntry 5 }
+
+  hwIpAddrRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpAddrConfEntry 6 }
+
+  hwArpConfigureTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF HwArpConfigureEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      " 
+       
+      "
+    ::= { hwIASVrpObjects 3 }
+
+  hwArpConfigureEntry OBJECT-TYPE
+    SYNTAX      HwArpConfigureEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      ""
+    INDEX    {  
+              hwArpIpAddress
+             }
+    ::= { hwArpConfigureTable 1 }
+
+  HwArpConfigureEntry ::=
+    SEQUENCE
+    {
+      hwArpIpAddress	IpAddress,
+      hwArpMacAddress	OCTET STRING,
+      hwArpFlags	INTEGER,
+      hwArpRowStatus	RowStatus
+    }
+
+  hwArpIpAddress OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwArpConfigureEntry 1 }
+
+  hwArpMacAddress OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(17))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwArpConfigureEntry 2 }
+
+  hwArpFlags OBJECT-TYPE
+    SYNTAX      INTEGER{static(1),dynamic(2)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+          
+        "
+    ::= { hwArpConfigureEntry 3 }
+
+  hwArpRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwArpConfigureEntry 4 }
+
+  hwIpRouteTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF HwIpRouteEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      " 
+     
+      "
+    ::= { hwIASVrpObjects 4 }
+
+  hwIpRouteEntry OBJECT-TYPE
+    SYNTAX      HwIpRouteEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      ""
+    INDEX    {  
+              hwIpRouteDest,
+              hwIpRouteMask,
+              hwIpRouteNextHop
+             }
+    ::= { hwIpRouteTable 1 }
+
+  HwIpRouteEntry ::=
+    SEQUENCE
+    {
+      hwIpRouteDest	IpAddress,
+      hwIpRouteMask	IpAddress,
+      hwIpRouteNextHop	IpAddress,
+      hwIpRoutePref	INTEGER,
+      hwIpRouteTag	INTEGER,
+      hwIpRouteIndex	INTEGER,
+      hwIpRouteMetric	INTEGER,
+      hwIpRouteProto	INTEGER,
+      hwIpRouteAge	INTEGER
+    }
+
+  hwIpRouteDest OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpRouteEntry 1 }
+
+  hwIpRouteMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpRouteEntry 2 }
+
+  hwIpRouteNextHop OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpRouteEntry 3 }
+
+  hwIpRoutePref OBJECT-TYPE
+    SYNTAX      INTEGER(0..255)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    DEFVAL      { 60 }
+    ::= { hwIpRouteEntry 4 }
+
+  hwIpRouteTag OBJECT-TYPE
+    SYNTAX      INTEGER{accept(1),reject(2),blackhole(3)}
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    DEFVAL      { 1 }
+    ::= { hwIpRouteEntry 5 }
+
+  hwIpRouteIndex OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpRouteEntry 6 }
+
+  hwIpRouteMetric OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpRouteEntry 7 }
+
+  hwIpRouteProto OBJECT-TYPE
+    SYNTAX      INTEGER{gateway(1),direct(2),static(3)}
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIpRouteEntry 8 }
+
+  hwIpRouteAge OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIpRouteEntry 9 }
+
+  hwStaticIpRouteTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF HwStaticIpRouteEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      " 
+    
+      "
+    ::= { hwIASVrpObjects 5 }
+
+  hwStaticIpRouteEntry OBJECT-TYPE
+    SYNTAX      HwStaticIpRouteEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      ""
+    INDEX    {  
+              hwStaticIpRouteDest,
+              hwStaticIpRouteMask,
+              hwStaticIpRouteNextHop,
+              hwStaticIpRoutePref
+             }
+    ::= { hwStaticIpRouteTable 1 }
+
+  HwStaticIpRouteEntry ::=
+    SEQUENCE
+    {
+      hwStaticIpRouteDest	IpAddress,
+      hwStaticIpRouteMask	IpAddress,
+      hwStaticIpRouteNextHop	IpAddress,
+      hwStaticIpRoutePref	INTEGER,
+      hwStaticIpRouteTag	INTEGER,
+      hwStaticIpRouteRowStatus	RowStatus
+    }
+
+  hwStaticIpRouteDest OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwStaticIpRouteEntry 1 }
+
+  hwStaticIpRouteMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwStaticIpRouteEntry 2 }
+
+  hwStaticIpRouteNextHop OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwStaticIpRouteEntry 3 }
+
+  hwStaticIpRoutePref OBJECT-TYPE
+    SYNTAX      INTEGER(0..255)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    DEFVAL      { 60 }
+    ::= { hwStaticIpRouteEntry 4 }
+
+  hwStaticIpRouteTag OBJECT-TYPE
+    SYNTAX      INTEGER{accept(1),reject(2),blackhole(3)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    DEFVAL      { 1 }
+    ::= { hwStaticIpRouteEntry 5 }
+
+  hwStaticIpRouteRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwStaticIpRouteEntry 6 }
+
+  hwIfBakGroupTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF HwIfBakGroupEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      " 
+      
+      "
+    ::= { hwIASVrpObjects 6 }
+
+  hwIfBakGroupEntry OBJECT-TYPE
+    SYNTAX      HwIfBakGroupEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      ""
+    INDEX    {  
+              hwIfBakGroupNo,
+              hwSharedIPAddress
+             }
+    ::= { hwIfBakGroupTable 1 }
+
+  HwIfBakGroupEntry ::=
+    SEQUENCE
+    {
+      hwIfBakGroupNo	INTEGER,
+      hwSharedIPAddress	IpAddress,
+      hwSharedIPAddressMask	IpAddress,
+      hwSharedIpAddrIpSecondary	INTEGER,
+      hwMainIFID	OCTET STRING,
+      hwMainIFState	INTEGER,
+      hwBackupIFID	OCTET STRING,
+      hwBackupIFState	INTEGER,
+      hwVirtualMac	OCTET STRING,
+      hwSwitch-over	INTEGER,
+      hwIfBakGroupRowStatus	RowStatus,
+      hwMainIfIndex      INTEGER,
+      hwBackupIfIndex    INTEGER
+    }
+
+  hwIfBakGroupNo OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfBakGroupEntry 1 }
+
+  hwSharedIPAddress OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfBakGroupEntry 2 }
+
+  hwSharedIPAddressMask OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfBakGroupEntry 3 }
+
+  hwSharedIpAddrIpSecondary OBJECT-TYPE
+    SYNTAX      INTEGER{primary(1), secondary(2)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfBakGroupEntry 4 }
+
+  hwMainIFID OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(1..47))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfBakGroupEntry 5 }
+
+  hwMainIFState OBJECT-TYPE
+    SYNTAX      INTEGER{down(1),standby(2),active(3)}
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfBakGroupEntry 6 }
+
+  hwBackupIFID OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(1..47))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfBakGroupEntry 7 }
+
+  hwBackupIFState OBJECT-TYPE
+    SYNTAX      INTEGER{down(1),standby(2),active(3)}
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfBakGroupEntry 8 }
+
+  hwVirtualMac OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE(17))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfBakGroupEntry 9 }
+
+  hwSwitch-over OBJECT-TYPE
+    SYNTAX      INTEGER{switch-over(1)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfBakGroupEntry 10 }
+
+  hwIfBakGroupRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        " 
+         
+        "
+    ::= { hwIfBakGroupEntry 11 }
+    
+  hwMainIfIndex OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfBakGroupEntry 12 }
+    
+  hwBackupIfIndex OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " 
+        
+        "
+    ::= { hwIfBakGroupEntry 13 }
+
+
+
+  hwVoicePktID OBJECT-TYPE
+    SYNTAX      INTEGER(1..4095)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      " 
+      "
+    ::= { hwVlanInfoTable 1 }
+
+  hwOthersPktID OBJECT-TYPE
+    SYNTAX      INTEGER(1..4095)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      " 
+      "
+    ::= { hwVlanInfoTable 2 }
+
+  hwVoicePKtPriority OBJECT-TYPE
+    SYNTAX      INTEGER(0..7)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      " 
+      "
+    ::= { hwVlanInfoTable 3 }
+
+  hwOthersPktPriority OBJECT-TYPE
+    SYNTAX      INTEGER(0..7)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      " 
+      "
+    ::= { hwVlanInfoTable 4 }
+
+  hwVlanSwith OBJECT-TYPE
+    SYNTAX      INTEGER{close(1),open(2)}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      " 
+      "
+    ::= { hwVlanInfoTable 5 }
+
+
+
+END

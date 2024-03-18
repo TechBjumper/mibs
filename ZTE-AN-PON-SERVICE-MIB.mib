@@ -1,0 +1,2434 @@
+ZTE-AN-PON-SERVICE-MIB DEFINITIONS ::= BEGIN
+    IMPORTS 
+        enterprises                      FROM SNMPv2-SMI
+        RowStatus                        FROM SNMPv2-TC
+        MODULE-IDENTITY                  FROM SNMPv2-SMI
+        OBJECT-GROUP                     FROM SNMPv2-CONF
+        MODULE-COMPLIANCE                FROM SNMPv2-CONF
+        NOTIFICATION-TYPE                FROM SNMPv2-SMI
+        OBJECT-TYPE                      FROM SNMPv2-SMI
+        ifIndex                          FROM IF-MIB
+        DisplayString                    FROM SNMPv2-TC
+        MacAddress                       FROM SNMPv2-TC
+        DateAndTime                      FROM SNMPv2-TC
+        Integer32                        FROM SNMPv2-SMI
+        zxAnPon                          FROM ZTE-AN-SMI
+        InetAddress,InetAddressType      FROM INET-ADDRESS-MIB
+        InetAddressPrefixLength          FROM INET-ADDRESS-MIB
+        zxAnPonOltIfRxPkts               FROM ZTE-AN-PON-PERF-MIB
+        zxAnPonOnuIndex                  FROM ZTE-AN-PON-BASE-MIB;
+zxAnPonSrvMib MODULE-IDENTITY
+    LAST-UPDATED    "201202270000Z"
+    ORGANIZATION    "ZTE Corporation"
+    CONTACT-INFO    "Guo HongJian      ZTE Corporation
+                    Mail: guo.hongjian@zte.com.cn
+                    Tel : +86-21-68897417"
+    DESCRIPTION     
+        "The MIB module for the management of PON service."
+                 
+    REVISION        "201202270000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { zxAnPon 2 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+
+-- zxAnPonSrvObjects
+    -- zxAnPonSrvOnuProfileObjects
+    -- zxAnPonSrvIpObjects
+        -- zxAnPonSrvIpPoolTable
+        -- zxAnPonSrvIpPoolBindTable
+        -- zxAnPonSrvOnuMgmtIp2Table
+    -- zxAnPonSrvOnuBlacklistObjects
+        -- zxAnPonSrvOnuBlacklistTable
+    -- zxAnPonSrvOnuResObjects
+        -- zxAnPonSrvOnuIdResTable
+    -- zxAnPonSrvWhitelistObjects
+        -- zxAnPonSrvWhitelistTable 
+    -- zxAnPonSrvDbaObjects
+        -- zxAnPonSrvDbaInfoTable
+    -- zxAnPonSrvPonPortObjects
+        -- zxAnPonSrvPonPortTable
+    -- zxAnPonSrvChannelObjects      
+        -- zxAnPonSrvChannelTable
+    -- zxAnPonSrvUnconfOnuObjects          
+        -- zxAnPonSrvUnconfOnuTable                       
+    -- zxAnPonSrvVndObjects
+        -- zxAnPonSrvVndConfTable
+        -- zxAnPonSrvVndPortConfTable
+        -- zxAnPonSrvVndBindOnuRuleTable
+    -- zxAnPonSrvCongestObjects
+        -- zxAnPonSrvCongestPrfTable
+        -- zxAnPonSrvCongestConfTable   
+    -- zxAnPonSrvOnuSplitterObjects
+        -- zxAnPonSrvOnuSplitterConfTable
+-- Following notifications information is defined.
+-- zxAnPonSrvNotifications
+    -- zxAnPonSrvTraps
+        
+-- Following conformance information is defined.
+-- zxAnPonSrvConformance
+    -- zxAnPonSrvCompliances
+    -- zxAnPonSrvGroups      
+        -- zxAnPonSrvIpGroup   
+        -- zxAnPonSrvOnuBlacklistGroup
+        -- zxAnPonSrvOnuResGroup
+        -- zxAnPonSrvPlugAndPlayGroup 
+        
+--------------------------------------------------------------------------------   
+zxAnPonSrvGlobalObjects          OBJECT IDENTIFIER ::= { zxAnPonSrvMib 1 }
+zxAnPonSrvObjects                OBJECT IDENTIFIER ::= { zxAnPonSrvMib 2 }
+
+zxAnPonSrvOnuProfileObjects      OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 1 }
+zxAnPonSrvIpObjects              OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 2 }
+zxAnPonSrvOnuBlacklistObjects    OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 3 }
+zxAnPonSrvOnuResObjects          OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 4 }    
+zxAnPonSrvWhitelistObjects       OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 5 }
+zxAnPonSrvPlugAndPlayObjects     OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 6 }
+zxAnPonSrvDbaObjects             OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 7 }
+zxAnPonSrvPonPortObjects         OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 8 }
+zxAnPonSrvChannelObjects         OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 9 }
+zxAnPonSrvUnconfOnuObjects       OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 11 }
+zxAnPonSrvVndObjects             OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 12 }
+zxAnPonSrvCongestObjects         OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 13 }
+zxAnPonSrvOnuSplitterObjects     OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 14 }
+zxAnPonSrvLicenseObjects         OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 99 }
+zxAnPonSrvTrapBindValueObjects   OBJECT IDENTIFIER ::= { zxAnPonSrvObjects 150 }
+
+--------------------------------------------------------------------------------
+--  PON Service Capabilities
+--------------------------------------------------------------------------------
+   zxAnPonSrvCapabilities     OBJECT-TYPE 
+       SYNTAX   BITS{           
+           modifyVndBindOnuRuleTable(0)
+       } 
+       MAX-ACCESS       read-only
+       STATUS           current
+       DESCRIPTION      
+            "The PON capabilities of this equipment.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.            
+             bit 0: value 1 means adding the following attributes to the
+                    zxAnPonSrvVndBindOnuRuleTable: 
+                    zxAnPonSrvVndBindOnuRuleType,
+                    zxAnPonSrvVndBindOnuPwd,
+                    zxAnPonSrvVndBindOnuPsk,
+                    zxAnPonSrvVndBindOnuRid,
+                    zxAnPonSrvVndBindOnuLoidPwd.
+             NOTE: No recommended to display it in NMS."
+       ::=  {  zxAnPonSrvGlobalObjects 2  }    
+       
+--------------------------------------------------------------------------------
+-- PON ONU Separation Profile      
+-- zxAnPonSrvOnuSepProfileTable
+--------------------------------------------------------------------------------     
+    zxAnPonSrvOnuSepProfileTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnPonSrvOnuSepProfileEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "PON ONU separation profile table."
+        ::= { zxAnPonSrvOnuProfileObjects 4 }
+        
+    zxAnPonSrvOnuSepProfileEntry OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvOnuSepProfileEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PON ONU separation profile Entry."
+        INDEX   { zxAnPonSrvOnuSepPrfPonType,zxAnPonSrvOnuSepPrfType,
+                  zxAnPonSrvOnuSepPrfName }
+        ::= { zxAnPonSrvOnuSepProfileTable 1 }
+        
+    ZxAnPonSrvOnuSepProfileEntry ::=
+        SEQUENCE {
+            zxAnPonSrvOnuSepPrfPonType              INTEGER,
+            zxAnPonSrvOnuSepPrfType                 INTEGER,
+            zxAnPonSrvOnuSepPrfName                 DisplayString,
+            zxAnPonSrvOnuSepPrfId                   Integer32,
+            zxAnPonSrvOnuSepPrfOperation            INTEGER,
+            zxAnPonSrvOnuSepPrfStatus               INTEGER,
+            zxAnPonSrvOnuSepPrfOperProgress         Integer32,
+            zxAnPonSrvOnuSepPrfRowStatus            RowStatus
+        }
+
+    zxAnPonSrvOnuSepPrfPonType OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    epon(1),
+                    gpon(2)
+                    }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+                "PON type."
+        DEFVAL { gpon }
+        ::= { zxAnPonSrvOnuSepProfileEntry 1 }
+        
+    zxAnPonSrvOnuSepPrfType OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    linePrf(1),
+                    onuRemotePrf(2)
+                    }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+                "PON ONU separation profile type."       
+        ::= { zxAnPonSrvOnuSepProfileEntry 2 }
+
+    zxAnPonSrvOnuSepPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..64))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PON ONU separation profile name."
+        ::= { zxAnPonSrvOnuSepProfileEntry 3 }
+        
+    zxAnPonSrvOnuSepPrfId OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "PON ONU separation profile ID."
+        ::= { zxAnPonSrvOnuSepProfileEntry 4 }
+        
+    zxAnPonSrvOnuSepPrfOperation OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    commit(1),
+                    rollback(2)
+                    }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "PON ONU separation profile operation.           
+            -commit: commit ONU separation profile's modification.
+            -rollback: revert ONU separation profile's modification. "
+        ::= { zxAnPonSrvOnuSepProfileEntry 5 }
+        
+    zxAnPonSrvOnuSepPrfStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    normal(1),
+                    modifiedButNotApplied(2),
+                    committing(3),
+                    rollbacking(4)
+                    }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The current status of PON ONU separation profile.
+            -normal: profile has been applied.
+            -modifiedButNotApplied: profile has been modified but not applied.
+            -committing: profile is committing.
+            -rollbacking: profile is rollbacking."
+        ::= { zxAnPonSrvOnuSepProfileEntry 6 }
+        
+    zxAnPonSrvOnuSepPrfOperProgress OBJECT-TYPE
+        SYNTAX      Integer32(0..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The percent of PON ONU separation profile operation."
+        ::= { zxAnPonSrvOnuSepProfileEntry 7 }
+        
+    zxAnPonSrvOnuSepPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+           "The status of this conceptual row.
+
+           The supported actions of this conceptual row only include:
+
+           To create a row in this table, a manager must
+           set this object to createAndGo(4).
+
+           To delete a row in this table, a manager must
+           set this object to destroy(6).
+
+           To query this object, always return 1. "
+        ::= { zxAnPonSrvOnuSepProfileEntry 50 }
+
+--------------------------------------------------------------------------------     
+-- PON ONU Separation Profile
+-- zxAnPonSrvOnuSepPrfConfTable                                                            
+--------------------------------------------------------------------------------             
+    zxAnPonSrvOnuSepPrfConfTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnPonSrvOnuSepPrfConfEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "PON ONU separation profile configuration table."
+        ::= { zxAnPonSrvOnuProfileObjects 5 }
+        
+    zxAnPonSrvOnuSepPrfConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvOnuSepPrfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PON ONU separation profile configuration entry."
+        INDEX   { ifIndex, zxAnPonOnuIndex, zxAnPonSrvOnuSepPrfType }
+        ::= { zxAnPonSrvOnuSepPrfConfTable 1 }
+   
+    ZxAnPonSrvOnuSepPrfConfEntry ::=
+        SEQUENCE {
+            zxAnPonSrvOnuSepPrfConfPrfName        DisplayString,
+            zxAnPonSrvOnuSepPrfConfStatus         INTEGER,
+            zxAnPonSrvOnuSepPrfConfFailRsn        Integer32,
+            zxAnPonSrvOnuSepPrfConfRowStatus      RowStatus
+        }          
+
+    zxAnPonSrvOnuSepPrfConfPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..64))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "PON ONU separation profile name."
+        ::= { zxAnPonSrvOnuSepPrfConfEntry 1 }
+
+    zxAnPonSrvOnuSepPrfConfStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    inProgress(1),
+                    success(2),
+                    failed(3)
+                    }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "PON ONU separation profile configuration status."
+        ::= { zxAnPonSrvOnuSepPrfConfEntry 2 }
+
+    zxAnPonSrvOnuSepPrfConfFailRsn OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Failed reason of PON ONU separation profile configuration.
+             Value 0 indicates no error and other value indicates the
+             error code."
+        ::= { zxAnPonSrvOnuSepPrfConfEntry 3 }
+        
+    zxAnPonSrvOnuSepPrfConfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+           "The status of this conceptual row.
+
+           The supported actions of this conceptual row only include:
+
+           To create a row in this table, a manager must
+           set this object to createAndGo(4).
+
+           To delete a row in this table, a manager must
+           set this object to destroy(6).
+
+           To query this object, always return 1. "
+        ::= { zxAnPonSrvOnuSepPrfConfEntry 50 }   
+        
+--------------------------------------------------------------------------------
+-- Ip Managment
+-- zxAnPonSrvIpPoolTable
+--------------------------------------------------------------------------------           
+   zxAnPonSrvIpPoolTable OBJECT-TYPE 
+        SYNTAX         SEQUENCE OF ZxAnPonSrvIpPoolEntry
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "PON IP pool to be bound to a PON port."        
+        ::= { zxAnPonSrvIpObjects 2 }
+              
+   zxAnPonSrvIpPoolEntry OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvIpPoolEntry 
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "It is entry in the zxAnPonSrvIpPoolTable."        
+        INDEX    { zxAnPonSrvIpPoolName } 
+        ::= { zxAnPonSrvIpPoolTable 1 }
+            
+    ZxAnPonSrvIpPoolEntry ::= 
+        SEQUENCE {  
+                 zxAnPonSrvIpPoolName               DisplayString,
+                 zxAnPonSrvIpPoolStartAddrType      InetAddressType,
+                 zxAnPonSrvIpPoolStartAddr          InetAddress,
+                 zxAnPonSrvIpPoolEndAddrType        InetAddressType,
+                 zxAnPonSrvIpPoolEndAddr            InetAddress,
+                 zxAnPonSrvIpPoolAddrPfxLen         InetAddressPrefixLength,                 
+                 zxAnPonSrvIpPoolPri                Integer32,
+                 zxAnPonSrvIpPoolCVid               Integer32,
+                 zxAnPonSrvIpPoolSVid               Integer32,                 
+                 zxAnPonSrvIpPoolNetAddrType        InetAddressType,
+                 zxAnPonSrvIpPoolNetAddr            InetAddress,
+                 zxAnPonSrvIpPoolNetAddrPfxLen      InetAddressPrefixLength,
+                 zxAnPonSrvIpPoolNetGatewayType     InetAddressType,
+                 zxAnPonSrvIpPoolNetGateway         InetAddress,
+                 zxAnPonSrvIpPoolUsage              Integer32,
+                 zxAnPonSrvIpPoolRowStatus          RowStatus
+                 } 
+                
+    zxAnPonSrvIpPoolName OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(1..64))                  
+        MAX-ACCESS   not-accessible 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool Name."        
+        ::= { zxAnPonSrvIpPoolEntry 1 }
+    
+    zxAnPonSrvIpPoolStartAddrType     OBJECT-TYPE 
+        SYNTAX      InetAddressType          
+        MAX-ACCESS  read-create              
+        STATUS      current                  
+        DESCRIPTION                          
+            "The type of IP address denoted  
+             in zxAnPonSrvIpPoolStartAddr object." 
+        DEFVAL { ipv4 }                      
+        ::= { zxAnPonSrvIpPoolEntry 2 }
+        
+    zxAnPonSrvIpPoolStartAddr OBJECT-TYPE 
+        SYNTAX       InetAddress                
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool start address."
+        ::= { zxAnPonSrvIpPoolEntry 3 }
+    
+    zxAnPonSrvIpPoolEndAddrType     OBJECT-TYPE 
+        SYNTAX      InetAddressType          
+        MAX-ACCESS  read-create              
+        STATUS      current                  
+        DESCRIPTION                          
+            "The type of IP address denoted  
+             in zxAnPonSrvIpPoolEndAddr object." 
+        DEFVAL { ipv4 }                      
+        ::= { zxAnPonSrvIpPoolEntry 4 }
+        
+    zxAnPonSrvIpPoolEndAddr OBJECT-TYPE 
+        SYNTAX       InetAddress                
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool end address."        
+        ::= { zxAnPonSrvIpPoolEntry 5 }
+        
+    zxAnPonSrvIpPoolAddrPfxLen OBJECT-TYPE 
+        SYNTAX       InetAddressPrefixLength                
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool mask."
+        ::= { zxAnPonSrvIpPoolEntry 6 } 
+        
+    zxAnPonSrvIpPoolPri OBJECT-TYPE 
+        SYNTAX       Integer32(0..7)       
+        MAX-ACCESS   read-create
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool priority."
+        DEFVAL {0}
+        ::= { zxAnPonSrvIpPoolEntry 7 }
+        
+    zxAnPonSrvIpPoolCVid OBJECT-TYPE 
+        SYNTAX       Integer32(1..4094)                
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool CVLAN."
+        DEFVAL {1}
+        ::= { zxAnPonSrvIpPoolEntry 8 }
+        
+     zxAnPonSrvIpPoolSVid OBJECT-TYPE 
+        SYNTAX       Integer32(0..4094)                
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool SVLAN.
+            0 or not specified means that there's no SVLAN."
+        DEFVAL {0}
+        ::= { zxAnPonSrvIpPoolEntry 9 }
+        
+     zxAnPonSrvIpPoolNetAddrType     OBJECT-TYPE 
+        SYNTAX      InetAddressType          
+        MAX-ACCESS  read-create              
+        STATUS      current                  
+        DESCRIPTION                          
+            "The type of IP address denoted  
+             in zxAnPonSrvIpPoolNetAddr object." 
+        DEFVAL { ipv4 }                      
+        ::= { zxAnPonSrvIpPoolEntry 10 } 
+                     
+    zxAnPonSrvIpPoolNetAddr OBJECT-TYPE 
+        SYNTAX       InetAddress            
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool network IP."        
+        ::= { zxAnPonSrvIpPoolEntry 11 }
+        
+    zxAnPonSrvIpPoolNetAddrPfxLen OBJECT-TYPE 
+        SYNTAX       InetAddressPrefixLength             
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool net mask."
+        ::= { zxAnPonSrvIpPoolEntry 12 }
+        
+    zxAnPonSrvIpPoolNetGatewayType     OBJECT-TYPE 
+        SYNTAX      InetAddressType          
+        MAX-ACCESS  read-create              
+        STATUS      current                  
+        DESCRIPTION                          
+            "The type of IP address denoted  
+             in zxAnPonSrvIpPoolNetGateway object." 
+        DEFVAL { ipv4 }                      
+        ::= { zxAnPonSrvIpPoolEntry 13 }     
+        
+    zxAnPonSrvIpPoolNetGateway OBJECT-TYPE 
+        SYNTAX       InetAddress            
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool gateway."        
+        ::= { zxAnPonSrvIpPoolEntry 14 }
+        
+    zxAnPonSrvIpPoolUsage OBJECT-TYPE 
+        SYNTAX          Integer32(0..100)
+        UNITS           "percent"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The current usage of this IP pool."
+        ::=  {zxAnPonSrvIpPoolEntry  15 }   
+
+    zxAnPonSrvIpPoolRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.  
+            
+            The supported actions of this conceptual row only include:
+
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+          
+            To delete a row in this table, a manager must
+            set this object to destroy(6). 
+            To query this object, always return 1. "      
+        ::= { zxAnPonSrvIpPoolEntry 50 }
+         
+--------------------------------------------------------------------------------
+-- Ip Managment
+-- zxAnPonSrvIpPoolBindTable
+--------------------------------------------------------------------------------            
+    zxAnPonSrvIpPoolBindTable OBJECT-TYPE 
+        SYNTAX         SEQUENCE OF ZxAnPonSrvIpPoolBindEntry
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "PON port associated with IP pool."
+        ::= { zxAnPonSrvIpObjects 3 }
+              
+    zxAnPonSrvIpPoolBindEntry OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvIpPoolBindEntry 
+        MAX-ACCESS     not-accessible 
+        STATUS         current 
+        DESCRIPTION 
+            "It is entry in the zxAnPonSrvIpPoolBindTable"        
+        INDEX    { ifIndex } 
+        ::= { zxAnPonSrvIpPoolBindTable 1 }
+            
+    ZxAnPonSrvIpPoolBindEntry ::= 
+        SEQUENCE {  
+                 zxAnPonSrvBindIpPoolName          DisplayString,
+                 zxAnPonSrvBindIpPoolRowStatus     RowStatus
+                 }                               
+                 
+    zxAnPonSrvBindIpPoolName OBJECT-TYPE 
+        SYNTAX       DisplayString(SIZE(1..64))               
+        MAX-ACCESS   read-create 
+        STATUS       current 
+        DESCRIPTION
+            "PON IP pool Name which will be bound to PON port.
+            Refers to zxAnPonSrvIpPoolName."        
+        ::= { zxAnPonSrvIpPoolBindEntry 1 }
+
+    zxAnPonSrvBindIpPoolRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.  
+            
+            The supported actions of this conceptual row only include:
+
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+          
+            To delete a row in this table, a manager must
+            set this object to destroy(6). 
+            
+            To query this object, always return 1. "         
+        ::= { zxAnPonSrvIpPoolBindEntry 50 }
+
+--------------------------------------------------------------------------------
+-- Ip Managment
+-- zxAnPonSrvOnuMgmtIp2Table
+-- Using by C600 Serial 
+--------------------------------------------------------------------------------        
+    zxAnPonSrvOnuMgmtIp2Table OBJECT-TYPE
+        SYNTAX       SEQUENCE OF ZxAnPonSrvOnuMgmtIp2Entry
+        MAX-ACCESS   not-accessible 
+        STATUS       current 
+        DESCRIPTION 
+            "ONU inband management channel IP configuration table.
+             This table is only used for C600 serial."
+        ::= { zxAnPonSrvIpObjects 6 } 
+
+    zxAnPonSrvOnuMgmtIp2Entry OBJECT-TYPE 
+        SYNTAX      ZxAnPonSrvOnuMgmtIp2Entry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION
+             "ONU inband management channel IP configuration entry.
+              The index 'zxAnPonSrvOnuIndex' represents the normal ONU index." 
+        INDEX       { ifIndex, zxAnPonOnuIndex }
+        ::= { zxAnPonSrvOnuMgmtIp2Table 1 } 
+   
+    ZxAnPonSrvOnuMgmtIp2Entry ::=
+        SEQUENCE {   
+            zxAnPonSrvOnuMgmtIp2IpAddrType    InetAddressType,
+            zxAnPonSrvOnuMgmtIp2IpAddr        InetAddress,
+            zxAnPonSrvOnuMgmtIp2IpPfxLen      InetAddressPrefixLength,
+            zxAnPonSrvOnuMgmtIp2Pri           Integer32,      
+            zxAnPonSrvOnuMgmtIp2CVid          Integer32,
+            zxAnPonSrvOnuMgmtIp2SVid          Integer32,
+            zxAnPonSrvOnuMgmtIp2NetAddrType   InetAddressType,
+            zxAnPonSrvOnuMgmtIp2NetAddr       InetAddress,
+            zxAnPonSrvOnuMgmtIp2NetPfxLen     InetAddressPrefixLength,
+            zxAnPonSrvOnuMgmtIp2NetGwIpType   InetAddressType,
+            zxAnPonSrvOnuMgmtIp2NetGwIp       InetAddress,
+            zxAnPonSrvOnuMgmtIp2RowStatus     RowStatus
+            }
+            
+     zxAnPonSrvOnuMgmtIp2IpAddrType     OBJECT-TYPE 
+        SYNTAX      InetAddressType          
+        MAX-ACCESS  read-create              
+        STATUS      current                  
+        DESCRIPTION                          
+            "The type of IP address denoted 
+             in zxAnPonSrvOnuMgmtIp2IpAddr object." 
+        DEFVAL { ipv4 }                      
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 1 } 
+        
+    zxAnPonSrvOnuMgmtIp2IpAddr OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "IP address of management channel."
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 2 }
+        
+    zxAnPonSrvOnuMgmtIp2IpPfxLen     OBJECT-TYPE
+        SYNTAX      InetAddressPrefixLength
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "IP address prefix length of management channel."
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 3 }       
+
+    zxAnPonSrvOnuMgmtIp2Pri   OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "802.1p priority of management channel."
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 4 } 
+
+    zxAnPonSrvOnuMgmtIp2CVid  OBJECT-TYPE
+        SYNTAX      Integer32(1..4094)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "CVLAN of management channel."
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 5 }
+
+    zxAnPonSrvOnuMgmtIp2SVid  OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "SVLAN of management channel.
+             0 or not specified means that there's no SVLAN."
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 6 }
+
+    zxAnPonSrvOnuMgmtIp2NetAddrType     OBJECT-TYPE 
+        SYNTAX      InetAddressType          
+        MAX-ACCESS  read-create              
+        STATUS      current                  
+        DESCRIPTION                          
+            "The type of IP address denoted  
+             in zxAnPonSrvOnuMgmtIp2NetAddr object." 
+        DEFVAL { ipv4 }                      
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 7 }
+        
+    zxAnPonSrvOnuMgmtIp2NetAddr OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The subnet IP address of the route for management channel."
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 8 }
+
+    zxAnPonSrvOnuMgmtIp2NetPfxLen     OBJECT-TYPE
+        SYNTAX      InetAddressPrefixLength
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The subnet IP address prefix length of the route for 
+             management channel."
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 9 }
+           
+    zxAnPonSrvOnuMgmtIp2NetGwIpType     OBJECT-TYPE 
+        SYNTAX      InetAddressType          
+        MAX-ACCESS  read-create              
+        STATUS      current                  
+        DESCRIPTION                          
+            "The type of IP address denoted  
+             in zxAnPonSrvOnuMgmtIp2NetGwIp object." 
+        DEFVAL { ipv4 }                      
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 10 }
+        
+    zxAnPonSrvOnuMgmtIp2NetGwIp  OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The gateway IP address of the route for management channel."
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 11 }
+          
+    zxAnPonSrvOnuMgmtIp2RowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+             The state of this conceptual row only support
+             'not exist' and  'active'.
+             The action of this conceptual row only support
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4), and must comply
+             with the multi-variables usage rules in 
+             'zxAnPonSrvOnuMgmtIp2Table' description.
+
+             To delete a row in this table, a manager must
+             set this object to destroy(6).
+
+             To query this object, always return 1. "
+        ::= { zxAnPonSrvOnuMgmtIp2Entry 50 }
+        
+--------------------------------------------------------------------------------
+-- ONU Blacklist
+--------------------------------------------------------------------------------
+    zxAnPonSrvOnuBlacklistTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF ZxAnPonSrvOnuBlacklistEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON interface ONU blacklist table."
+        ::= { zxAnPonSrvOnuBlacklistObjects 2 }
+
+    zxAnPonSrvOnuBlacklistEntry   OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvOnuBlacklistEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON interface ONU blacklist entry."
+        INDEX { ifIndex,zxAnPonSrvOnuBlacklistIndex }
+         ::= { zxAnPonSrvOnuBlacklistTable 1}
+
+    ZxAnPonSrvOnuBlacklistEntry ::=
+        SEQUENCE {
+                 zxAnPonSrvOnuBlacklistIndex          Integer32,
+                 zxAnPonSrvOnuBlacklistAuthInfo       OCTET STRING,
+                 zxAnPonSrvOnuBlacklistRowStatus      RowStatus
+                 }       
+                 
+    zxAnPonSrvOnuBlacklistIndex   OBJECT-TYPE
+        SYNTAX       Integer32(1..8)
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "Index of the ONU blacklist,and each PON interface allows to 
+            set 8 entries in all."
+        ::= { zxAnPonSrvOnuBlacklistEntry 1 }
+
+    zxAnPonSrvOnuBlacklistAuthInfo   OBJECT-TYPE
+        SYNTAX       OCTET STRING(SIZE(6|8))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "This attribute identifies the ONU SN or MAC, with which ONU will 
+            be added into or deleted from the blacklist. 
+            zxAnPonSrvOnuBlacklistAuthInfo should be 8 octets serial number for 
+            GPON or 6 octets MAC address for EPON."
+        ::= { zxAnPonSrvOnuBlacklistEntry 2}
+                
+    zxAnPonSrvOnuBlacklistRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).        
+            In particular, a newly created row cannot be created
+            until the corresponding zxAnPonSrvOnuBlacklistAuthInfo
+            have been set. 
+            To delete a row in this table, a manager must set this object to 
+            destroy(6)." 
+        ::= { zxAnPonSrvOnuBlacklistEntry 50}   
+        
+--------------------------------------------------------------------------------
+-- ONU ID resource
+--------------------------------------------------------------------------------
+    zxAnPonSrvOnuIdResTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF ZxAnPonSrvOnuIdResEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "xPON interface onu ID resource table"
+        ::= { zxAnPonSrvOnuResObjects 2 }
+
+    zxAnPonSrvOnuIdResEntry OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvOnuIdResEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "Entry of zxAnPonSrvOnuIdResTable. The index 'ifIndex' 
+            represents the normal OLT index."
+        INDEX    { ifIndex }
+        ::= { zxAnPonSrvOnuIdResTable 1}
+
+    ZxAnPonSrvOnuIdResEntry ::=
+        SEQUENCE {
+             zxAnPonSrvConfiguredOnuIdList        OBJECT IDENTIFIER,
+             zxAnPonSrvConfiguredOnuIds           OCTET STRING
+        }
+
+    zxAnPonSrvConfiguredOnuIdList OBJECT-TYPE
+        SYNTAX       OBJECT IDENTIFIER
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION
+            "The configured ONU ID list of the PON port.
+            The format is *.*.*. For example, 1.2.5.7."
+        ::= {zxAnPonSrvOnuIdResEntry 1 }
+
+    zxAnPonSrvConfiguredOnuIds OBJECT-TYPE
+        SYNTAX       OCTET STRING(SIZE(0..1024))
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION
+            "The configured ONU ID list of the PON port.
+             Each two bytes represent an ONU ID."
+        ::= {zxAnPonSrvOnuIdResEntry 2 }  
+ 
+-----------------------------------------------------------
+-- PON whitelist  
+-----------------------------------------------------------      
+    zxAnPonSrvWhitelistTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF ZxAnPonSrvWhitelistEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON whitelist table."
+        ::= { zxAnPonSrvWhitelistObjects 2}
+
+    zxAnPonSrvWhitelistEntry   OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvWhitelistEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON whitelist entry."
+        INDEX {zxAnPonSrvWhitelistType, zxAnPonSrvWhitelistRule}
+        ::= { zxAnPonSrvWhitelistTable 1}
+
+    ZxAnPonSrvWhitelistEntry ::=
+        SEQUENCE {            
+                 zxAnPonSrvWhitelistType            INTEGER,
+                 zxAnPonSrvWhitelistRule            DisplayString,
+                 zxAnPonSrvWhitelistRowStatus       RowStatus
+                 }       
+                 
+    zxAnPonSrvWhitelistType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+                    eponMac(1),
+                    gponSn(2)
+                    }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+             "Whitelist type."
+        ::= { zxAnPonSrvWhitelistEntry   1 }
+
+     zxAnPonSrvWhitelistRule OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..128))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PON whitelist rule. Whitelist rule can be a specified 
+             SN/MAC or SN/MAC range(GPON uses SN, EPON uses MAC). 
+             '*' or '[begin-end]' can be used in SN/MAC string to 
+             represent a range. Each '*' or '[begin-end]' represents
+             only one legal character of the whiltelist rule. '*' 
+             represents all legal characters, in MAC it represents '0' 
+             to 'f', in SN it represents '0' to '9'. For example:
+             GPON SN 
+               ZTEG0001000[1-9] represents ZTEG00010001 to ZTEG00010009; 
+               ZTEG0001000* represents ZTEG00010000 to ZTEG00010009;
+               ZTEG000100** represents ZTEG00010000 to ZTEG00010099;
+             EPON MAC
+               00d0d02505** represents 00d0d0250500 to 00d0d02505ff.
+               00d0d02505[1-7]* represents 00d0d0250510 to 00d0d025057f."
+        ::= { zxAnPonSrvWhitelistEntry   2 }
+                
+    zxAnPonSrvWhitelistRowStatus           OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).        
+             To delete a row in this table, a manager must
+             set this object to destroy(6). " 
+        ::= { zxAnPonSrvWhitelistEntry   50}    
+
+--------------------------------------------------------------------------------
+-- PON plug and play
+--------------------------------------------------------------------------------
+   zxAnPonSrvPlugAndPlayTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF ZxAnPonSrvPlugAndPlayEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON plug and play configuration table.
+             The index of this table is PON port."
+        ::= { zxAnPonSrvPlugAndPlayObjects 2 }
+
+    zxAnPonSrvPlugAndPlayEntry   OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvPlugAndPlayEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON plug and play configuration entry."
+        INDEX    { ifIndex }
+        ::= { zxAnPonSrvPlugAndPlayTable 1}
+
+     ZxAnPonSrvPlugAndPlayEntry ::=
+        SEQUENCE {            
+                 zxAnPonSrvPlugAndPlayEnable      INTEGER,
+                 zxAnPonSrvPnpReplacingEnable     INTEGER
+                 }    
+        
+    zxAnPonSrvPlugAndPlayEnable OBJECT-TYPE 
+        SYNTAX      INTEGER{
+                    enabled(1),
+                    disabled(2)
+                    }                       
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "The plug and play status of PON port.
+            enabled(1) -- enable plug and play of PON port.
+            disabled(2) -- disable plug and play of PON port."  
+        DEFVAL { disabled }      
+        ::= { zxAnPonSrvPlugAndPlayEntry 1 }   
+                                             
+    zxAnPonSrvPnpReplacingEnable OBJECT-TYPE 
+        SYNTAX      INTEGER{
+                    enabled(1),
+                    disabled(2)
+                    }                       
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "The plug and play replacing status of PON port.            
+            enabled(1) -- enable plug and play replacing of PON port.
+            disabled(2) -- disable plug and play replacing of PON port.
+            This attribute is valid when zxAnPonSrvPlugAndPlayEnable is enabled.
+            "  
+        DEFVAL { disabled }      
+        ::= { zxAnPonSrvPlugAndPlayEntry 2 } 
+
+--------------------------------------------------------------------------------     
+-- PON ONU plug and play
+--------------------------------------------------------------------------------             
+    zxAnPonSrvOnuPlugAndPlayTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnPonSrvOnuPlugAndPlayEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "ONU plug and play configuration table."
+        ::= { zxAnPonSrvPlugAndPlayObjects 3 }
+        
+    zxAnPonSrvOnuPlugAndPlayEntry OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvOnuPlugAndPlayEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ONU plug and play configuration entry."
+        INDEX   { ifIndex, zxAnPonOnuIndex }
+        ::= { zxAnPonSrvOnuPlugAndPlayTable 1 }
+   
+    ZxAnPonSrvOnuPlugAndPlayEntry ::=
+        SEQUENCE {
+            zxAnPonSrvOnuPnpReplacingEnable    INTEGER            
+        }          
+
+    zxAnPonSrvOnuPnpReplacingEnable OBJECT-TYPE 
+        SYNTAX      INTEGER{
+                    enabled(1),
+                    disabled(2)
+                    }                       
+        MAX-ACCESS   read-write 
+        STATUS       current 
+        DESCRIPTION
+            "The plug and play replacing status of ONU.            
+            enabled(1) -- enable plug and play replacing of ONU.
+            disabled(2) -- disable plug and play replacing of ONU.
+            This attribute is valid when zxAnPonSrvPnpReplacingEnable is
+            enabled. "  
+        DEFVAL { enabled }      
+        ::= { zxAnPonSrvOnuPlugAndPlayEntry 1 } 
+        
+-----------------------------------------------------------
+-- zxAnPonSrvDbaInfoTable  
+-----------------------------------------------------------      
+    zxAnPonSrvDbaInfoTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF ZxAnPonSrvDbaInfoEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON port DBA(dynamic bandwidth allocation) information table.
+             The 'IfType' of ifIndex supports 1(physical interface)
+             and 5(PON channel)."
+        ::= { zxAnPonSrvDbaObjects 2}
+
+    zxAnPonSrvDbaInfoEntry   OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvDbaInfoEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON port DBA information entry."
+        INDEX { ifIndex }
+        ::= { zxAnPonSrvDbaInfoTable 1}
+
+    ZxAnPonSrvDbaInfoEntry ::=
+        SEQUENCE {            
+            zxAnPonSrvDbaUsedBw         Integer32,
+            zxAnPonSrvDbaAvailableBw    Integer32,
+            zxAnPonSrvDbaOverflowStatus INTEGER,
+            zxAnPonSrvDbaOverflowBw     Integer32 
+        }       
+                 
+    zxAnPonSrvDbaUsedBw  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total used DBA bandwidth of this PON port."
+        ::= { zxAnPonSrvDbaInfoEntry   1 }
+
+     zxAnPonSrvDbaAvailableBw OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+             "The total available DBA bandwidth of this PON port."
+        ::= { zxAnPonSrvDbaInfoEntry   2 }        
+
+    zxAnPonSrvDbaOverflowStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+                normal(1),
+                overflowed(2)
+            }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+             "The DBA bandwidth overflow status of this PON port.
+              normal(1) indicates the DBA bandwidth is normal.
+              overflowed(2) indicates the DBA bandwidth has overflowed."
+        DEFVAL {normal}
+        ::= { zxAnPonSrvDbaInfoEntry 3} 
+
+    zxAnPonSrvDbaOverflowBw OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+             "The overflow bandwidth of this PON port."
+        ::= { zxAnPonSrvDbaInfoEntry 4}
+-------------------------------------------------------------------------------
+-- zxAnPonSrvPonPortTable
+-------------------------------------------------------------------------------
+   zxAnPonSrvPonPortTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF ZxAnPonSrvPonPortEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "The OLT PON port table."
+        ::= { zxAnPonSrvPonPortObjects 2 }
+
+    zxAnPonSrvPonPortEntry   OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvPonPortEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "The OLT PON port entry."
+        INDEX    { ifIndex }
+        ::= { zxAnPonSrvPonPortTable 1}
+
+     ZxAnPonSrvPonPortEntry ::=
+        SEQUENCE {            
+            zxAnPonSrvPonPortName                 DisplayString,
+            zxAnPonSrvPonPFiberMinDistance        Integer32,
+            zxAnPonSrvPonPFiberMaxDistance        Integer32,
+            zxAnPonSrvPonPUnConfOnuAgingTime      Integer32,
+            zxAnPonSrvPonPReset                   INTEGER
+        }    
+        
+    zxAnPonSrvPonPortName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..127))
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "The name of the OLT PON port."
+        ::= { zxAnPonSrvPonPortEntry 1 }
+        
+    zxAnPonSrvPonPFiberMinDistance OBJECT-TYPE
+        SYNTAX      Integer32(0..400)
+        UNITS       "100m"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The minimum value of the fiber distance.
+             The configuration step size is 10km.
+             This attribute is only supported by C600 serial GPON."
+        ::= { zxAnPonSrvPonPortEntry 2 }
+    
+    zxAnPonSrvPonPFiberMaxDistance OBJECT-TYPE
+        SYNTAX      Integer32(200..600)
+        UNITS       "100m"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The maximum value of the fiber distance.
+             The configuration step size is 10km.
+             This attribute is only supported by C600 serial."
+        ::= { zxAnPonSrvPonPortEntry 3 }
+        
+    zxAnPonSrvPonPUnConfOnuAgingTime OBJECT-TYPE
+        SYNTAX      Integer32(2..3600)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The aging time of the unconfigured ONU."
+        DEFVAL { 300 }
+        ::= { zxAnPonSrvPonPortEntry 4 }
+
+    zxAnPonSrvPonPReset OBJECT-TYPE
+        SYNTAX      INTEGER{
+            reset(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Reset the OLT PON port."
+        ::= { zxAnPonSrvPonPortEntry 5}
+        
+-------------------------------------------------------------------------------
+-- zxAnPonSrvChannelTable
+--------------------------------------------------------------------------------
+   zxAnPonSrvChannelTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF ZxAnPonSrvChannelEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "The OLT PON port channel table."
+        ::= { zxAnPonSrvChannelObjects 2 }
+
+    zxAnPonSrvChannelEntry   OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvChannelEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "The OLT PON port channel entry."
+        INDEX    { ifIndex,zxAnPonSrvChannelId }
+        ::= { zxAnPonSrvChannelTable 1}
+
+    ZxAnPonSrvChannelEntry ::=
+        SEQUENCE {            
+            zxAnPonSrvChannelId      Integer32,
+            zxAnPonSrvChannelType    INTEGER 
+        }    
+        
+    zxAnPonSrvChannelId    OBJECT-TYPE
+        SYNTAX      Integer32(1..8)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The OLT PON port channel ID."
+        ::= { zxAnPonSrvChannelEntry 1 }
+        
+    zxAnPonSrvChannelType OBJECT-TYPE 
+        SYNTAX      INTEGER{
+                    gpon(1),
+                    xgpon1(2),
+                    xgspon(3),
+                    epon(11),
+                    tenGEpon(12)
+                    }                       
+        MAX-ACCESS   read-only
+        STATUS       current 
+        DESCRIPTION
+            "The OLT PON port channel ID type.
+             gpon(1): it indicates the GPON.
+             xgpon1(2): it indicates the XG-PON1.
+             xgspon(3): it indicates the XGS-PON.
+             epon(11): it indicates the EPON.
+             tenGEpon(12): it indicates the 10G EPON."
+        ::= { zxAnPonSrvChannelEntry 2 }
+
+-----------------------------------------------------------------------------------
+-- zxAnPonSrvUnconfOnuTable
+-----------------------------------------------------------------------------------
+   zxAnPonSrvUnconfOnuTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnPonSrvUnconfOnuEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "The PON unconfigured ONU table.
+             This table is only supported by C600 serial."
+        ::= { zxAnPonSrvUnconfOnuObjects 2 }
+        
+   zxAnPonSrvUnconfOnuEntry OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvUnconfOnuEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The PON unconfigured ONU entry."
+        INDEX   { ifIndex, zxAnPonSrvUnconfOnuIndex }
+        ::= { zxAnPonSrvUnconfOnuTable 1 }
+
+    ZxAnPonSrvUnconfOnuEntry ::=
+        SEQUENCE {
+            zxAnPonSrvUnconfOnuIndex                Integer32,
+            zxAnPonSrvUnconfOnuSn                   OCTET STRING,
+            zxAnPonSrvUnconfOnuPwd                  OCTET STRING,
+            zxAnPonSrvUnconfOnuLoid                 DisplayString,
+            zxAnPonSrvUnconfOnuLoidPwd              OCTET STRING,
+            zxAnPonSrvUnconfOnuMacAddress           MacAddress,
+            zxAnPonSrvUnconfOnuRegId                DisplayString,
+            zxAnPonSrvUnconfOnuType                 DisplayString,
+            zxAnPonSrvUnconfOnuExtType              DisplayString,
+            zxAnPonSrvUnconfOnuSwVersion            DisplayString,
+            zxAnPonSrvUnconfOnuHwVersion            DisplayString,
+            zxAnPonSrvUnconfOnuFirstOlTime          DateAndTime,            
+            zxAnPonSrvUnconfOnuLastOlTime           DateAndTime,
+            zxAnPonSrvUnconfOnuExtOamStatus         INTEGER,
+            zxAnPonSrvUnconfOnuChannelId            Integer32,
+            zxAnPonSrvUnconfOnuSpeedMode            INTEGER
+        }
+        
+     zxAnPonSrvUnconfOnuIndex OBJECT-TYPE
+        SYNTAX      Integer32(1..256)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU index."
+        ::= { zxAnPonSrvUnconfOnuEntry 1}
+        
+     zxAnPonSrvUnconfOnuSn OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (8))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU SN. 
+             The first four bytes are an ASCII-encoded four-letter vendor ID. 
+             The second four bytes are a binary encoded serial number.
+             This attribute is only supported by GPON."
+        ::= { zxAnPonSrvUnconfOnuEntry 2}
+        
+     zxAnPonSrvUnconfOnuPwd OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (10))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU password.
+             The format could be displayed for printable characters or hex
+             octets. If the number of the printable characters of the password 
+             is less than 10, zeros(0x00) will be padded in the tail.
+             This attribute is only supported by GPON."
+        ::= { zxAnPonSrvUnconfOnuEntry 3}
+        
+    zxAnPonSrvUnconfOnuLoid OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (0..24))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU LOID."
+        ::= { zxAnPonSrvUnconfOnuEntry 4}
+
+   zxAnPonSrvUnconfOnuLoidPwd OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (12))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU LOID password.
+             The format could be displayed for printable characters or hex
+             octets. If the number of the printable characters of the password 
+             is less than 12, zeros(0x00) will be padded in the tail."
+        ::= { zxAnPonSrvUnconfOnuEntry 5}
+    
+   zxAnPonSrvUnconfOnuMacAddress OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU MAC address.
+             This attribute is only supported by EPON."             
+        ::= { zxAnPonSrvUnconfOnuEntry 6} 
+
+   zxAnPonSrvUnconfOnuRegId OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (0..36))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU registration ID.
+             This attribute is only supported by GPON."
+        ::= { zxAnPonSrvUnconfOnuEntry 7}
+
+   zxAnPonSrvUnconfOnuType OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (0..32))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU type."
+        ::= { zxAnPonSrvUnconfOnuEntry 8}
+
+   zxAnPonSrvUnconfOnuExtType OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (0..32))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU extended type.
+             This attribute is only supported by EPON."
+        ::= { zxAnPonSrvUnconfOnuEntry 9}
+        
+   zxAnPonSrvUnconfOnuSwVersion OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (0..32))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU software version."
+        ::= { zxAnPonSrvUnconfOnuEntry 10}
+
+    zxAnPonSrvUnconfOnuHwVersion OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (0..32))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU hardware version.
+             This attribute is only supported by EPON."
+        ::= { zxAnPonSrvUnconfOnuEntry 11}      
+        
+    zxAnPonSrvUnconfOnuFirstOlTime OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU first online time."
+        ::= { zxAnPonSrvUnconfOnuEntry 12} 
+        
+    zxAnPonSrvUnconfOnuLastOlTime OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU last online time."
+        ::= { zxAnPonSrvUnconfOnuEntry 13} 
+        
+    zxAnPonSrvUnconfOnuExtOamStatus OBJECT-TYPE 
+        SYNTAX       INTEGER{
+            failed(1),
+            inProgress(2),
+            notSupported(3),
+            success(4)                     
+        }                               
+        MAX-ACCESS   read-only 
+        STATUS       current 
+        DESCRIPTION
+            "The unconfigured ONU extended OAM status.
+             This attribute is only supported by EPON."        
+        ::= { zxAnPonSrvUnconfOnuEntry 14 } 
+        
+    zxAnPonSrvUnconfOnuChannelId   OBJECT-TYPE
+        SYNTAX      Integer32(1..8)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unconfigured ONU channel ID."
+        ::= { zxAnPonSrvUnconfOnuEntry 15}
+        
+    zxAnPonSrvUnconfOnuSpeedMode OBJECT-TYPE
+        SYNTAX      INTEGER{
+            gpon(1),
+            xgpon(2),
+            xgspon(3),
+            epon(11),
+            oneGAndTenGEpon(12),
+            tenGAnd10GEpon(13),
+            unknown(255)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "ONU speed mode.
+             The following values are valid for GPON:
+                 gpon(1): GPON,
+                 xgpon(2): XG-PON,
+                 xgspon(3): XGS-PON,
+                 unknown(255): unknown.
+             The following values are valid for EPON:
+                 epon(11): EPON,
+                 oneGAndTenGEpon(12): 1G/10G-EPON, 
+                 tenGAnd10GEpon(13): 10G/10G-EPON,
+                 unknown(255): unknown."
+        ::= { zxAnPonSrvUnconfOnuEntry 16 }      
+                        
+--------------------------------------------------------------------------------  
+-- zxAnPonSrvVndConfTable
+--------------------------------------------------------------------------------   
+    zxAnPonSrvVndConfTable        OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnPonSrvVndConfEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "The VND configuration table."
+        ::= { zxAnPonSrvVndObjects 2 }
+
+    zxAnPonSrvVndConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvVndConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+           "The VND configuration entry."
+        INDEX   { zxAnPonSrvVndName }
+        ::= { zxAnPonSrvVndConfTable 1 }
+
+    ZxAnPonSrvVndConfEntry ::=
+        SEQUENCE {
+            zxAnPonSrvVndName                DisplayString,
+            zxAnPonSrvVndSupportedEponOnus   Integer32,
+            zxAnPonSrvVndSupportedGponOnus   Integer32,
+            zxAnPonSrvVndBandwidthWeight     Integer32
+        }
+
+    zxAnPonSrvVndName     OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..31))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The name of the VND."
+        ::= { zxAnPonSrvVndConfEntry 1 }
+
+    zxAnPonSrvVndSupportedEponOnus OBJECT-TYPE
+        SYNTAX      Integer32(0..65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The supported EPON ONUs of the VND.
+             The value 65535 indicates no limitation."
+        ::= { zxAnPonSrvVndConfEntry 2 }
+        
+    zxAnPonSrvVndSupportedGponOnus OBJECT-TYPE
+        SYNTAX      Integer32(0..65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The supported GPON ONUs of the VND.
+             The value 65535 indicates no limitation."
+        ::= { zxAnPonSrvVndConfEntry 3 }    
+                          
+    zxAnPonSrvVndBandwidthWeight OBJECT-TYPE
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The bandwidth weight of the VND.
+             The value 0 indicates the system default weight policy."
+        ::= { zxAnPonSrvVndConfEntry 4 }    
+
+--------------------------------------------------------------------------------  
+-- zxAnPonSrvVndPortConfTable
+--------------------------------------------------------------------------------  
+    zxAnPonSrvVndPortConfTable        OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnPonSrvVndPortConfEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "The VND PON port configuration table."
+        ::= { zxAnPonSrvVndObjects 3 }
+
+    zxAnPonSrvVndPortConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvVndPortConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The VND PON port configuration entry."
+        INDEX   { zxAnPonSrvVndName, ifIndex }
+        ::= { zxAnPonSrvVndPortConfTable 1 }
+
+    ZxAnPonSrvVndPortConfEntry ::=
+        SEQUENCE {
+            zxAnPonSrvVndPortMaxBandwidth     Integer32,
+            zxAnPonSrvVndPortSupportedOnus    Integer32,
+            zxAnPonSrvVndPortAvailableOnuIds  DisplayString
+        }    
+        
+    zxAnPonSrvVndPortMaxBandwidth OBJECT-TYPE
+        SYNTAX      Integer32(0|64..10000000)
+        UNITS       "kbps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The maxinum bandwidth assigned to the VND PON port.
+             the value 0 indicates no limitation."
+        ::= { zxAnPonSrvVndPortConfEntry 1 }     
+        
+    zxAnPonSrvVndPortSupportedOnus OBJECT-TYPE
+        SYNTAX      Integer32(0..256|65535)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The supported ONUs of the VND PON port.
+             The value 65535 indicates no limitation."
+        ::= { zxAnPonSrvVndPortConfEntry 2 }     
+
+    zxAnPonSrvVndPortAvailableOnuIds OBJECT-TYPE
+        SYNTAX      DisplayString( SIZE(0..255) )
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The available ONU IDs of the VND PON port.
+             The format as below: 'x,x,x-x'. 
+             The empty string indicates no configuration."
+        ::= { zxAnPonSrvVndPortConfEntry 3 }   
+
+-------------------------------------------------------------------------------
+-- zxAnPonSrvVndBindOnuRuleTable
+-------------------------------------------------------------------------------
+   zxAnPonSrvVndBindOnuRuleTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnPonSrvVndBindOnuRuleEntry 
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "The VND binding ONU rule table."
+        ::= { zxAnPonSrvVndObjects 4 }
+        
+   zxAnPonSrvVndBindOnuRuleEntry OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvVndBindOnuRuleEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The VND binding ONU rule entry."
+        INDEX   { zxAnPonSrvVndName, zxAnPonSrvVndBindOnuRuleId }
+        ::= { zxAnPonSrvVndBindOnuRuleTable 1 }
+
+    ZxAnPonSrvVndBindOnuRuleEntry ::=
+        SEQUENCE {
+            zxAnPonSrvVndBindOnuRuleId           Integer32,
+            zxAnPonSrvVndBindOnuType             INTEGER,
+            zxAnPonSrvVndBindOnuStartMac         MacAddress,
+            zxAnPonSrvVndBindOnuEndMac           MacAddress,
+            zxAnPonSrvVndBindOnuSn               OCTET STRING,
+            zxAnPonSrvVndBindOnuRegExpRule       DisplayString,
+            zxAnPonSrvVndBindOnuLoid             DisplayString,
+            zxAnPonSrvVndBindOnuRuleType         INTEGER,
+            zxAnPonSrvVndBindOnuPwd              OCTET STRING,
+            zxAnPonSrvVndBindOnuPsk              OCTET STRING,
+            zxAnPonSrvVndBindOnuRid              DisplayString, 
+            zxAnPonSrvVndBindOnuLoidPwd          OCTET STRING,
+            zxAnPonSrvVndBindOnuRowStatus        RowStatus
+        }
+        
+    zxAnPonSrvVndBindOnuRuleId OBJECT-TYPE
+        SYNTAX      Integer32(1..65535)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The rule ID of the VND binding ONU."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 1 }   
+           
+    zxAnPonSrvVndBindOnuType OBJECT-TYPE
+        SYNTAX      INTEGER{
+            gpon(1),
+            epon(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The type of the VND binding ONU."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 2 }
+                   
+    zxAnPonSrvVndBindOnuStartMac OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The starting MAC address of the VND binding ONU."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 3 } 
+        
+    zxAnPonSrvVndBindOnuEndMac OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The ending MAC address of the VND binding ONU."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 4} 
+
+    zxAnPonSrvVndBindOnuSn OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (8))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The serial number of the VND binding ONU.
+             The value '0x0000000000000000' indicates this attribute 
+             is invalid."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 5 }
+        
+     zxAnPonSrvVndBindOnuRegExpRule OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..128))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The regular expression rule of the VND binding ONU.
+             For example:
+             GPON SN 
+               ZTEG0001000[1-9] represents ZTEG00010001 to ZTEG00010009; 
+               ZTEG0001000* represents ZTEG00010000 to ZTEG00010009;
+               ZTEG000100** represents ZTEG00010000 to ZTEG00010099;
+             EPON MAC
+               00d0d02505** represents 00d0d0250500 to 00d0d02505ff;
+               00d0d02505[1-7]* represents 00d0d0250510 to 00d0d025057f.
+             The empty string indicates this attribute is invalid."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 6}
+    
+    zxAnPonSrvVndBindOnuLoid OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE (0..24))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The LOID of the VND binding ONU.
+             The empty string indicates this attribute is invalid."      
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 7}
+        
+    zxAnPonSrvVndBindOnuRuleType OBJECT-TYPE
+        SYNTAX      INTEGER{
+            mac(1),
+            macRange(2),
+            macRegex(3),
+            sn(4),
+            snRegex(5),
+            snPlusPwd(6),
+            snPlusRid(7),
+            pwd(8),
+            loid(9),
+            loidPlusPwd(10),
+            psk(11),
+            rid(12)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The rule type of the VND binding ONU.
+             mac(1) : MAC address rule, zxAnPonSrvVndBindOnuStartMac is valid.
+             macRange(2) : MAC address range rule, zxAnPonSrvVndBindOnuStartMac 
+                           and zxAnPonSrvVndBindOnuEndMac are valid.
+             macRegex(3) : MAC address regex rule, 
+                           zxAnPonSrvVndBindOnuRegExpRule is valid.
+             sn(4) : SN rule, zxAnPonSrvVndBindOnuSn is valid.
+             snRegex(5) : SN regular expression rule, 
+                          zxAnPonSrvVndBindOnuRegExpRule is valid.                       
+             snPlusPwd(6) : SN + password rule, zxAnPonSrvVndBindOnuSn and
+                            zxAnPonSrvVndBindOnuPwd are valid.
+             snPlusRid(7) : SN + RID rule, zxAnPonSrvVndBindOnuSn and
+                            zxAnPonSrvVndBindOnuRid are valid.
+             pwd(8) : password rule, zxAnPonSrvVndBindOnuPwd is valid.
+             loid(9) : LOID rule, zxAnPonSrvVndBindOnuLoid is valid.
+             loidPlusPwd(10) : LOID + password rule, 
+                               zxAnPonSrvVndBindOnuLoid and
+                               zxAnPonSrvVndBindOnuLoidPwd are valid.
+             psk(11) : PSK rule, zxAnPonSrvVndBindOnuPsk is valid.
+             rid(12) : RID rule, zxAnPonSrvVndBindOnuRid is valid."                        
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 8}          
+        
+    zxAnPonSrvVndBindOnuPwd OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(0..10))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The ONU password of the VND binding ONU.
+             The value '0x00' indicates this attribute is invalid."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 9}        
+        
+    zxAnPonSrvVndBindOnuPsk OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (16))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The PSK value of the VND binding ONU.
+             This attribute value is hex data.
+             The value '0x00000000000000000000000000000000' 
+             indicates this attribute is invalid."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 10}        
+        
+    zxAnPonSrvVndBindOnuRid OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..36))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The registration ID of the VND binding ONU.
+             The empty string indicates this attribute is invalid."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 11}         
+        
+    zxAnPonSrvVndBindOnuLoidPwd OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(0..12))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The LOID password of the VND binding ONU.
+             The value '0x00' indicates this attribute is invalid."
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 12}        
+            
+    zxAnPonSrvVndBindOnuRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+             The state of this conceptual row only support
+             'not exist' and  'active'.
+             The action of this conceptual row only support
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+
+             To delete a row in this table, a manager must
+             set this object to destroy(6).
+
+             To query this object, always return 1. "
+        ::= { zxAnPonSrvVndBindOnuRuleEntry 50 }
+
+--------------------------------------------------------------------------------
+-- zxAnPonSrvCongestPrfTable
+--------------------------------------------------------------------------------
+    zxAnPonSrvCongestPrfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPonSrvCongestPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The PON congestion profile table.
+             It is only supported by C600 serial."
+        ::= { zxAnPonSrvCongestObjects 2 }
+
+    zxAnPonSrvCongestPrfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvCongestPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The PON congestion profile entry."
+        INDEX   { zxAnPonSrvCongestPrfName }
+        ::= { zxAnPonSrvCongestPrfTable 1 }
+
+    ZxAnPonSrvCongestPrfEntry ::= SEQUENCE {
+        zxAnPonSrvCongestPrfName             DisplayString,
+        zxAnPonSrvCongestUsBwUsage           Integer32,
+        zxAnPonSrvCongestDsBwUsage           Integer32,
+        zxAnPonSrvCongestDetectTimes         Integer32,
+        zxAnPonSrvCongestDetectInterval      Integer32,
+        zxAnPonSrvCongestCriAlmThresh        Integer32,
+        zxAnPonSrvCongestMajorAlmThresh      Integer32,
+        zxAnPonSrvCongestMinorAlmThresh      Integer32,
+        zxAnPonSrvCongestPrfRowStatus        RowStatus
+        }
+        
+    zxAnPonSrvCongestPrfName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE (1 .. 32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "PON congestion profile name."
+        ::= { zxAnPonSrvCongestPrfEntry 1 }
+                
+    zxAnPonSrvCongestUsBwUsage OBJECT-TYPE
+        SYNTAX      Integer32(1..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "PON upstream bandwidth usage."
+        DEFVAL { 90 }                    
+        ::= { zxAnPonSrvCongestPrfEntry 2}
+
+    zxAnPonSrvCongestDsBwUsage OBJECT-TYPE
+        SYNTAX      Integer32(1..100)
+        UNITS       "percent"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "PON downstream bandwidth usage."
+        DEFVAL { 90 }
+        ::= { zxAnPonSrvCongestPrfEntry 3}
+                               
+    zxAnPonSrvCongestDetectTimes OBJECT-TYPE
+        SYNTAX      Integer32(1..900)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Detection times of the PON congestion alarm in a detection 
+             period."
+        DEFVAL { 5 }
+        ::= { zxAnPonSrvCongestPrfEntry 4}
+        
+    zxAnPonSrvCongestDetectInterval OBJECT-TYPE
+        SYNTAX      Integer32(1..300)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Detection interval of the PON congestion alarm."
+        DEFVAL { 60 }
+        ::= { zxAnPonSrvCongestPrfEntry 5}
+
+    zxAnPonSrvCongestCriAlmThresh OBJECT-TYPE
+        SYNTAX      Integer32(0..900)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Critical PON congestion alarm threshold.
+             It indicates the congestion times in a detection period. 
+             The value 0 indicates this attribute is not configured."
+        DEFVAL { 0 }
+        ::= { zxAnPonSrvCongestPrfEntry 6}
+
+    zxAnPonSrvCongestMajorAlmThresh OBJECT-TYPE
+        SYNTAX      Integer32(0..900)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION                        
+            "Major PON congestion alarm threshold.
+             It indicates the congestion times in a detection period. 
+             The value 0 indicates this attribute is not configured."
+        DEFVAL { 0 }
+        ::= { zxAnPonSrvCongestPrfEntry 7}
+
+    zxAnPonSrvCongestMinorAlmThresh OBJECT-TYPE
+        SYNTAX      Integer32(0..900)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Minor PON congestion alarm threshold.
+             It indicates the congestion times in a detection period. 
+             The value 0 indicates this attribute is not configured."
+        DEFVAL { 0 }
+        ::= { zxAnPonSrvCongestPrfEntry 8}
+
+    zxAnPonSrvCongestPrfRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus                     
+        MAX-ACCESS  read-create                   
+        STATUS      current                       
+        DESCRIPTION                               
+            "The status of this conceptual row.   
+                                                  
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.         
+                                              
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+                                                          
+             To delete a row in this table, a manager must
+             set this object to destroy(6).
+                                           
+             To query this object, always return 1."
+        ::= { zxAnPonSrvCongestPrfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- zxAnPonSrvCongestConfTable
+--------------------------------------------------------------------------------
+    zxAnPonSrvCongestConfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPonSrvCongestConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The PON congestion configuration table.
+              The 'IfType' of ifIndex supports 1(physical interface) 
+              and 5(PON channel)."
+        ::= { zxAnPonSrvCongestObjects 3 }
+
+    zxAnPonSrvCongestConfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvCongestConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The PON congestion configuration entry."
+        INDEX   { ifIndex}
+        ::= { zxAnPonSrvCongestConfTable 1 }
+
+    ZxAnPonSrvCongestConfEntry ::= SEQUENCE {
+        zxAnPonSrvCongestConfPrfName       DisplayString,
+        zxAnPonSrvCongestConfRowStatus     RowStatus
+        }
+        
+    zxAnPonSrvCongestConfPrfName  OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE (1 .. 32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The PON congestion profile name."
+        ::= { zxAnPonSrvCongestConfEntry 1 }
+               
+    zxAnPonSrvCongestConfRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The status of this conceptual row. 
+              
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+            
+             To delete a row in this table, a manager must
+             set this object to destroy(6).
+             
+             To query this object, always return 1."
+        ::= { zxAnPonSrvCongestConfEntry 50 }  
+ 
+--------------------------------------------------------------------------------
+-- ONU Splitter
+--------------------------------------------------------------------------------
+    zxAnPonSrvOnuSplitterConfTable OBJECT-TYPE
+        SYNTAX         SEQUENCE OF ZxAnPonSrvOnuSplitterConfEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "The ONU splitter configuration table."
+        ::= { zxAnPonSrvOnuSplitterObjects 2}
+
+    zxAnPonSrvOnuSplitterConfEntry   OBJECT-TYPE
+        SYNTAX         ZxAnPonSrvOnuSplitterConfEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "The ONU splitter configuration entry."
+        INDEX { ifIndex,zxAnPonOnuIndex }
+         ::= { zxAnPonSrvOnuSplitterConfTable 1}
+
+    ZxAnPonSrvOnuSplitterConfEntry ::=
+        SEQUENCE {
+                 zxAnPonSrvOnuSplitterId           DisplayString
+                 }       
+
+    zxAnPonSrvOnuSplitterId   OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE (0..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The ONU splitter ID.
+             The format is '1-1-3...-n', n indicates the nth splitter
+             identification. 
+             The empty string indicates no configuration."
+        ::= { zxAnPonSrvOnuSplitterConfEntry 1}
+                 
+--------------------------------------------------------------------------------                                        
+-- ONU License
+--------------------------------------------------------------------------------
+    zxAnPonSrvLicenseTable        OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnPonSrvLicenseEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "XPon License message table."
+        ::= { zxAnPonSrvLicenseObjects 2 }
+
+    zxAnPonSrvLicenseEntry OBJECT-TYPE
+        SYNTAX      ZxAnPonSrvLicenseEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+                "It is entry in the zxAnPonSrvLicenseTable."
+        INDEX   { zxAnPonSrvLicenseIndex }
+        ::= { zxAnPonSrvLicenseTable 1 }
+
+    ZxAnPonSrvLicenseEntry ::=
+        SEQUENCE {
+            zxAnPonSrvLicenseIndex             Integer32,
+            zxAnPonSrvLicenseMsg               OCTET STRING
+        }
+
+    zxAnPonSrvLicenseIndex     OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+                "Index of message."
+        ::= { zxAnPonSrvLicenseEntry 1 }
+
+    zxAnPonSrvLicenseMsg OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (256))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+                "This process include 5 messages."
+        ::= { zxAnPonSrvLicenseEntry 2 }
+       
+--------------------------------------------------------------------------------
+--  zxAnPonSrvNotifications
+-------------------------------------------------------------------------------- 
+zxAnPonSrvNotifications   OBJECT IDENTIFIER ::= { zxAnPonSrvMib 3}
+zxAnPonSrvPonIfTraps      OBJECT IDENTIFIER ::= {zxAnPonSrvNotifications 1}
+zxAnPonSrvOnuTraps        OBJECT IDENTIFIER ::= {zxAnPonSrvNotifications 2}    
+zxAnPonSrvGeneralTraps    OBJECT IDENTIFIER ::= {zxAnPonSrvNotifications 9}
+
+    zxAnPonSrvFiberPlugWrongPortAlm    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvFiberPlugWrongPortAlm trap is sent when the agent has 
+             detected that the fiber has been plugged in the wrong PON port."
+        ::={zxAnPonSrvPonIfTraps 1}
+
+    zxAnPonSrvFiberPlugWrongPortClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvFiberPlugWrongPortClr trap is sent when the agent has 
+             detected that the fiber has been plugged in the right PON port."
+        ::={zxAnPonSrvPonIfTraps 2}
+        
+    zxAnPonSrvPLAOnusNeverOnlineAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLAOnusNeverOnlineAlm trap is sent when the agent has 
+             detected that the PON port is loss of signal and the alarm reason
+             is all ONUs never online."          
+        ::={zxAnPonSrvPonIfTraps 3}
+        
+    zxAnPonSrvPLAOnusNeverOnlineClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLAOnusNeverOnlineClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPLAOnusNeverOnlineAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 4}
+        
+    zxAnPonSrvPLLastOnuDroppedAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLLastOnuDroppedAlm trap is sent when the agent has 
+             detected that the PON port is loss of signal and the alarm reason
+             is the last ONU dropped."          
+        ::={zxAnPonSrvPonIfTraps 5}
+        
+    zxAnPonSrvPLLastOnuDroppedClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLLastOnuDroppedClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPLLastOnuDroppedAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 6}    
+    
+     zxAnPonSrvPLOnlyOnuDroppedAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLOnlyOnuDroppedAlm trap is sent when the agent has 
+             detected that the PON port is loss of signal and the alarm reason
+             is the only ONU dropped."          
+        ::={zxAnPonSrvPonIfTraps 7}
+        
+    zxAnPonSrvPLOnlyOnuDroppedClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLOnlyOnuDroppedClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPLOnlyOnuDroppedAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 8}
+
+    zxAnPonSrvPLAllOnusDyingGaspAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLAllOnusDyingGaspAlm trap is sent when the agent has 
+             detected that the PON port is loss of signal and the alarm reason
+             is all ONUs dying gasp."          
+        ::={zxAnPonSrvPonIfTraps 9}
+        
+    zxAnPonSrvPLAllOnusDyingGaspClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLAllOnusDyingGaspClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPLAllOnusDyingGaspAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 10}
+    
+    zxAnPonSrvPLLastOnuDyingGaspAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLLastOnuDyingGaspAlm trap is sent when the agent has 
+             detected that the PON port is loss of signal and the alarm reason
+             is the last ONU dying gasp."          
+        ::={zxAnPonSrvPonIfTraps 11}
+        
+    zxAnPonSrvPLLastOnuDyingGaspClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLLastOnuDyingGaspClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPLLastOnuDyingGaspAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 12}
+    
+    zxAnPonSrvPLOnlyOnuDyingGaspAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLOnlyOnuDyingGaspAlm trap is sent when the agent has 
+             detected that the PON port is loss of signal and the alarm reason
+             is the only ONU dying gasp."          
+        ::={zxAnPonSrvPonIfTraps 13}
+        
+    zxAnPonSrvPLOnlyOnuDyingGaspClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvPonPortName
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPLOnlyOnuDyingGaspClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPLOnlyOnuDyingGaspAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 14}            
+  
+    zxAnPonSrvPCLTrunkFiberBrokenAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLTrunkFiberBrokenAlm trap is sent when the agent has 
+             detected that the PON port channel is loss of signal and the alarm 
+             reason is the trunk fiber broken."          
+        ::={zxAnPonSrvPonIfTraps 15}
+        
+    zxAnPonSrvPCLTrunkFiberBrokenClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLTrunkFiberBrokenClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPCLTrunkFiberBrokenAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 16}
+  
+   zxAnPonSrvPCLAOnusNeverOnlineAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLAOnusNeverOnlineAlm trap is sent when the agent has 
+             detected that the PON port channel is loss of signal and the alarm 
+             reason is all ONUs never online."          
+        ::={zxAnPonSrvPonIfTraps 17}
+        
+    zxAnPonSrvPCLAOnusNeverOnlineClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLAOnusNeverOnlineClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPCLAOnusNeverOnlineAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 18}
+        
+    zxAnPonSrvPCLLastOnuDroppedAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLLastOnuDroppedAlm trap is sent when the agent has 
+             detected that the PON port channel is loss of signal and the alarm
+             reason is the last ONU dropped."          
+        ::={zxAnPonSrvPonIfTraps 19}
+        
+    zxAnPonSrvPCLLastOnuDroppedClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLLastOnuDroppedClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPCLLastOnuDroppedAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 20}    
+    
+     zxAnPonSrvPCLOnlyOnuDroppedAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLOnlyOnuDroppedAlm trap is sent when the agent has 
+             detected that the PON port channel is loss of signal and the alarm 
+             reason is the only ONU dropped."          
+        ::={zxAnPonSrvPonIfTraps 21}
+        
+    zxAnPonSrvPCLOnlyOnuDroppedClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLOnlyOnuDroppedClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPCLOnlyOnuDroppedAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 22}
+
+    zxAnPonSrvPCLAllOnusDyingGaspAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLAllOnusDyingGaspAlm trap is sent when the agent has 
+             detected that the PON port channel is loss of signal and the alarm 
+             reason is all ONUs dying gasp."          
+        ::={zxAnPonSrvPonIfTraps 23}
+        
+    zxAnPonSrvPCLAllOnusDyingGaspClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLAllOnusDyingGaspClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPCLAllOnusDyingGaspAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 24}
+    
+    zxAnPonSrvPCLLastOnuDyingGaspAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLLastOnuDyingGaspAlm trap is sent when the agent has 
+             detected that the PON port channel is loss of signal and the alarm
+             reason is the last ONU dying gasp."          
+        ::={zxAnPonSrvPonIfTraps 25}
+        
+    zxAnPonSrvPCLLastOnuDyingGaspClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLLastOnuDyingGaspClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPCLLastOnuDyingGaspAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 26}
+    
+    zxAnPonSrvPCLOnlyOnuDyingGaspAlm   NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLOnlyOnuDyingGaspAlm trap is sent when the agent has 
+             detected that the PON port channel is loss of signal and the alarm 
+             reason is the only ONU dying gasp."          
+        ::={zxAnPonSrvPonIfTraps 27}
+        
+    zxAnPonSrvPCLOnlyOnuDyingGaspClr    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonOltIfRxPkts
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvPCLOnlyOnuDyingGaspClr trap is sent when the agent has 
+             detected that the zxAnPonSrvPCLOnlyOnuDyingGaspAlm alarm was 
+             cleared."
+        ::={zxAnPonSrvPonIfTraps 28}           
+
+    zxAnPonSrvOnuAlmJitterOccurred    NOTIFICATION-TYPE
+        OBJECTS {
+            zxAnPonSrvOnuAlmJitterAlmCode
+        }
+        STATUS current
+        DESCRIPTION 
+            "A zxAnPonSrvOnuAlmJitterOccurred trap is sent when the agent has 
+             detected the ONU alarm jitter."
+        ::={zxAnPonSrvOnuTraps 1}
+        
+--------------------------------------------------------------------------------
+--  zxAnPonSrvConformance
+-------------------------------------------------------------------------------- 
+zxAnPonSrvConformance           OBJECT IDENTIFIER ::= { zxAnPonSrvMib 4}
+
+zxAnPonSrvCompliances           OBJECT IDENTIFIER ::= {zxAnPonSrvConformance 1}
+zxAnPonSrvGroups                OBJECT IDENTIFIER ::= {zxAnPonSrvConformance 2}
+
+zxAnPonSrvCompliance MODULE-COMPLIANCE
+    STATUS current
+    DESCRIPTION
+        "The compliance statement for entities which implement the
+         ZTE-AN-PON-SERVICE-MIB."
+    MODULE
+    MANDATORY-GROUPS{
+                    zxAnPonSrvIpGroup,
+                    zxAnPonSrvOnuBlacklistGroup
+                    }
+    ::= { zxAnPonSrvCompliances 1 }
+
+--------------------------------------------------------------------------------
+-- Units of Conformance
+--------------------------------------------------------------------------------                               
+zxAnPonSrvIpGroup OBJECT-GROUP
+    OBJECTS         {         
+                     zxAnPonSrvIpPoolStartAddrType,  
+                     zxAnPonSrvIpPoolStartAddr, 
+                     zxAnPonSrvIpPoolEndAddrType,     
+                     zxAnPonSrvIpPoolEndAddr,          
+                     zxAnPonSrvIpPoolAddrPfxLen,         
+                     zxAnPonSrvIpPoolPri,       
+                     zxAnPonSrvIpPoolCVid,          
+                     zxAnPonSrvIpPoolSVid,          
+                     zxAnPonSrvIpPoolNetAddrType,   
+                     zxAnPonSrvIpPoolNetAddr,       
+                     zxAnPonSrvIpPoolNetAddrPfxLen, 
+                     zxAnPonSrvIpPoolNetGatewayType,      
+                     zxAnPonSrvIpPoolNetGateway,               
+                     zxAnPonSrvIpPoolUsage,         
+                     zxAnPonSrvIpPoolRowStatus,
+                     zxAnPonSrvBindIpPoolName,  
+                     zxAnPonSrvBindIpPoolRowStatus,
+                     zxAnPonSrvOnuMgmtIp2IpAddrType,
+                     zxAnPonSrvOnuMgmtIp2IpAddr,
+                     zxAnPonSrvOnuMgmtIp2IpPfxLen,
+                     zxAnPonSrvOnuMgmtIp2Pri,
+                     zxAnPonSrvOnuMgmtIp2CVid,
+                     zxAnPonSrvOnuMgmtIp2SVid,
+                     zxAnPonSrvOnuMgmtIp2NetAddrType,
+                     zxAnPonSrvOnuMgmtIp2NetAddr,
+                     zxAnPonSrvOnuMgmtIp2NetPfxLen,
+                     zxAnPonSrvOnuMgmtIp2NetGwIpType,
+                     zxAnPonSrvOnuMgmtIp2NetGwIp,
+                     zxAnPonSrvOnuMgmtIp2RowStatus
+                    }
+    STATUS          current
+    DESCRIPTION
+        "A collection of objects for ONU IP address of 
+        inband management channel."
+    ::= { zxAnPonSrvGroups 2 }   
+
+zxAnPonSrvOnuBlacklistGroup OBJECT-GROUP
+    OBJECTS         {         
+                     zxAnPonSrvOnuBlacklistAuthInfo,  
+                     zxAnPonSrvOnuBlacklistRowStatus 
+                    }
+    STATUS          current
+    DESCRIPTION
+        "A collection of objects for ONU blacklist management."
+    ::= { zxAnPonSrvGroups 3 }   
+
+zxAnPonSrvOnuResGroup OBJECT-GROUP
+    OBJECTS         {         
+                     zxAnPonSrvConfiguredOnuIdList 
+                    }
+    STATUS          current
+    DESCRIPTION
+        "A collection of objects for ONU ID resource management."
+    ::= { zxAnPonSrvGroups 4 }
+     
+zxAnPonSrvPlugAndPlayGroup    OBJECT-GROUP
+    OBJECTS         {         
+                     zxAnPonSrvPlugAndPlayEnable 
+                    }
+    STATUS          current
+    DESCRIPTION
+        "A collection of objects for Plug and Play management."
+    ::= { zxAnPonSrvGroups 6 }    
+    
+zxAnPonSrvDbaGroup    OBJECT-GROUP
+    OBJECTS         {         
+                     zxAnPonSrvDbaUsedBw,
+                     zxAnPonSrvDbaAvailableBw 
+                    }
+    STATUS          current
+    DESCRIPTION
+        "A collection of objects for OLT Dba management."
+    ::= { zxAnPonSrvGroups 7 }      
+END                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+                                                                                                                                                                                                                                                                     

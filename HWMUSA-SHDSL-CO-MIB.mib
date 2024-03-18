@@ -1,0 +1,159 @@
+--  ------------------------------------------------------------------
+-- Description : HWMUSA-SHDSL-CO-MIB
+-- Author      : Zhufudang
+-- Create Date : 2002-12-06
+-- Modify Date : 2002-12-06
+-- Version     : 1.00
+-- Copyright 1985 - 2004 HuaWei Tech, Inc.
+--           ALL RIGHTS RESERVED 
+-- ------------------------------------------------------------------
+
+	HWMUSA-SHDSL-CO-MIB DEFINITIONS ::= BEGIN
+ 
+		IMPORTS
+			hwProducts			
+				FROM HUAWEI-MIB			
+			ifIndex			
+				FROM IF-MIB			
+			OBJECT-TYPE			
+				FROM SNMPv2-SMI;
+	
+
+		musa OBJECT IDENTIFIER ::= { hwProducts 6 }
+		
+		ias OBJECT IDENTIFIER ::= { musa 7 }
+		
+		hwIasService OBJECT IDENTIFIER ::= { ias 4 }
+		
+		hwMusaShdsl OBJECT IDENTIFIER ::= { hwIasService 4 }
+		
+		hwShdslCO OBJECT IDENTIFIER ::= { hwMusaShdsl 1 }
+		
+		shdslPortTypeConfTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF ShdslPortTypeConfEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"This table supports the configuration of port type in the SLC and SLF board"
+			::= { hwShdslCO 1 }
+		
+		shdslPortTypeConfEntry OBJECT-TYPE
+			SYNTAX ShdslPortTypeConfEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"An entry in the shdslPortTypeConfTable.  Each entry 
+				represents the shdsl port type.It is indexed by 
+				the ifIndex of the associated shdsl port."
+			INDEX { ifIndex }
+			::= { shdslPortTypeConfTable 1 }
+		
+		ShdslPortTypeConfEntry ::=
+			SEQUENCE { 
+				shdslPortTypeConfig
+					INTEGER
+			 }
+
+		shdslPortTypeConfig OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				shdsl-e1(0),
+				shdsl-v35(1)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"This object is not allowed to set when the associated port is 
+				in service (PVC) or its state is not deactived.When the port is 
+				set to a kind of type,its modem cpe interface should be
+				the same type as the port.
+				"
+			::= { shdslPortTypeConfEntry 1 }
+		
+		shdslPortBindConfTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF ShdslPortBindConfEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"This table supports the configuration of port type in the SLC and SLF board"
+			::= { hwShdslCO 2 }
+		
+		shdslPortBindConfEntry OBJECT-TYPE
+			SYNTAX ShdslPortBindConfEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION			 " "
+			INDEX { shdslPortBindPriPosition }
+			::= { shdslPortBindConfTable 1 }
+		
+		ShdslPortBindConfEntry ::=
+			SEQUENCE { 
+				shdslPortBindPriPosition
+					INTEGER,
+				shdslPortBindSlavPosition
+					INTEGER,
+				shdslPortBindConfig
+					INTEGER
+			 }
+			 
+		shdslPortBindPriPosition OBJECT-TYPE
+			SYNTAX INTEGER				
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION""
+			::= { shdslPortBindConfEntry 1 }
+			
+			
+		shdslPortBindSlavPosition OBJECT-TYPE
+			SYNTAX INTEGER				
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION""
+			::= { shdslPortBindConfEntry 2 }
+
+		shdslPortBindConfig OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				shdsl-port-bind(1),
+				shdsl-port-unbind(2)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				""
+			::= { shdslPortBindConfEntry 3 }  
+			
+		hwShdslPortConfTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwShdslPortConfEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+			 " shdsl port configuration Table
+
+				"
+			::= { hwShdslCO 3 }
+		
+		hwShdslPortConfEntry OBJECT-TYPE
+			SYNTAX HwShdslPortConfEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"An entry in the hwShdslPortTable."
+			INDEX { ifIndex }
+			::= { hwShdslPortConfTable 1 }
+		
+		HwShdslPortConfEntry ::=
+			SEQUENCE { 
+				hwShdslPortServiceMode
+					INTEGER
+			 }
+
+		hwShdslPortServiceMode OBJECT-TYPE
+			SYNTAX INTEGER{atm(1),tdm(2)}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION			 ""
+			::= { hwShdslPortConfEntry 1 }
+		
+	
+	END

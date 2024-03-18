@@ -1,0 +1,2019 @@
+ZTE-AN-MLD-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE,
+    Integer32,Gauge32,
+    Counter32,TimeTicks                                 FROM SNMPv2-SMI
+    DisplayString,MacAddress,RowStatus                  FROM SNMPv2-TC
+    OBJECT-GROUP,MODULE-COMPLIANCE                      FROM SNMPv2-CONF
+    InetAddressIPv6,InetAddress                         FROM INET-ADDRESS-MIB
+    ZxAnPortList,VlanId                                 FROM ZTE-AN-TC-MIB
+    ifIndex                                             FROM IF-MIB
+    zxAnSubIfIndex                                      FROM ZTE-AN-IF-MIB
+    InetAddress,InetAddressType                         FROM INET-ADDRESS-MIB
+    zxAnMulticast                                       FROM ZTE-AN-SMI;
+
+    zxAnMldMib MODULE-IDENTITY
+        LAST-UPDATED    "201112270900Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Weng Ningning  ZTE Corporation
+                         Mail: wen.ningning@zte.com.cn
+                         Tel : +86-21-68897487"
+        DESCRIPTION     "This MIB defines Description of zte mld service 
+                         objects."
+        REVISION        "201112270900Z"
+        DESCRIPTION     "Initial version of this MIB module."
+        ::= {zxAnMulticast 2}
+
+    zxAnMldGlobalObjects       OBJECT IDENTIFIER ::= {zxAnMldMib 1}
+    zxAnMldObjects             OBJECT IDENTIFIER ::= {zxAnMldMib 2}
+    zxAnMldConformance         OBJECT IDENTIFIER ::= {zxAnMldMib 4}
+
+    zxAnMldProtocolObjects     OBJECT IDENTIFIER ::= {zxAnMldObjects 1}
+    zxAnMldMgmtObject          OBJECT IDENTIFIER ::= {zxAnMldObjects 2}
+    zxAnMldVplsObjects         OBJECT IDENTIFIER ::= {zxAnMldObjects 3}
+    zxAnMldLogObjects          OBJECT IDENTIFIER ::= {zxAnMldObjects 4}
+    zxAnMldStatsObjects        OBJECT IDENTIFIER ::= {zxAnMldObjects 50}
+
+    zxAnMldProtoBaseObjects    OBJECT IDENTIFIER ::= {zxAnMldProtocolObjects 2}
+    zxAnMldSnoopingObjects     OBJECT IDENTIFIER ::= {zxAnMldProtocolObjects 3}
+    zxAnMldProxyObjects        OBJECT IDENTIFIER ::= {zxAnMldProtocolObjects 4}
+
+    zxAnMldProtoGlobalObjects  OBJECT IDENTIFIER ::= {zxAnMldProtoBaseObjects 1}
+
+    zxAnMldMgmtGlobalObject    OBJECT IDENTIFIER ::= {zxAnMldMgmtObject 1}
+    
+    zxAnMldLogGlobalObjects    OBJECT IDENTIFIER ::= {zxAnMldLogObjects 1}
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1. zxAnMldGlobalObjects
+    -- 1.1 zxAnMldLogEnable
+-- 2. zxAnMldObjects
+    -- 2.1 zxAnMldProtocolObjects
+      -- 2.1.2 zxAnMldProtoBaseObjects
+        -- 2.1.2.1 zxAnMldProtoGlobalObjects
+        -- 2.1.2.2 zxAnMldProtoIfTable
+        -- 2.1.2.3 zxAnMldProtoMVlanTable
+      -- 2.1.3 zxAnMldSnoopingObjects
+        -- 2.1.3.2 zxAnMldSnoopingMVlanTable
+      -- 2.1.4 zxAnMldProxyObjects
+        -- 2.1.4.2 zxAnMldProxyMVlanTable
+    -- 2.2 zxAnMldMgmtObject
+      -- 2.2.1 zxAnMldMgmtGlobalObject
+      -- 2.2.2 zxAnMldMgmtMVlanTable
+      -- 2.2.3 zxAnMldMgmtMVlanRecvIfTable
+      -- 2.2.4 zxAnMldMgmtMVlanSrcIfTable
+      -- 2.2.6 zxAnMldMgmtGroupFilterTable
+      -- 2.2.7 zxAnMldMgmtGroupStaticIfTable
+      -- 2.2.10 zxAnMldMgmtGroupUserTable
+      -- 2.2.11 zxAnMldMgmtGroupPrejoinTable
+      -- 2.2.12 zxAnMldMgmtGroupConfTable
+      -- 2.2.14 zxAnMldMgmtSpanVlanTable
+      -- 2.2.17 zxAnMldMgmtMVlanPortListIITable
+    -- 2.4 zxAnMldLogObjects
+      -- 2.4.1 zxAnMldLogGlobalObjects
+      -- 2.4.2 zxAnMldLogServerTable
+    -- 2.50 zxAnMldStatsObjects
+      -- 2.50.2 zxAnMldPktStatsTable
+      -- 2.50.3 zxAnMldIfStatsTable
+      -- 2.50.4 zxAnMldMVlanStatsTable
+      -- 2.50.5 zxAnMldGroupStatsTable
+
+-- Following conformance information is defined.
+-- 4. zxAnMldConformance
+--------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+-- 1. zxAnMldGlobalObjects
+------------------------------------------------------------------------------
+    zxAnMldLogEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        enabled(1),
+                        disabled(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of MLD log."
+        DEFVAL { disabled }
+        ::= { zxAnMldGlobalObjects 1 }
+        
+    zxAnMldRouterAlertEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of MLD router alert option."
+        DEFVAL { enabled }
+        ::= { zxAnMldGlobalObjects 2 }
+        
+    zxAnMldBackwardCompatibilityEn OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of MLD backward compatibility."
+        DEFVAL { disabled }
+        ::= { zxAnMldGlobalObjects 3 } 
+
+    zxAnMldSyslogReportingEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of MLD syslog reporting."
+        DEFVAL { disabled }
+        ::= { zxAnMldGlobalObjects 4 }
+
+    zxAnMldCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            notSupportIfBandwidth(0),
+            supportMVlanPortListIITable(1)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The MLD capabilities.
+             The bit value 1 means the function represented by this bit is 
+             supported by this equipment.
+             bit 0: value 1 means not supporting zxAnMldIfBandwidth. 
+             bit 1: value 1 means supporting zxAnMldMgmtMVlanPortListIITable and
+                    not supporting zxAnMldMgmtMVlanPortListTable.
+             NOTE: No recommended to display it in NMS." 
+        ::= { zxAnMldGlobalObjects  100 }
+      
+------------------------------------------------------------------------------
+-- 2.1.2.1 zxAnMldProtoGlobalObjects
+------------------------------------------------------------------------------
+    zxAnMldEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        enabled(1),
+                        disabled(2)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of global MLD service."
+        DEFVAL { disabled }
+        ::= { zxAnMldProtoGlobalObjects 1 }
+
+------------------------------------------------------------------------------
+-- 2.1.2.2 zxAnMldProtoIfTable
+------------------------------------------------------------------------------
+    zxAnMldProtoIfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldProtoIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains all MLD protocol information of an user 
+            interface."
+        ::= { zxAnMldProtoBaseObjects 2 }
+
+    zxAnMldProtoIfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldProtoIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+           "A list of entries of zxAnMldProtoIfTable."
+        INDEX { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnMldProtoIfTable 1 }
+
+    ZxAnMldProtoIfEntry ::=
+        SEQUENCE {
+            zxAnMldIfAdminStatus          INTEGER,
+            zxAnMldIfProtoVersion         INTEGER,
+            zxAnMldIfFastLeaveEnable      INTEGER,
+            zxAnMldIfBandwidth            Integer32,
+            zxAnMldIfMaxGroups            Integer32
+        }
+
+    zxAnMldIfAdminStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        enabled(1),
+                        drop(3),
+                        notSupport(255)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of port's MLD service.
+             The value 255 means the object is not supported."
+        DEFVAL { enabled }
+        ::= { zxAnMldProtoIfEntry 1 }
+
+    zxAnMldIfProtoVersion OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        mldv1(1),
+                        mldv2(2),
+                        notSupport(255)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The max version of MLD protocol which is supported on this port.
+             The value 255 means the object is not supported."
+        DEFVAL { mldv2 }
+        ::= { zxAnMldProtoIfEntry 2 }
+
+    zxAnMldIfFastLeaveEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        enabled(1),
+                        disabled(2),
+                        notSupport(255)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of port's fast-leave property.
+             The value 255 means the object is not supported."
+        REFERENCE
+            "TR-101 Page 13"
+        DEFVAL { enabled }
+        ::= { zxAnMldProtoIfEntry 3 }
+
+    zxAnMldIfBandwidth OBJECT-TYPE
+        SYNTAX      Integer32 (100..10240000|2147483647)
+        UNITS       "kbps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Multicast bandwidth of this port.
+             Uplink port/PON port: The valid range is 10240~10240000 kbps, and 
+             the default value is 1024000 kbps.
+             VPort: The valid range is 100~204800 kbps, and the default value 
+             is 102400 kbps.
+             The value 2147483647 means the object is not supported."
+        ::= { zxAnMldProtoIfEntry 4 }
+        
+    zxAnMldIfMaxGroups OBJECT-TYPE
+        SYNTAX      Integer32 (0..8192|2147483647)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Maximum multicast groups that the port may join. 
+             The value 0 means the port cannot join any groups.
+             The value 2147483647 means the object is not supported."
+        DEFVAL { 8192 }
+        ::= { zxAnMldProtoIfEntry 5 }
+------------------------------------------------------------------------------
+-- 2.1.2.3 zxAnMldProtoMVlanTable
+------------------------------------------------------------------------------
+    zxAnMldProtoMVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldProtoMVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains MLD protocol information in Multicast
+            VLAN."
+        ::= { zxAnMldProtoBaseObjects 3 }
+
+    zxAnMldProtoMVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldProtoMVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldProtoMVlanTable."
+        INDEX { zxAnMldMVid }
+        ::= { zxAnMldProtoMVlanTable 1 }
+
+    ZxAnMldProtoMVlanEntry ::=
+        SEQUENCE {
+            zxAnMldMVid                       Integer32,
+            zxAnMldMVlanMldAdminStatus        INTEGER,
+            zxAnMldMVlanMldV1OperMode         INTEGER,
+            zxAnMldMVlanMldV2OperMode         INTEGER,
+            zxAnMldMVlanMldWorkMode           INTEGER,
+            zxAnMldMVlanMldSsmCtrlMode        INTEGER,
+            zxAnMldMVlanMldSsmIpAddr          InetAddressIPv6,
+            zxAnMldMVlanMldSsmIpAddrMask      InetAddressIPv6,
+            zxAnMldMVlanMldCVid               Integer32,
+            zxAnMldMvlanMldMaxGroups          Integer32,
+            zxAnMldMVlanGenQryPktTxGrpMode    INTEGER
+        }
+
+    zxAnMldMVid OBJECT-TYPE
+        SYNTAX      Integer32(1..4094)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Multicast VLAN ID."
+        ::= { zxAnMldProtoMVlanEntry 1 }
+
+    zxAnMldMVlanMldAdminStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        enabled(1),
+                        drop(3)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of MLD service in this MVLAN."
+        DEFVAL { enabled }
+        ::= { zxAnMldProtoMVlanEntry 2 }
+
+    zxAnMldMVlanMldV1OperMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        accept(1),
+                        drop(3)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The operational mode of MLD v1 packet."
+        DEFVAL { accept }
+        ::= { zxAnMldProtoMVlanEntry 3 }
+
+    zxAnMldMVlanMldV2OperMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        accept(1),
+                        drop(3)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The operational mode of MLD v2 packet."
+        DEFVAL { accept }
+        ::= { zxAnMldProtoMVlanEntry 4 }
+
+    zxAnMldMVlanMldWorkMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        snooping(1),
+                        spr(2),
+                        proxy(3),
+                        router(4)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The MLD work mode in this MVLAN. The meanings of the values
+            are:
+                snooping(1) - transparently forward MLD packet, snooping
+                    is defined in RFC 4541 and TR-101.
+                spr(2) - transparently forward MLD general query and
+                    suppress MLD report/leave for existing group membership,
+                    SPR(Snooping with Proxy Reporting) is defined in TR-101.
+                proxy(3) - act as a host on the V interface and act as a
+                    router on the U interface, proxy is defined in RFC4605.
+                router(4) - act as a terminal on the V interface and act as a
+                    router on the U interface, router is defined in TR-101."
+        REFERENCE
+            "RFC 4604, TR-101 Page 14"
+        DEFVAL { proxy }
+        ::= { zxAnMldProtoMVlanEntry 5 }
+
+    zxAnMldMVlanMldSsmCtrlMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        asm(1),
+                        ssm(2),
+                        asmAndSsm(3)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The ASM/SSM service control model. The meanings of the values
+            are:
+                asm(1) - only ASM(*, G) requests are permitted, ASM(Any-
+                    Source Multicast) is defined in RFC 1112.
+                ssm(2) - only SSM(S, G) requests are permitted, SSM(Source-
+                    Specific Multicast) is defined in RFC 3569.
+                asmAndSsm(3) --- both ASM and SSM requests are permitted."
+        REFERENCE
+            "RFC 4604, RFC 3376"
+        DEFVAL { asmAndSsm }
+        ::= { zxAnMldProtoMVlanEntry 6 }
+
+    zxAnMldMVlanMldSsmIpAddr OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The SSM IP address in this MVLAN.
+             All SSM(S, G) request must be in the same IP network segment as
+             the configued SSM IP address and netmask."
+        REFERENCE
+            "RFC 4604"
+        DEFVAL { 'FF300000000000000000000000000000'H }
+        ::= { zxAnMldProtoMVlanEntry 7 }
+
+    zxAnMldMVlanMldSsmIpAddrMask OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The mask of SSM IP address in this MVLAN.
+             All SSM(S, G) request must be in the same IP network segment as
+             the configued SSM IP address and netmask."
+        REFERENCE
+            "RFC 4604"
+        DEFVAL { 'FFF0FFFFFFFFFFFFFFFFFFFF00000000'H }
+        ::= { zxAnMldProtoMVlanEntry 8 }
+    
+    zxAnMldMVlanMldCVid OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Multicast C-VID.
+             Value 0 means no C-VID tag."
+        DEFVAL { 0 }
+        ::= { zxAnMldProtoMVlanEntry 9 }
+
+    zxAnMldMvlanMldMaxGroups OBJECT-TYPE
+        SYNTAX      Integer32 (0..8192)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Maximum multicast groups that the MVLAN may join. The value 0 means 
+             the MVLAN cannot join any groups."
+        DEFVAL { 8192 }
+        ::= { zxAnMldProtoMVlanEntry 10 }
+
+    zxAnMldMVlanGenQryPktTxGrpMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+            usersInGroup(1),
+            allUsers(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The general query packets transmission group mode only on pon
+             interfaces."
+        DEFVAL { usersInGroup }
+        ::= { zxAnMldProtoMVlanEntry 11 }
+
+------------------------------------------------------------------------------
+-- 2.1.3.2 zxAnMldSnoopingMVlanTable
+------------------------------------------------------------------------------
+    zxAnMldSnoopingMVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldSnoopingMVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains MLD Snooping informations in multicast
+            VLAN."
+        ::= { zxAnMldSnoopingObjects 2 }
+
+    zxAnMldSnoopingMVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldSnoopingMVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldSnoopingMVlanTable."
+        INDEX { zxAnMldMVid }
+        ::= { zxAnMldSnoopingMVlanTable 1 }
+
+    ZxAnMldSnoopingMVlanEntry ::=
+        SEQUENCE {
+            zxAnMldSnoopingMVlanAgingTime      Integer32
+        }
+
+    zxAnMldSnoopingMVlanAgingTime OBJECT-TYPE
+        SYNTAX      Integer32 (30..3600)
+        UNITS       "seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The timeout period in seconds for aging out multicast group
+            memberships dynamically learned with MLD which operates on
+            a per interface per VLAN per multicast group basis.
+            Note that it only takes effect in snooping mode."
+        DEFVAL { 300 }
+        ::= { zxAnMldSnoopingMVlanEntry 1 }
+
+------------------------------------------------------------------------------
+-- 2.1.4.2 zxAnMldProxyMVlanTable
+------------------------------------------------------------------------------
+    zxAnMldProxyMVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldProxyMVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains MLD proxy informations in Multicast
+            VLAN."
+        ::= { zxAnMldProxyObjects 2 }
+
+    zxAnMldProxyMVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldProxyMVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldProxyMVlanTable."
+        INDEX { zxAnMldMVid  }
+        ::= { zxAnMldProxyMVlanTable 1 }
+
+    ZxAnMldProxyMVlanEntry ::=
+        SEQUENCE {
+            zxAnMldMVlanRobustnessVariable     Integer32,
+            zxAnMldMVlanHostVersion            INTEGER,
+            zxAnMldMVlanHostIpAddr             InetAddressIPv6,
+            zxAnMldMVlanUnsolReportInterval    Integer32,
+            zxAnMldMVlanHostQuerier            InetAddressIPv6,
+            zxAnMldMVlanHostActualVersion      INTEGER,
+            zxAnMldMVlanHostV1QuerierTimer     TimeTicks,
+            zxAnMldMVlanRouterIpAddr           InetAddressIPv6,
+            zxAnMldMVlanQueryInterval          Integer32,
+            zxAnMldMVlanQueryRespInterval      Integer32,
+            zxAnMldMVlanLastMemberQryIntvl     Integer32,
+            zxAnMldMVlanLastMemberQryCount     Integer32,
+            zxAnMldMVlanStartUpQryInterval     Integer32,
+            zxAnMldMVlanStartUpQryCount        Integer32,
+            zxAnMldMVlanMldPacketPriority      Integer32,
+            zxAnMldMVlanQryPktProtoVersion     INTEGER,
+            zxAnMldMVlanMldPktTrafficClass     Integer32
+        }
+
+    zxAnMldMVlanRobustnessVariable OBJECT-TYPE
+        SYNTAX      Integer32 (1..7)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "MLD robustness variable in the MVLAN."
+        REFERENCE
+            "RFC 3810 Section 9.1"
+        DEFVAL { 2 }
+        ::= { zxAnMldProxyMVlanEntry 1 }
+
+    zxAnMldMVlanHostVersion OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        auto(1),
+                        mldv1(2),
+                        mldv2(3)
+                    }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative version of MLD packet sent on the host
+            interface.
+                auto(1) - MLD host version is dynamicly determined by
+                    the attached router version, according to MLD Host
+                    Compatibility Mode described in RFC 3810.
+                mldv1(2) - MLD host version is MLD v1.
+                mldv2(3) - MLD host version is MLD v2."
+        REFERENCE
+            "RFC 3810 Section 8.2.1"
+        DEFVAL { auto }
+        ::= { zxAnMldProxyMVlanEntry 2 }
+
+    zxAnMldMVlanHostIpAddr OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The source IP address of MLD packet sent on the host
+            interface."
+        DEFVAL { 'FE8000000000000000000000C0A8020E'H }
+        ::= { zxAnMldProxyMVlanEntry 3 }
+
+    zxAnMldMVlanUnsolReportInterval OBJECT-TYPE
+        SYNTAX      Integer32 (1..60)
+        UNITS       "seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "MLD unsolicited report interval in the MVLAN."
+        REFERENCE
+            "RFC 3810 Section 9.11"
+        DEFVAL { 1 }
+        ::= { zxAnMldProxyMVlanEntry 4 }
+
+    zxAnMldMVlanHostQuerier OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The IP address of the MLD Querier attached on the host
+            interface which is learned from received MLD general query."
+        REFERENCE
+            "RFC 3810"
+        ::= { zxAnMldProxyMVlanEntry 5 }
+
+    zxAnMldMVlanHostActualVersion OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        mldv1(1),
+                        mldv2(2)
+                    }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The running version of MLD packet sent on the host interface."
+        REFERENCE
+            "RFC 3810"
+        DEFVAL { mldv2 }
+        ::= { zxAnMldProxyMVlanEntry 6 }
+
+    zxAnMldMVlanHostV1QuerierTimer OBJECT-TYPE
+        SYNTAX      TimeTicks
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The time remaining until the host assumes that there are
+            no MLDv1 routers present on the interface.  While this is
+            non-zero, the host will reply to all queries with version 1
+            membership reports.  This variable applies to MLDv2 hosts
+            that are forced to run in v1 for compatibility with
+            v1 routers present on the host interface."
+        REFERENCE
+            "RFC 3810 Section 8.2.1"
+        DEFVAL { 0 }
+        ::= { zxAnMldProxyMVlanEntry 7 }
+
+     zxAnMldMVlanRouterIpAddr OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The source IP address of MLD query packet sent on the router
+            interface."
+        DEFVAL { 'FE8000000000000000000000C0A8020E'H }
+        ::= { zxAnMldProxyMVlanEntry 8 }
+
+    zxAnMldMVlanQueryInterval OBJECT-TYPE
+        SYNTAX      Integer32 (30..300)
+        UNITS       "seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "MLD general query interval in the MVLAN."
+        REFERENCE
+            "RFC 3810 Section 9.2"
+        DEFVAL { 125 }
+        ::= { zxAnMldProxyMVlanEntry 9 }
+
+    zxAnMldMVlanQueryRespInterval OBJECT-TYPE
+        SYNTAX      Integer32 (1000..25000)
+        UNITS       "millisecond"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "MLD query max response time in the MVLAN."
+        REFERENCE
+            "RFC 3810 Section 9.3"
+        DEFVAL { 10000 }
+        ::= { zxAnMldProxyMVlanEntry 10 }
+
+    zxAnMldMVlanLastMemberQryIntvl OBJECT-TYPE
+        SYNTAX      Integer32 (100..25500)
+        UNITS       "millisecond"
+        MAX-ACCESS  read-write
+        STATUS current
+        DESCRIPTION
+            "MLD last member query interval in the MVLAN."
+        REFERENCE
+            "RFC 3810 Section 9.8"
+        DEFVAL { 1000 }
+        ::= { zxAnMldProxyMVlanEntry 11 }
+
+    zxAnMldMVlanLastMemberQryCount OBJECT-TYPE
+        SYNTAX      Integer32 (2..5)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "MLD last member query count in the MVLAN."
+        REFERENCE
+            "RFC 3810 Section 9.9"
+        DEFVAL { 2 }
+        ::= { zxAnMldProxyMVlanEntry 12 }
+
+    zxAnMldMVlanStartUpQryInterval OBJECT-TYPE
+        SYNTAX      Integer32 (1..100)
+        UNITS       "seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "MLD startup query interval in the MVLAN.
+            When system is start up or port is up"
+        REFERENCE
+            "RFC 2710 Section 4, RFC 3810 Section 9.6"
+        DEFVAL { 30 }
+        ::= { zxAnMldProxyMVlanEntry 13 }
+
+    zxAnMldMVlanStartUpQryCount OBJECT-TYPE
+        SYNTAX      Integer32 (0..10)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "MLD startup query count in the MVLAN."
+        REFERENCE
+            "RFC 2710 Section 4, RFC 3810 Section 9.7"
+        DEFVAL { 2 }
+        ::= { zxAnMldProxyMVlanEntry 14 }
+
+    zxAnMldMVlanMldPacketPriority OBJECT-TYPE
+        SYNTAX      Integer32 (0..7)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "802.1p priority of MLD packet sent by the device.
+            Note that it only takes effect in proxy and SPR mode."
+        REFERENCE
+            "IEEE 802.1p"
+        DEFVAL { 0 }
+        ::= { zxAnMldProxyMVlanEntry 15 }
+        
+    zxAnMldMVlanQryPktProtoVersion  OBJECT-TYPE 
+        SYNTAX      INTEGER {
+            mldv1(1),
+            mldv2(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The version of MLD general query packet.
+                mldv1(1) - MLDv1.
+                mldv2(2) - MLDv2."
+        DEFVAL { mldv1 }
+        ::= { zxAnMldProxyMVlanEntry 16 }
+
+    zxAnMldMVlanMldPktTrafficClass OBJECT-TYPE
+        SYNTAX      Integer32 (0..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Traffic class of MLD packet sent by the device.
+             Note that it only takes effect in proxy and SPR mode."
+        DEFVAL { 192 }
+        ::= { zxAnMldProxyMVlanEntry 17 }
+
+------------------------------------------------------------------------------
+-- 2.2.1 zxAnMldMgmtGlobalObject
+------------------------------------------------------------------------------
+    zxAnMldUserTrackEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of MLD explicit host tracking."
+        REFERENCE
+            "TR-101 Page 13"
+        DEFVAL { disabled }
+        ::= { zxAnMldMgmtGlobalObject 2 }
+        
+    zxAnMldBandwidthCtrlEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the multicast bandwidth control.
+             enabled(1): the multicast traffic on the user port will be checked 
+                         before user attempts to join a new multicast group.
+                         If the total multicast traffic on the user port has 
+                         exceeded the configured rate of port, the user will 
+                         not be allowed to join.
+             disabled(2): the user may join any number of multicast groups 
+                          eventhough the total multicast traffic on the user 
+                          port has exceeded the configured rate of port."
+        DEFVAL { disabled }
+        ::= { zxAnMldMgmtGlobalObject 3 }
+        
+    zxAnMldGroupPrejoinInterval OBJECT-TYPE
+        SYNTAX      Integer32 (60..300)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The interval of MLD requests sent by the multicast group 
+            which the prejoin is enabled."
+        DEFVAL { 120 }
+        ::= { zxAnMldMgmtGlobalObject 4 }
+        
+    zxAnMldSpanVlanEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the Span-VLAN multicast. Multicast traffic will be 
+            forwarded in all of VLANs if enabled."
+        DEFVAL { enabled }
+        ::= { zxAnMldMgmtGlobalObject 5 }
+        
+    zxAnMldGeneralQueryPktsTxMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+            unicast(1),
+            broadcast(2),
+            both(3)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The transmitting mode of MLD general query packets.
+             Value 'both' means the device will transmit general query packets 
+             in unicast mode and broadcast mode at the same time."
+        DEFVAL { unicast }
+        ::= { zxAnMldMgmtGlobalObject 7 }
+
+------------------------------------------------------------------------------
+-- 2.2.2 zxAnMldMgmtMVlanTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtMVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtMVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table used to create or remove MVLAN."
+        ::= { zxAnMldMgmtObject 2 }
+
+    zxAnMldMgmtMVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtMVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtMVlanTable."
+        INDEX { zxAnMldMVid }
+        ::= { zxAnMldMgmtMVlanTable 1 }
+
+    ZxAnMldMgmtMVlanEntry ::=
+        SEQUENCE {
+            zxAnMldMVlanGroupFilterEnable         INTEGER,
+            zxAnMldMVlanRowStatus                 RowStatus
+        }
+
+    zxAnMldMVlanGroupFilterEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        enabled(1),
+                        disabled(2)
+                    }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of group filter in the MVLAN."
+        DEFVAL { enabled }
+        ::= { zxAnMldMgmtMVlanEntry 1 }
+
+    zxAnMldMVlanRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The action of this conceptual row only support
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+
+            To delete a row in this table, a manager must
+            set this object to destroy(6).
+
+            To query this object, the agent always return active(1)"
+        ::= { zxAnMldMgmtMVlanEntry 50 }
+
+------------------------------------------------------------------------------
+-- 2.2.3 zxAnMldMgmtMVlanRecvIfTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtMVlanRecvIfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtMVlanRecvIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A Table used to add or delete receiving port in a MVLAN."
+        ::= { zxAnMldMgmtObject 3 }
+
+    zxAnMldMgmtMVlanRecvIfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtMVlanRecvIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtMVlanRecvIfTable."
+        INDEX { zxAnMldMVid, ifIndex, zxAnSubIfIndex }
+        ::= { zxAnMldMgmtMVlanRecvIfTable 1 }
+
+    ZxAnMldMgmtMVlanRecvIfEntry ::=
+        SEQUENCE {
+            zxAnMldMgmtMVlanRecvIfRowStatus         RowStatus
+        }
+
+    zxAnMldMgmtMVlanRecvIfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The action of this conceptual row only support
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+
+            To delete a row in this table, a manager must
+            set this object to destroy(6).
+
+            To query this object, the agent always return active(1)."
+        ::= { zxAnMldMgmtMVlanRecvIfEntry 50 }
+
+------------------------------------------------------------------------------
+-- 2.2.4 zxAnMldMgmtMVlanSrcIfTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtMVlanSrcIfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtMVlanSrcIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A Table used to add or delete source port in a MVLAN."
+        ::= { zxAnMldMgmtObject 4 }
+
+    zxAnMldMgmtMVlanSrcIfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtMVlanSrcIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtMVlanSrcIfTable."
+        INDEX { zxAnMldMVid, ifIndex, zxAnSubIfIndex }
+        ::= { zxAnMldMgmtMVlanSrcIfTable 1 }
+
+    ZxAnMldMgmtMVlanSrcIfEntry ::=
+        SEQUENCE {
+            zxAnMldMVlanSrcIfRowStatus            RowStatus
+        }
+
+    zxAnMldMVlanSrcIfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The action of this conceptual row only support
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+
+            To delete a row in this table, a manager must
+            set this object to destroy(6).
+
+            To query this object, the agent always return active(1)"
+        ::= { zxAnMldMgmtMVlanSrcIfEntry 50 }
+
+------------------------------------------------------------------------------
+-- 2.2.6 zxAnMldMgmtGroupFilterTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtGroupFilterTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtGroupFilterEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table used to add or delete group-filter group segment."
+        ::= { zxAnMldMgmtObject 6 }
+
+    zxAnMldMgmtGroupFilterEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtGroupFilterEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtGroupFilterTable."
+        INDEX { zxAnMldMVid, zxAnMldGroupFilterStartGrpIp,
+                zxAnMldGroupFilterEndGrpIp }
+        ::= { zxAnMldMgmtGroupFilterTable 1 }
+
+    ZxAnMldMgmtGroupFilterEntry ::=
+        SEQUENCE {
+            zxAnMldGroupFilterStartGrpIp       InetAddressIPv6,
+            zxAnMldGroupFilterEndGrpIp         InetAddressIPv6,
+            zxAnMldGroupFilterRowStatus        RowStatus
+        }
+
+    zxAnMldGroupFilterStartGrpIp OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Start group ip address of a group segment."
+        ::= { zxAnMldMgmtGroupFilterEntry 1 }
+
+    zxAnMldGroupFilterEndGrpIp OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "End group ip address of a group segment."
+        ::= { zxAnMldMgmtGroupFilterEntry 2 }
+
+    zxAnMldGroupFilterRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The action of this conceptual row only support
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+
+            To delete a row in this table, a manager must
+            set this object to destroy(6).
+
+            To query this object, the agent always return active(1)."
+        ::= { zxAnMldMgmtGroupFilterEntry 50 }
+
+------------------------------------------------------------------------------
+-- 2.2.7 zxAnMldMgmtGroupStaticIfTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtGroupStaticIfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtGroupStaticIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table used to bind or unbind static receiving port to or from 
+            multicast group."
+        ::= { zxAnMldMgmtObject 7 }
+
+    zxAnMldMgmtGroupStaticIfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtGroupStaticIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtGroupStaticIfTable."
+        INDEX { zxAnMldMVid, zxAnMldGroupIpAddr, zxAnMldSourceIpAddr,
+                ifIndex, zxAnSubIfIndex }
+        ::= { zxAnMldMgmtGroupStaticIfTable 1 }
+
+    ZxAnMldMgmtGroupStaticIfEntry ::=
+        SEQUENCE {
+            zxAnMldGroupStaticIfRowStatus        RowStatus
+        }
+
+    zxAnMldGroupStaticIfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnMldMgmtGroupStaticIfEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnMldMgmtGroupStaticIfEntry 50 }
+
+------------------------------------------------------------------------------
+-- 2.2.9 zxAnMldMgmtGroupForwardingTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtGroupForwardingTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtGroupForwardingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains multicast forwarding port list 
+            information."
+        ::= { zxAnMldMgmtObject 9 }
+
+    zxAnMldMgmtGroupForwardingEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtGroupForwardingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtGroupForwardingTable. This table is not supported in C6XX."
+        INDEX { zxAnMldMVid, zxAnMldGroupIpAddr, zxAnMldSourceIpAddr,
+                zxAnMldShelf, zxAnMldSlot }
+        ::= { zxAnMldMgmtGroupForwardingTable 1 }
+
+    ZxAnMldMgmtGroupForwardingEntry ::=
+        SEQUENCE {
+            zxAnMldGroupIpAddr              InetAddressIPv6,
+            zxAnMldSourceIpAddr             InetAddressIPv6,
+            zxAnMldShelf                    Integer32,
+            zxAnMldSlot                     Integer32,
+            zxAnMldGroupForwardingPortList  ZxAnPortList
+        }
+
+    zxAnMldGroupIpAddr OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Multicast group IP Address."
+        ::= { zxAnMldMgmtGroupForwardingEntry 1 }
+
+    zxAnMldSourceIpAddr OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Multicast source IP Address."
+         ::= { zxAnMldMgmtGroupForwardingEntry 2 }
+
+    zxAnMldShelf OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The shelf that contains the port list."
+        ::= { zxAnMldMgmtGroupForwardingEntry 3 }
+
+    zxAnMldSlot OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The slot that contains the port list."
+        ::= { zxAnMldMgmtGroupForwardingEntry 4 }
+
+    zxAnMldGroupForwardingPortList OBJECT-TYPE
+        SYNTAX      ZxAnPortList
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The forwarding port list on a line card.
+            In GPON, the forwarding port is PON interface."
+        ::= { zxAnMldMgmtGroupForwardingEntry 6 }
+
+------------------------------------------------------------------------------
+-- 2.2.10 zxAnMldMgmtGroupUserTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtGroupUserTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtGroupUserEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains dynamic group user information."
+        ::= { zxAnMldMgmtObject 10 }
+
+    zxAnMldMgmtGroupUserEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtGroupUserEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtGroupUserTable."
+        INDEX { zxAnMldMVid, zxAnMldGroupIpAddr, ifIndex, zxAnSubIfIndex,
+                zxAnMldUserMacAddr, zxAnMldSourceIpAddr }
+        ::= { zxAnMldMgmtGroupUserTable 1 }
+
+    ZxAnMldMgmtGroupUserEntry ::=
+        SEQUENCE {
+            zxAnMldUserMacAddr               MacAddress,
+            zxAnMldUserIpAddr                InetAddressIPv6,
+            zxAnMldGrpUserSrcFilterMode      INTEGER
+        }
+        
+    zxAnMldUserMacAddr OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The user MAC address which is tracked from the MLD request
+            packets sent by user device.
+            Note that zxAnMldUserTrackEnable must be enabled firstly, 
+            otherwise the user MAC address will be ALL-ZERO."
+        ::= { zxAnMldMgmtGroupUserEntry 1 }
+        
+    zxAnMldUserIpAddr OBJECT-TYPE
+        SYNTAX      InetAddressIPv6
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The user IP address which is tracked from the MLD request
+            packets sent by user device.
+            Note that zxAnMldUserTrackEnable must be enabled firstly, 
+            otherwise the user IP address will be ALL-ZERO."
+        ::= { zxAnMldMgmtGroupUserEntry 2 }
+
+    zxAnMldGrpUserSrcFilterMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+                        include(1),
+                        exclude(2)
+                    }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "MLDv2 source filter mode of the group user."
+        ::= { zxAnMldMgmtGroupUserEntry 3 }
+
+------------------------------------------------------------------------------
+-- 2.2.11 zxAnMldMgmtGroupPrejoinTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtGroupPrejoinTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtGroupPrejoinEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table used to add or delete multicast group prejoin 
+            configuration."
+        ::= { zxAnMldMgmtObject 11 }
+
+    zxAnMldMgmtGroupPrejoinEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtGroupPrejoinEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtGroupPrejoinTable."
+        INDEX { zxAnMldMVid, zxAnMldGroupIpAddr, zxAnMldSourceIpAddr }
+        ::= { zxAnMldMgmtGroupPrejoinTable 1 }
+
+    ZxAnMldMgmtGroupPrejoinEntry ::=
+        SEQUENCE {
+            zxAnMldGroupPrejoinRowStatus        RowStatus
+        }
+
+    zxAnMldGroupPrejoinRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnMldMgmtGroupPrejoinEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnMldMgmtGroupPrejoinEntry 50 }
+
+------------------------------------------------------------------------------
+-- 2.2.12 zxAnMldMgmtGroupConfTable
+------------------------------------------------------------------------------
+    zxAnMldMgmtGroupConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtGroupConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table used to configure multicast group information."
+        ::= { zxAnMldMgmtObject 12 }
+
+    zxAnMldMgmtGroupConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtGroupConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldMgmtGroupConfTable."
+        INDEX { zxAnMldMVid, zxAnMldGroupIpAddr, zxAnMldSourceIpAddr }
+        ::= { zxAnMldMgmtGroupConfTable 1 }
+
+    ZxAnMldMgmtGroupConfEntry ::=
+        SEQUENCE {
+            zxAnMldGroupBandwidth            Integer32,
+            zxAnMldGroupConfRowStatus        RowStatus
+        }
+
+    zxAnMldGroupBandwidth OBJECT-TYPE
+        SYNTAX      Integer32 (100..65535)
+        UNITS       "kbps"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Multicast group bandwidth."
+        DEFVAL { 2048 }
+        ::= { zxAnMldMgmtGroupConfEntry 1 }
+
+    zxAnMldGroupConfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnMldMgmtGroupConfEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnMldMgmtGroupConfEntry 50 }
+
+--------------------------------------------------------------------------------          
+-- 2.2.14 zxAnMldMgmtSpanVlanTable                      
+--------------------------------------------------------------------------------
+
+    zxAnMldMgmtSpanVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtSpanVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains MLD span VLAN information for VLANs.
+             MLD packets of this SVLAN will be processed."
+        ::= { zxAnMldMgmtObject 14 }
+
+    zxAnMldMgmtSpanVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtSpanVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entries of zxAnMldMgmtSpanVlanTable."
+        INDEX { zxAnMldMgmtSpanVid }
+        ::= { zxAnMldMgmtSpanVlanTable 1 }
+
+    ZxAnMldMgmtSpanVlanEntry ::= 
+        SEQUENCE {
+            zxAnMldMgmtSpanVid               VlanId,
+            zxAnMldSpanVlanRowStatus         RowStatus
+        }
+
+    zxAnMldMgmtSpanVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnMldMgmtSpanVlanEntry 1 }
+
+    zxAnMldSpanVlanRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnMldMgmtSpanVlanEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnMldMgmtSpanVlanEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.2.17 zxAnMldMgmtMVlanPortListIITable
+--------------------------------------------------------------------------------
+    zxAnMldMgmtMVlanPortListIITable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMgmtMVlanPortListIIEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Multicast receiving ports list table."
+        ::= { zxAnMldMgmtObject 17 }
+
+    zxAnMldMgmtMVlanPortListIIEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMgmtMVlanPortListIIEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Multicast receiving ports list entry."
+        INDEX { zxAnMldMVid, zxAnMldMgmtMVlanPortListIIRack, 
+                zxAnMldMgmtMVlanPortListIIShelf, zxAnMldMgmtMVlanPortListIISlot,
+                zxAnMldMgmtMVlanPortListIIPort, zxAnMldMgmtMVlanPortListIISeg }
+        ::= { zxAnMldMgmtMVlanPortListIITable 1 }
+
+    ZxAnMldMgmtMVlanPortListIIEntry ::=
+        SEQUENCE {
+            zxAnMldMgmtMVlanPortListIIRack            Integer32,
+            zxAnMldMgmtMVlanPortListIIShelf           Integer32,
+            zxAnMldMgmtMVlanPortListIISlot            Integer32,
+            zxAnMldMgmtMVlanPortListIIPort            Integer32,
+            zxAnMldMgmtMVlanPortListIISeg             Integer32,
+            zxAnMldMgmtMVlanRecvPortListII            ZxAnPortList
+        }
+        
+    zxAnMldMgmtMVlanPortListIIRack     OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "The rack that contains the port list."
+        ::= { zxAnMldMgmtMVlanPortListIIEntry 1 }
+        
+    zxAnMldMgmtMVlanPortListIIShelf     OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "The shelf that contains the port list."
+        ::= { zxAnMldMgmtMVlanPortListIIEntry 2 }
+        
+    zxAnMldMgmtMVlanPortListIISlot     OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "The slot that contains the port list."
+        ::= { zxAnMldMgmtMVlanPortListIIEntry 3 }
+        
+    zxAnMldMgmtMVlanPortListIIPort     OBJECT-TYPE
+        SYNTAX              Integer32
+        MAX-ACCESS          not-accessible
+        STATUS              current
+        DESCRIPTION
+            "The port that contains the port list.
+             Value 0 means non-PON port, other values means EPON/GPON port."
+        ::= { zxAnMldMgmtMVlanPortListIIEntry 4 }
+        
+    zxAnMldMgmtMVlanPortListIISeg      OBJECT-TYPE
+        SYNTAX              Integer32(1..16)
+        MAX-ACCESS          not-accessible
+        STATUS              current
+        DESCRIPTION
+            "The segment of ONU that contains the port list.
+             The segment will range from 1 to 16 when the port is EPON/GPON 
+             port. 
+             The segment will be always 1 when the port is non-PON port."
+        ::= { zxAnMldMgmtMVlanPortListIIEntry 5 }
+
+    zxAnMldMgmtMVlanRecvPortListII OBJECT-TYPE
+        SYNTAX      ZxAnPortList
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The receiving port list in the MVLAN."
+        ::= { zxAnMldMgmtMVlanPortListIIEntry 6 }
+        
+------------------------------------------------------------------------------
+-- 2.4 zxAnMldLogObjects
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+-- 2.4.1 zxAnMldLogGlobalObjects
+------------------------------------------------------------------------------
+
+    zxAnMldLogQueryPacketRecordEn  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of recording MLD query packets."
+        DEFVAL { disabled }
+        ::= { zxAnMldLogGlobalObjects 1 } 
+        
+    zxAnMldLogManualSend OBJECT-TYPE
+        SYNTAX      INTEGER {
+            send(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Sending MLD log records to SMS at once. 
+             When get this variable, always return 1."
+        ::= { zxAnMldLogGlobalObjects 2 }
+        
+------------------------------------------------------------------------------
+-- 2.4.2 zxAnMldLogServerTable
+------------------------------------------------------------------------------
+
+    zxAnMldLogServerTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldLogServerEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MLD log servers table."
+        ::= { zxAnMldLogObjects 2 }
+
+    zxAnMldLogServerEntry OBJECT-TYPE
+        SYNTAX ZxAnMldLogServerEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+           "MLD log servers entry."
+        INDEX   {
+            zxAnMldLogServerIpAddrType,
+            zxAnMldLogServerIpAddr
+        }
+        ::= { zxAnMldLogServerTable 1 }
+
+    ZxAnMldLogServerEntry  ::= SEQUENCE {
+        zxAnMldLogServerIpAddrType     InetAddressType,
+        zxAnMldLogServerIpAddr         InetAddress,
+        zxAnMldLogServerUserName       DisplayString,
+        zxAnMldLogServerPassword       DisplayString,
+        zxAnMldLogServerFtpType        INTEGER,
+        zxAnMldLogVrfName              DisplayString,
+        zxAnMldLogHostIpAddrType       InetAddressType,
+        zxAnMldLogHostIpAddr           InetAddress,
+        zxAnMldLogServerRowStatus      RowStatus
+    }
+    
+    zxAnMldLogServerIpAddrType  OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MLD log server IP address type."
+        DEFVAL { ipv4 }
+        ::= { zxAnMldLogServerEntry 1 }
+
+    zxAnMldLogServerIpAddr  OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MLD log server IP address."
+        ::= { zxAnMldLogServerEntry 2 }
+        
+    zxAnMldLogServerUserName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+            "MLD log server user name."
+        ::= { zxAnMldLogServerEntry 3 }
+    
+    zxAnMldLogServerPassword  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+            "MLD log server password."
+        ::= { zxAnMldLogServerEntry 4 }
+        
+    zxAnMldLogServerFtpType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            ftp(1),
+            sftp(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+            "MLD log server protocol type."
+        DEFVAL { ftp }
+        ::= { zxAnMldLogServerEntry 5 }    
+        
+    zxAnMldLogVrfName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32)) 
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The VRF name.
+             When set this variable, an empty string is not supported.
+             When get this variable, always return an empty string."
+        ::= { zxAnMldLogServerEntry 6 }
+
+    zxAnMldLogHostIpAddrType  OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Host IP address type."
+        DEFVAL { ipv4 }
+        ::= { zxAnMldLogServerEntry 7 }
+        
+    zxAnMldLogHostIpAddr  OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Host IP address."
+        ::= { zxAnMldLogServerEntry 8 }
+        
+    zxAnMldLogServerRowStatus  OBJECT-TYPE 
+        SYNTAX           RowStatus
+        MAX-ACCESS       read-create
+        STATUS           current
+        DESCRIPTION      
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnMldLogServerEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::=  { zxAnMldLogServerEntry  50 }
+        
+------------------------------------------------------------------------------
+-- 2.50.2 zxAnMldPktStatsTable
+------------------------------------------------------------------------------
+    zxAnMldPktStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldPktStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains MLD packet statistics information."
+        ::= { zxAnMldStatsObjects 2 }
+
+    zxAnMldPktStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldPktStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "When query MLD global statistics, all index must be zero.            
+
+            When query MLD statistics of a specific MVLAN, ifIndex and 
+            zxAnSubIfIndex must be zero.
+
+            When query MLD statistics of a specific interface, zxAnMldMVid 
+            must be zero.
+
+            When query MLD statistics of a specific interface in a MVLAN,
+            all index must be non zero."
+        INDEX { zxAnMldMVid, ifIndex, zxAnSubIfIndex }
+        ::= { zxAnMldPktStatsTable 1 }
+
+    ZxAnMldPktStatsEntry ::=
+        SEQUENCE {
+            zxAnMldPktStatsRxCommQry        Counter32,
+            zxAnMldPktStatsRxSpecialQry     Counter32,
+            zxAnMldPktStatsRxV1Report       Counter32,
+            zxAnMldPktStatsRxV2Report       Counter32,
+            zxAnMldPktStatsRxLeave          Counter32,
+            zxAnMldPktStatsRxError          Counter32,
+            zxAnMldPktStatsRxUnknown        Counter32,
+            zxAnMldPktStatsTxCommQry        Counter32,
+            zxAnMldPktStatsTxSpecialQry     Counter32,
+            zxAnMldPktStatsTxV1Report       Counter32,
+            zxAnMldPktStatsTxV2Report       Counter32,
+            zxAnMldPktStatsTxLeave          Counter32,
+            zxAnMldPktStatsDropRxCommQry    Counter32,
+            zxAnMldPktStatsDropRxSpeQry     Counter32,
+            zxAnMldPktStatsDropRxV1Report   Counter32,
+            zxAnMldPktStatsDropRxV2Report   Counter32,
+            zxAnMldPktStatsDropRxLeave      Counter32,
+            zxAnMldPktStatsDropRxUnknown    Counter32,
+            zxAnMldPktStatsJoinSuccess      Counter32,
+            zxAnMldPktStatsJoinFailure      Counter32,
+            zxAnMldPktStatsReset            Integer32
+        }
+
+    zxAnMldPktStatsRxCommQry OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD general query message received."
+        ::= { zxAnMldPktStatsEntry 1 }
+
+    zxAnMldPktStatsRxSpecialQry OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD special query message received."
+        ::= { zxAnMldPktStatsEntry 2 }
+
+    zxAnMldPktStatsRxV1Report OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD v1 report message received."
+        ::= { zxAnMldPktStatsEntry 3 }
+
+    zxAnMldPktStatsRxV2Report OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD v2 report message received."
+        ::= { zxAnMldPktStatsEntry 4 }
+
+    zxAnMldPktStatsRxLeave OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD leave message received."
+        ::= { zxAnMldPktStatsEntry 5 }
+
+    zxAnMldPktStatsRxError OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD error message received."
+        ::= { zxAnMldPktStatsEntry 6 }
+
+    zxAnMldPktStatsRxUnknown OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD unknown message received."
+        ::= { zxAnMldPktStatsEntry 7 }
+
+    zxAnMldPktStatsTxCommQry OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD general query message transmitted."
+        ::= { zxAnMldPktStatsEntry 8 }
+
+    zxAnMldPktStatsTxSpecialQry OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD special query message transmitted."
+        ::= { zxAnMldPktStatsEntry 9 }
+
+    zxAnMldPktStatsTxV1Report OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD v1 report message transmitted."
+        ::= { zxAnMldPktStatsEntry 10 }
+
+    zxAnMldPktStatsTxV2Report OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD v2 report message transmitted."
+        ::= { zxAnMldPktStatsEntry 11 }
+
+    zxAnMldPktStatsTxLeave OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD leave message transmitted."
+        ::= { zxAnMldPktStatsEntry 12 }
+
+    zxAnMldPktStatsDropRxCommQry OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD general query message dropped."
+        ::= { zxAnMldPktStatsEntry 13 }
+
+    zxAnMldPktStatsDropRxSpeQry OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD special query message dropped."
+        ::= { zxAnMldPktStatsEntry 14 }
+
+    zxAnMldPktStatsDropRxV1Report OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD v1 report message dropped."
+        ::= { zxAnMldPktStatsEntry 15 }
+
+    zxAnMldPktStatsDropRxV2Report OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD v2 report message dropped."
+        ::= { zxAnMldPktStatsEntry 16 }
+
+    zxAnMldPktStatsDropRxLeave OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD leave message dropped."
+        ::= { zxAnMldPktStatsEntry 17 }
+
+    zxAnMldPktStatsDropRxUnknown OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of MLD unknown message dropped."
+        ::= { zxAnMldPktStatsEntry 18 }
+
+    zxAnMldPktStatsJoinSuccess OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of successful MLD joins."
+        ::= { zxAnMldPktStatsEntry 19 }
+
+    zxAnMldPktStatsJoinFailure OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The counter of failure MLD joins."
+        ::= { zxAnMldPktStatsEntry 20 }
+
+    zxAnMldPktStatsReset OBJECT-TYPE
+        SYNTAX      Integer32 (0..1)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The action object to reset the statistics values.
+            When reset the statistics, it must be set to '1', associated
+            with corresponding index.
+            When be queried, it always returns '0'."
+        ::= { zxAnMldPktStatsEntry 100 }
+
+------------------------------------------------------------------------------
+-- 2.50.3 zxAnMldIfStatsTable
+------------------------------------------------------------------------------
+   zxAnMldIfStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldIfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains MLD group statistics information of an 
+            user interface."
+        ::= { zxAnMldStatsObjects 3 }
+
+    zxAnMldIfStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldIfStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry for zxAnMldIfStatsTable."
+        INDEX { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnMldIfStatsTable 1 }
+
+    ZxAnMldIfStatsEntry ::=
+        SEQUENCE {
+            zxAnMldIfCurrActGroups         Gauge32
+        }
+
+    zxAnMldIfCurrActGroups OBJECT-TYPE
+        SYNTAX      Gauge32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The active multicast group number on this interface."
+        ::= { zxAnMldIfStatsEntry 1 }
+
+------------------------------------------------------------------------------
+-- 2.50.4 zxAnMldMVlanStatsTable
+------------------------------------------------------------------------------
+    zxAnMldMVlanStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldMVlanStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains MLD group statistics information in a 
+            MVLAN."
+        ::= { zxAnMldStatsObjects 4 }
+
+    zxAnMldMVlanStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldMVlanStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry for zxAnMldMVlanStatsTable."
+        INDEX  { zxAnMldMVid }
+        ::= { zxAnMldMVlanStatsTable 1 }
+
+    ZxAnMldMVlanStatsEntry ::=
+        SEQUENCE {
+            zxAnMldMVlanCurrActGroups      Gauge32
+        }
+
+    zxAnMldMVlanCurrActGroups OBJECT-TYPE
+        SYNTAX      Gauge32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The active multicast group number in the MVLAN."
+        ::= { zxAnMldMVlanStatsEntry 1 }
+
+------------------------------------------------------------------------------
+-- 2.50.5 zxAnMldGroupStatsTable
+------------------------------------------------------------------------------
+    zxAnMldGroupStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMldGroupStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table that contains interface statistics information in a 
+            multicast group."
+        ::= { zxAnMldStatsObjects 5 }
+
+    zxAnMldGroupStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnMldGroupStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnMldGroupStatsTable."
+        INDEX { zxAnMldMVid, zxAnMldGroupIpAddr }
+        ::= { zxAnMldGroupStatsTable 1 }
+
+    ZxAnMldGroupStatsEntry ::= 
+        SEQUENCE {
+            zxAnMldGroupActiveUsers    Integer32
+        }
+    
+    zxAnMldGroupActiveUsers OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Number of active users associated with specified multicast group."
+        ::= { zxAnMldGroupStatsEntry 1 }
+        
+--------------------------------------------------------------------------------
+-- 4. zxAnMldConformance
+--------------------------------------------------------------------------------
+zxAnMldCompliances      OBJECT IDENTIFIER ::= {zxAnMldConformance 1}
+zxAnMldGroups           OBJECT IDENTIFIER ::= {zxAnMldConformance 2}
+
+    zxAnMldCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-MLD-MIB."
+        MODULE -- this module
+            MANDATORY-GROUPS {
+                zxAnMldProtocolGroup,
+                zxAnMldManagementGroup,
+                zxAnMldStatsGroup
+            }
+        ::= { zxAnMldCompliances 1 }
+
+    zxAnMldProtocolGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMldEnable, zxAnMldIfAdminStatus,
+            zxAnMldIfProtoVersion, zxAnMldIfFastLeaveEnable,
+            zxAnMldMVlanMldAdminStatus, zxAnMldMVlanMldV1OperMode,
+            zxAnMldMVlanMldV2OperMode, zxAnMldMVlanMldWorkMode,
+            zxAnMldMVlanMldSsmCtrlMode, zxAnMldMVlanMldSsmIpAddr,
+            zxAnMldMVlanMldSsmIpAddrMask, zxAnMldSnoopingMVlanAgingTime,
+            zxAnMldMVlanRobustnessVariable, zxAnMldMVlanHostVersion,
+            zxAnMldMVlanHostIpAddr, zxAnMldMVlanUnsolReportInterval,
+            zxAnMldMVlanHostQuerier, zxAnMldMVlanHostActualVersion,
+            zxAnMldMVlanHostV1QuerierTimer, zxAnMldMVlanRouterIpAddr,
+            zxAnMldMVlanQueryInterval, zxAnMldMVlanQueryRespInterval,
+            zxAnMldMVlanLastMemberQryIntvl, zxAnMldMVlanLastMemberQryCount,
+            zxAnMldMVlanStartUpQryInterval, zxAnMldMVlanStartUpQryCount,
+            zxAnMldMVlanMldPacketPriority,zxAnMldMVlanQryPktProtoVersion,
+            zxAnMldMVlanMldPktTrafficClass
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing Mld protocol information."
+        ::= { zxAnMldGroups 1 }
+
+    zxAnMldManagementGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMldUserTrackEnable, zxAnMldBandwidthCtrlEnable,
+            zxAnMldGroupPrejoinInterval, zxAnMldSpanVlanEnable,
+            zxAnMldMVlanGroupFilterEnable, zxAnMldMVlanRowStatus,
+            zxAnMldMgmtMVlanRecvIfRowStatus, zxAnMldMVlanSrcIfRowStatus,
+            zxAnMldGroupFilterRowStatus,
+            zxAnMldGroupStaticIfRowStatus,
+            zxAnMldUserIpAddr, 
+            zxAnMldGrpUserSrcFilterMode, zxAnMldGroupPrejoinRowStatus, 
+            zxAnMldGroupBandwidth, zxAnMldGroupConfRowStatus,
+            zxAnMldSpanVlanRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing Mld management information."
+        ::= { zxAnMldGroups 2 }
+
+    zxAnMldStatsGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMldPktStatsRxCommQry, zxAnMldPktStatsRxSpecialQry,
+            zxAnMldPktStatsRxV1Report, zxAnMldPktStatsRxV2Report,
+            zxAnMldPktStatsRxLeave, zxAnMldPktStatsRxError,
+            zxAnMldPktStatsRxUnknown, zxAnMldPktStatsTxCommQry,
+            zxAnMldPktStatsTxSpecialQry, zxAnMldPktStatsTxV1Report,
+            zxAnMldPktStatsTxV2Report, zxAnMldPktStatsTxLeave,
+            zxAnMldPktStatsDropRxCommQry, zxAnMldPktStatsDropRxSpeQry,
+            zxAnMldPktStatsDropRxV1Report, zxAnMldPktStatsDropRxV2Report,
+            zxAnMldPktStatsDropRxLeave, zxAnMldPktStatsDropRxUnknown,
+            zxAnMldPktStatsJoinSuccess, zxAnMldPktStatsJoinFailure,
+            zxAnMldPktStatsReset, zxAnMldIfCurrActGroups,
+            zxAnMldMVlanCurrActGroups, zxAnMldGroupActiveUsers
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing Mld statistics information."
+        ::= { zxAnMldGroups 4 }
+
+END

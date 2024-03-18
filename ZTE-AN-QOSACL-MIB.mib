@@ -1,0 +1,1009 @@
+
+ZTE-AN-QOSACL-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        InetAddressType, InetAddress            
+            FROM INET-ADDRESS-MIB            
+        OBJECT-GROUP, MODULE-COMPLIANCE            
+            FROM SNMPv2-CONF            
+        Integer32, Counter32, Counter64, OBJECT-TYPE, MODULE-IDENTITY            
+            FROM SNMPv2-SMI            
+        TruthValue, RowStatus, MacAddress, DisplayString           
+            FROM SNMPv2-TC
+        CounterBasedGauge64
+            FROM HCNUM-TC    
+        ZxAnSubIfIndex            
+            FROM ZTE-AN-TC-MIB                        
+        zxAnAclNumber            
+            FROM ZTE-AN-ACL-MIB            
+        zxAnQos            
+            FROM ZTE-AN-SMI;
+
+
+    zxAnQosAclMib MODULE-IDENTITY 
+        LAST-UPDATED "2011081510Z"
+        ORGANIZATION 
+            "ZTE Corporation"
+        CONTACT-INFO 
+            "Cao Yixin      ZTE Corporation
+            Mail: cao.yixin1@zte.com.cn
+            Tel : +86-21-68896470"
+        DESCRIPTION 
+            "This MIB defines managed objects of ACL-based Qos management. "
+        REVISION "2011081510Z"
+        DESCRIPTION 
+            "Add the group: zxAnQosAclTrafficStatsGroup."
+        REVISION "2011061809Z"
+        DESCRIPTION 
+            "Initial version of this MIB module."
+        ::= { zxAnQos 5 }
+
+    
+    
+    
+--
+-- Node definitions
+--
+    zxAnQosAclGlobalObjects   OBJECT IDENTIFIER ::= { zxAnQosAclMib 1 }
+
+    zxAnQosAclObjects       OBJECT IDENTIFIER ::= { zxAnQosAclMib 2 }
+    
+    zxAnQosAclNotifications OBJECT IDENTIFIER ::= { zxAnQosAclMib 3 }       
+    
+    zxAnQosAclActionObjects       OBJECT IDENTIFIER ::= { zxAnQosAclObjects 2 }
+
+    zxAnQosAclTrafficStatsObjects OBJECT IDENTIFIER ::= { zxAnQosAclObjects 3 }
+
+    zxAnTrafficBurstDetectObjects OBJECT IDENTIFIER ::= { zxAnQosAclObjects 4 }
+  
+    zxAnQosAclCapabilities OBJECT-TYPE 
+        SYNTAX BITS {
+           priMarkTrafficClass(0),
+           trafficLimitNotSupportColor(1),
+           priMarkNotSupportLocalPrecedence(2),
+           priMarkNotSupportDropPrecedence(3),
+           priMarkNotSupportPrecedence(4),
+           redirectNotSupportNextHop(5),
+           trafficMirrorNotSupportErspan(6),
+           trafficStatsNotSupportPktColor(7),
+           trafficStatsNotSupportType(8),
+           trafficMirrorSupportSubIf(9),
+           redirectSupportSubIf(10)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     
+            "The QoS ACL capabilities for this equipment.
+             The bit value 1 means the function represented by this bit is 
+             supported.
+             priMarkTrafficClass(0): value 1 means supporting 
+             zxAnQosAclPriMarkTrafficClass.  
+              
+             trafficLimitNotSupportColor(1): value 1 means not supporting 
+                            
+              
+             priMarkNotSupportPrecedence(4): value 1 means not supporting 
+             zxAnQosAclPriMarkPrecedence.
+                                         
+             
+             trafficMirrorSupportSubIf(9): value 1 means supporting 
+             zxAnQosAclTrafficMirrorSubIf. 
+              
+             redirectSupportSubIf(10): value 1 means supporting 
+             zxAnQosAclRedirectSubIf.              
+            "
+        ::= { zxAnQosAclGlobalObjects  1 }
+    
+    zxAnQosAclTrafficLimitTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnQosAclTrafficLimitEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table is to provide traffic-limit configuration 
+            based on the ACL rule."
+        ::= { zxAnQosAclActionObjects 2 }
+
+    
+    zxAnQosAclTrafficLimitEntry OBJECT-TYPE
+        SYNTAX ZxAnQosAclTrafficLimitEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Acl traffic-limit entry. 
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+                    
+            To create an entry, there are several cases. The mandatory 
+            and optional variables are different in each case.
+             
+            Case 1: to create an entry based on single rate three color marker 
+            algorithm:
+                mandatory: zxAnQosAclTrafficLimitCir, 
+                           zxAnQosAclTrafficLimitCbs,
+                           zxAnQosAclTrafficLimitEbs, 
+                           zxAnQosAclTrafficLimitMode
+                           
+            
+            Case 2: to create an entry based on two rate three color marker 
+            algorithm:
+                mandatory: zxAnQosAclTrafficLimitCir, 
+                           zxAnQosAclTrafficLimitCbs,
+                           zxAnQosAclTrafficLimitPir, 
+                           zxAnQosAclTrafficLimitPbs
+                           zxAnQosAclTrafficLimitMode,
+                           
+                           
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue."
+        INDEX { zxAnAclNumber, zxAnQosAclTrafficLimitRuleId }
+        ::= { zxAnQosAclTrafficLimitTable 1 }
+
+    
+    ZxAnQosAclTrafficLimitEntry ::=
+        SEQUENCE { 
+            zxAnQosAclTrafficLimitRuleId         Integer32,
+            zxAnQosAclTrafficLimitCir            INTEGER,
+            zxAnQosAclTrafficLimitPir            INTEGER,
+            zxAnQosAclTrafficLimitCbs            INTEGER,
+            zxAnQosAclTrafficLimitEbs            INTEGER,
+            zxAnQosAclTrafficLimitPbs            INTEGER,
+            zxAnQosAclTrafficLimitMode           INTEGER,
+            zxAnQosAclTrafficRowStatus           RowStatus
+         }
+
+    zxAnQosAclTrafficLimitRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The index of a rule."
+        ::= { zxAnQosAclTrafficLimitEntry 1 }
+
+    
+    zxAnQosAclTrafficLimitCir OBJECT-TYPE
+        SYNTAX INTEGER (64..32000000)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Committed Information Rate(CIR) in kbps."
+        ::= { zxAnQosAclTrafficLimitEntry 2 }
+
+    
+    zxAnQosAclTrafficLimitPir OBJECT-TYPE
+        SYNTAX INTEGER (0 | 64..32000000)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Peak Information Rate(PIR) in kbps. '0' indicates no configure."
+        DEFVAL { 0 }
+        ::= { zxAnQosAclTrafficLimitEntry 3 }
+
+    
+    zxAnQosAclTrafficLimitCbs OBJECT-TYPE
+        SYNTAX INTEGER (4..16000)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Committed Burst Rate(CBS) in kbyte."
+        ::= { zxAnQosAclTrafficLimitEntry 4 }
+
+    
+    zxAnQosAclTrafficLimitEbs OBJECT-TYPE
+        SYNTAX INTEGER (0 | 4..16000)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Excess Burst Size(EBS) in kbps. '0' indicates no configure."
+        DEFVAL { 0 }
+        ::= { zxAnQosAclTrafficLimitEntry 5 }
+
+    
+    zxAnQosAclTrafficLimitPbs OBJECT-TYPE
+        SYNTAX INTEGER (0 | 4..16000)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Peak Burst Size(PBS) in kbps.'0' indicates no configure."
+        DEFVAL { 0 }
+        ::= { zxAnQosAclTrafficLimitEntry 6 }
+
+    
+    zxAnQosAclTrafficLimitMode OBJECT-TYPE
+        SYNTAX INTEGER
+            {
+            blind(1),
+            aware(2)
+            }
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Mode of color marking .
+            blind(1) means color blind mode
+            aware(2) means color aware mode "
+        ::= { zxAnQosAclTrafficLimitEntry 7 }
+
+        
+    zxAnQosAclTrafficRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+                                        
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosAclTrafficLimitEntry 50 }
+
+    
+    zxAnQosAclPriorityMarkTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnQosAclPriorityMarkEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table is to provide priority-mark configuration 
+            based on the ACL rule."
+        ::= { zxAnQosAclActionObjects 3 }
+
+    
+    zxAnQosAclPriorityMarkEntry OBJECT-TYPE
+        SYNTAX ZxAnQosAclPriorityMarkEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Acl priority-mark entry. 
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+            
+            To create an entry, a manager must follow a few rules:
+            
+            1. One of these four variables(zxAnQosAclPriMarkDscp, 
+            zxAnQosAclPriMarkPrecedence, zxAnQosAclPriMarkCos,
+            zxAnQosAclPriMarkTrafficClass) must be 
+            included in one SNMP set operation. 
+            
+            2. zxAnQosAclPriMarkDscp is mutually exclusive. Manager can't set these two variables
+            at the same time.
+                        
+            4. zxAnQosAclPriMarkTrafficClass is mutually exclusive.
+            Manager can't set these two variables at the same time.
+            
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue."
+        INDEX { zxAnAclNumber, zxAnQosAclPriorityMarkRuleId }
+        ::= { zxAnQosAclPriorityMarkTable 1 }
+
+    
+    ZxAnQosAclPriorityMarkEntry ::=
+        SEQUENCE { 
+            zxAnQosAclPriorityMarkRuleId         Integer32,
+            zxAnQosAclPriMarkDscp                INTEGER,
+            zxAnQosAclPriMarkCos                 INTEGER,
+            zxAnQosAclPriMarkPrecedence          INTEGER,
+            zxAnQosAclPriMarkTrafficClass        Integer32,
+            zxAnQosAclPriMarkRowStatus           RowStatus
+         }
+
+    zxAnQosAclPriorityMarkRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The index of a rule."
+        ::= { zxAnQosAclPriorityMarkEntry 1 }
+
+    
+    zxAnQosAclPriMarkDscp OBJECT-TYPE
+        SYNTAX INTEGER (0..63 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The DSCP value which will be marked to the traffic. 
+            '0xFF' indicates no configure ."
+        DEFVAL { 255 }
+        ::= { zxAnQosAclPriorityMarkEntry 2 }
+
+    
+    zxAnQosAclPriMarkCos OBJECT-TYPE
+        SYNTAX INTEGER (0..7 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The cos value which will be marked to the traffic. 
+            '0xFF' indicates no configure."
+        DEFVAL { 255 }
+        ::= { zxAnQosAclPriorityMarkEntry 3 }
+
+    
+    zxAnQosAclPriMarkPrecedence OBJECT-TYPE
+        SYNTAX INTEGER (0..7 | 255)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The precedence value which will be marked to the traffic. 
+            '0xFF' indicates no configure."
+        DEFVAL { 255 }
+        ::= { zxAnQosAclPriorityMarkEntry 4 }
+  
+        
+    zxAnQosAclPriMarkTrafficClass  OBJECT-TYPE
+        SYNTAX      Integer32(0..63|65535)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The traffic class value which will be marked to the traffic.
+             65535 means unconfigured."
+        DEFVAL { 65535 }
+        ::= { zxAnQosAclPriorityMarkEntry 7 }
+    
+    zxAnQosAclPriMarkRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+                                        
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosAclPriorityMarkEntry 50 }
+
+    
+    zxAnQosAclVlanMarkTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnQosAclVlanMarkEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table is to provide vlan-mark configuration 
+            based on the ACL rule."
+        ::= { zxAnQosAclActionObjects 4 }
+
+    
+    zxAnQosAclVlanMarkEntry OBJECT-TYPE
+        SYNTAX ZxAnQosAclVlanMarkEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Acl vlan-mark entry. 
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+            
+            To create an entry of this table, all the variable are mandatory.
+            
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue."
+        INDEX { zxAnAclNumber, zxAnQosAclVlanMarkRuleId }
+        ::= { zxAnQosAclVlanMarkTable 1 }
+
+    
+    ZxAnQosAclVlanMarkEntry ::=
+        SEQUENCE { 
+            zxAnQosAclVlanMarkRuleId         Integer32,
+            zxAnQosAclVlanMarkVid            INTEGER,
+            zxAnQosAclVlanMarkRowStatus      RowStatus
+         }
+
+    zxAnQosAclVlanMarkRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The index of a rule."
+        ::= { zxAnQosAclVlanMarkEntry 1 }
+
+    
+    zxAnQosAclVlanMarkVid OBJECT-TYPE
+        SYNTAX INTEGER (1..4090)
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The vlan number which will be marked to the traffic. "
+        ::= { zxAnQosAclVlanMarkEntry 2 }
+
+    
+    zxAnQosAclVlanMarkRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+                                        
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosAclVlanMarkEntry 50 }
+
+    
+    zxAnQosAclRedirectTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnQosAclRedirectEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table is to provide traffic-redirect configuration 
+            based on the ACL rule."
+        ::= { zxAnQosAclActionObjects 5 }
+
+    
+    zxAnQosAclRedirectEntry OBJECT-TYPE
+        SYNTAX ZxAnQosAclRedirectEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Acl vlan-mark entry. 
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+                    
+            To create an entry, there are several cases based 
+            on the variable zxAnQosAclRedirectType. The mandatory and optional 
+            variables are different in each case.
+             
+            Case 1: to create an entry when zxAnQosAclRedirectType is 
+            cpu(1):
+                mandatory: none
+                optional : none
+            
+            Case 2: to create an entry when zxAnQosAclRedirectType is 
+            interface(2):
+                mandatory: zxAnQosAclRedirectIf
+                optional : none
+                                
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue."
+        INDEX { zxAnAclNumber, zxAnQosAclRedirectRuleId }
+        ::= { zxAnQosAclRedirectTable 1 }
+
+    
+    ZxAnQosAclRedirectEntry ::=
+        SEQUENCE { 
+            zxAnQosAclRedirectRuleId            Integer32,
+            zxAnQosAclRedirectType              INTEGER,
+            zxAnQosAclRedirectIf                Integer32,
+            zxAnQosAclRedirectNextHopIpType     InetAddressType,
+            zxAnQosAclRedirectNextHopIp         InetAddress,
+            zxAnQosAclRedirectSubIf             ZxAnSubIfIndex,             
+            zxAnQosAclRedirectRowStatus         RowStatus
+         }
+
+    zxAnQosAclRedirectRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The index of a rule."
+        ::= { zxAnQosAclRedirectEntry 1 }
+
+    
+    zxAnQosAclRedirectType OBJECT-TYPE
+        SYNTAX INTEGER
+            {
+            cpu(1),
+            interface(2),
+            nextHop(3)
+            }
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The type of redirection.
+            cpu(1)           - traffic is redirected to CPU.
+            interface(2)     - traffic is redirected to interface.
+            nextHop(3)       - traffic is redirected to next hop.
+            "
+        ::= { zxAnQosAclRedirectEntry 2 }
+
+    
+    zxAnQosAclRedirectIf OBJECT-TYPE
+        SYNTAX Integer32
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The Index of the interface which the traffic is redirected to."
+        DEFVAL { 0 }
+        ::= { zxAnQosAclRedirectEntry 3 }
+
+    zxAnQosAclRedirectNextHopIpType OBJECT-TYPE
+        SYNTAX InetAddressType
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The type of next hop IP address."
+        DEFVAL { unknown }
+        ::= { zxAnQosAclRedirectEntry 4 }
+
+    
+    zxAnQosAclRedirectNextHopIp OBJECT-TYPE
+        SYNTAX InetAddress
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The next hop IP address which the traffic is redirected to."
+        DEFVAL { '00000000'h }
+        ::= { zxAnQosAclRedirectEntry 5 }
+
+
+    zxAnQosAclRedirectSubIf OBJECT-TYPE
+        SYNTAX ZxAnSubIfIndex
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The sub-interface index of the interface which the traffic is 
+             redirected to."
+        DEFVAL { 0 }
+        ::= { zxAnQosAclRedirectEntry 6 }
+    
+    zxAnQosAclRedirectRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+                                        
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosAclRedirectEntry 50 }
+
+    
+    zxAnQosAclTrafficMirrorTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnQosAclTrafficMirrorEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table is to provide traffic-mirror configuration 
+            based on the ACL rule."
+        ::= { zxAnQosAclActionObjects 6 }
+
+    
+    zxAnQosAclTrafficMirrorEntry OBJECT-TYPE
+        SYNTAX ZxAnQosAclTrafficMirrorEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Acl traffic-mirror entry. 
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone. 
+                    
+            To create an entry, there are several cases based 
+            on the variable zxAnQosAclTrafficMirrorType. The mandatory 
+            and optional variables are different in each case.
+             
+            Case 1: to create an entry when zxAnQosAclTrafficMirrorType is 
+            cpu(1):
+                mandatory: none
+                optional : none
+            
+            Case 2: to create an entry when zxAnQosAclTrafficMirrorType is
+            interface(2):
+                mandatory: zxAnQosAclTrafficMirrorIf
+                optional : none
+                
+            Case 3: to create an entry when zxAnQosAclTrafficMirrorType is
+            rspan(3):
+                mandatory: zxAnQosAclTrafficMirrorIf
+                           zxAnQosAclTrafficMirrorVid,
+                optional : zxAnQosAclTrafficMirrorCos,
+                           zxAnQosAclTrafficMirrorTpid,
+                
+            Case 4: to create an entry when zxAnQosAclTrafficMirrorType is
+            erspan(4):
+                mandatory: zxAnQosAclTrafficMirrorDstIpType
+                           zxAnQosAclTrafficMirrorSrcIpAddr
+                optional : zxAnQosAclTrafficMirrorCos
+                           zxAnQosAclTrafficMirrorTpid
+                           zxAnQosAclTrafficMirrorTtl       
+                           zxAnQosAclTrafficMirrorDscp      
+                           
+            After an entry is created, no variable can be modified. 
+            If a manager tries to modify any variables in this entry, 
+            agent will return error with SNMP error code inconsistentValue."
+        INDEX { zxAnAclNumber, zxAnQosAclTrafficMirrorRuleId }
+        ::= { zxAnQosAclTrafficMirrorTable 1 }
+
+    
+    ZxAnQosAclTrafficMirrorEntry ::=
+        SEQUENCE { 
+            zxAnQosAclTrafficMirrorRuleId        Integer32,
+            zxAnQosAclTrafficMirrorType          INTEGER,
+            zxAnQosAclTrafficMirrorIf            Integer32,
+            zxAnQosAclTrafficMirrorVid           Integer32,
+            zxAnQosAclTrafficMirrorCos           Integer32,
+            zxAnQosAclTrafficMirrorTpid          Integer32,
+            zxAnQosAclTrafficMirrorSubIf         ZxAnSubIfIndex,
+            zxAnQosAclTrafficMirrorRowStatus     RowStatus
+            
+         }
+
+    zxAnQosAclTrafficMirrorRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The index of a rule."
+        ::= { zxAnQosAclTrafficMirrorEntry 1 }
+
+    
+    zxAnQosAclTrafficMirrorType OBJECT-TYPE
+        SYNTAX INTEGER
+            {
+            cpu(1),
+            interface(2),
+            rspan(3),
+            erspan(4)
+            }
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The type of traffic mirror.
+            cpu(1)           - traffic is mirrored to CPU.
+            interface(2)     - traffic is mirrored to interface.
+            rspan(3)         - traffic is mirrored to rspan.
+            erspan(4)        - traffic is mirrored to erspan.
+            "
+        ::= { zxAnQosAclTrafficMirrorEntry 2 }
+
+    
+    zxAnQosAclTrafficMirrorIf OBJECT-TYPE
+        SYNTAX Integer32
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The Index of the interface which the traffic is mirrored to."
+        DEFVAL { 0 }
+        ::= { zxAnQosAclTrafficMirrorEntry 3 }
+                  
+    zxAnQosAclTrafficMirrorVid      OBJECT-TYPE
+        SYNTAX      Integer32 (1..4094|65535)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The traffic VLAN ID of RSPAN or ERSPAN."
+        DEFVAL { 65535 }
+        ::= { zxAnQosAclTrafficMirrorEntry 4 }
+
+    
+    zxAnQosAclTrafficMirrorCos      OBJECT-TYPE
+        SYNTAX      Integer32 (0..7)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The traffic CoS of RSPAN or ERSPAN."
+        DEFVAL { 0 }
+        ::= { zxAnQosAclTrafficMirrorEntry 5 }
+
+    
+    zxAnQosAclTrafficMirrorTpid      OBJECT-TYPE
+        SYNTAX      Integer32 (0..65535)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The traffic TPID of RSPAN or ERSPAN."
+        DEFVAL { 33024 }
+        ::= { zxAnQosAclTrafficMirrorEntry 6 }
+
+
+    zxAnQosAclTrafficMirrorSubIf OBJECT-TYPE
+        SYNTAX ZxAnSubIfIndex
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The sub-interface index of the interface which the traffic is 
+             mirrored to."
+        DEFVAL { 0 }
+        ::= { zxAnQosAclTrafficMirrorEntry 15 }
+                
+    zxAnQosAclTrafficMirrorRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+                                        
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosAclTrafficMirrorEntry 50 }
+
+       
+    zxAnQosAclTrafficStatsTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnQosAclTrafficStatsEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "This table is to provide traffic-statistics configuration 
+            based on the ACL rule."
+        ::= { zxAnQosAclTrafficStatsObjects 2 }
+
+    
+    zxAnQosAclTrafficStatsEntry OBJECT-TYPE
+        SYNTAX ZxAnQosAclTrafficStatsEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "Acl traffic-statistics entry. 
+            
+            The multi-variables binding rule should be complied with when a 
+            manager creates an entry. According to this rule, all the related 
+            mib variables must be included in one SNMP set operation.
+                    
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone.
+                    
+            
+            To reset the count, zxAnQosAclTrafficStatsReset is mandatory.
+            
+            When an entry is created, modify operation is not allowed."
+        INDEX { zxAnAclNumber, zxAnQosAclTrafficStatsRuleId }
+        ::= { zxAnQosAclTrafficStatsTable 1 }
+
+    
+    ZxAnQosAclTrafficStatsEntry ::=
+        SEQUENCE { 
+            zxAnQosAclTrafficStatsRuleId       Integer32,
+            zxAnQosAclTrafficStatsPktsHc       Counter64,
+            zxAnQosAclTrafficStatsOctetsHc      Counter64,
+            zxAnQosAclTrafficStatsPktRate      CounterBasedGauge64,
+            zxAnQosAclTrafficStatsOctetRate    CounterBasedGauge64,
+            zxAnQosAclTrafficStatsReset        INTEGER,
+            zxAnQosAclTrafficStatsRowStatus    RowStatus
+         }
+
+    zxAnQosAclTrafficStatsRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The index of a rule."
+        ::= { zxAnQosAclTrafficStatsEntry 1 }
+
+     zxAnQosAclTrafficStatsPktsHc OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets.
+             This object is a 64-bit version of zxAnQosAclTrafficStatsPkts."            
+        ::= { zxAnQosAclTrafficStatsEntry 6 }
+
+    zxAnQosAclTrafficStatsOctetsHc OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of octets.
+             This object is a 64-bit version of zxAnQosAclTrafficStatsOctets."
+        ::= { zxAnQosAclTrafficStatsEntry 7 }
+    
+    zxAnQosAclTrafficStatsPktRate OBJECT-TYPE
+        SYNTAX      CounterBasedGauge64
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The rate of packets."            
+        ::= { zxAnQosAclTrafficStatsEntry 8 }
+    
+    zxAnQosAclTrafficStatsOctetRate OBJECT-TYPE
+        SYNTAX      CounterBasedGauge64
+        UNITS       "Bps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The rate of octets."
+        ::= { zxAnQosAclTrafficStatsEntry 9 }
+    
+    zxAnQosAclTrafficStatsReset OBJECT-TYPE
+        SYNTAX INTEGER { resetCounter(1) }
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "Reset the traffic statistics counter.
+            To get this object, the agent always returns resetCounter(1)."
+        ::= { zxAnQosAclTrafficStatsEntry 45 }
+
+    
+    zxAnQosAclTrafficStatsRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "The status of this conceptual row.
+                                        
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnAclEntry.
+            
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosAclTrafficStatsEntry 50 }
+  
+    
+    zxAnQosAclConformance OBJECT IDENTIFIER ::= { zxAnQosAclMib 4 }
+
+    
+    zxAnQosAclCompliances OBJECT IDENTIFIER ::= { zxAnQosAclConformance 1 }
+
+    
+    zxAnQosAclCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION 
+            "The compliance statement for the ZTE-AN-QOSACL-MIB."
+        MODULE -- this module
+            MANDATORY-GROUPS { zxAnQosAclPriorityMarkGroup, 
+                               zxAnQosAclTrafficLimitGroup,
+                               zxAnQosAclVlanMarkGroup,
+                               zxAnQosAclRedirectGroup,
+                               zxAnQosAclTrafficMirrorGroup,
+                               zxAnQosAclTrafficStatsGroup }
+        ::= { zxAnQosAclCompliances 1 }
+
+    
+    zxAnQosAclGroups OBJECT IDENTIFIER ::= { zxAnQosAclConformance 2 }
+
+    
+    zxAnQosAclTrafficLimitGroup OBJECT-GROUP
+        OBJECTS { zxAnQosAclTrafficLimitCir, 
+                  zxAnQosAclTrafficLimitPir, 
+                  zxAnQosAclTrafficLimitCbs, 
+                  zxAnQosAclTrafficLimitEbs, 
+                  zxAnQosAclTrafficLimitPbs, 
+                  zxAnQosAclTrafficLimitMode, 
+                  zxAnQosAclTrafficRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the ACL-based traffic-limit 
+            configuration information."
+        ::= { zxAnQosAclGroups 1 }
+
+    
+    zxAnQosAclPriorityMarkGroup OBJECT-GROUP
+        OBJECTS { zxAnQosAclPriMarkDscp, 
+                  zxAnQosAclPriMarkCos, 
+                  zxAnQosAclPriMarkPrecedence, 
+                  zxAnQosAclPriMarkTrafficClass,
+                  zxAnQosAclPriMarkRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the ACL-based priority-mark 
+            configuration information."
+        ::= { zxAnQosAclGroups 2 }
+
+    
+    zxAnQosAclVlanMarkGroup OBJECT-GROUP
+        OBJECTS { zxAnQosAclVlanMarkVid, 
+                  zxAnQosAclVlanMarkRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the ACL-based vlan-mark 
+            configuration information."
+        ::= { zxAnQosAclGroups 3 }
+
+    
+    zxAnQosAclRedirectGroup OBJECT-GROUP
+        OBJECTS { zxAnQosAclRedirectType, 
+                  zxAnQosAclRedirectIf, 
+                  zxAnQosAclRedirectNextHopIpType, 
+                  zxAnQosAclRedirectNextHopIp, 
+                  zxAnQosAclRedirectRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the ACL-based traffic-redirect 
+            configuration information."
+        ::= { zxAnQosAclGroups 4 }
+
+    
+    zxAnQosAclTrafficMirrorGroup OBJECT-GROUP
+        OBJECTS { zxAnQosAclTrafficMirrorType, 
+                  zxAnQosAclTrafficMirrorIf, 
+                  zxAnQosAclTrafficMirrorRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the ACL-based traffic-mirror 
+            configuration information."
+        ::= { zxAnQosAclGroups 5 }
+
+    
+    zxAnQosAclTrafficStatsGroup OBJECT-GROUP
+        OBJECTS {  
+                  zxAnQosAclTrafficStatsOctetsHc, 
+                  zxAnQosAclTrafficStatsPktRate,
+                  zxAnQosAclTrafficStatsOctetRate,
+                  zxAnQosAclTrafficStatsReset, 
+                  zxAnQosAclTrafficStatsRowStatus }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the ACL-based traffic-statistics 
+            configuration information."
+        ::= { zxAnQosAclGroups 6 }
+
+    
+    
+    END
+
+--
+-- 
+--

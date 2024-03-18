@@ -1,0 +1,193 @@
+ZTE-AN-PORT-IDENTIFICATION-MIB DEFINITIONS ::= BEGIN 
+IMPORTS 
+    OBJECT-TYPE, MODULE-IDENTITY, Integer32        FROM SNMPv2-SMI
+    OBJECT-GROUP, NOTIFICATION-GROUP,MODULE-COMPLIANCE
+                                                   FROM SNMPv2-CONF
+    DisplayString, RowStatus, TruthValue           FROM SNMPv2-TC
+    ifIndex                                        FROM IF-MIB
+    zxAnServiceSecurity                            FROM ZTE-AN-SMI
+    zxAnSubIfIndex                                 FROM ZTE-AN-IF-MIB
+    ZxAnAccessLoopTagType                          
+                            FROM ZTE-AN-PORT-IDENTIFICATION-PROFILE-MIB;
+                            
+    zxAnPortIdentificationMib   MODULE-IDENTITY
+        LAST-UPDATED    "201306250000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "E-mail: li.dandan20@zte.com.cn"
+        DESCRIPTION     "This MIB defines managed objects of port identification 
+                         for Access Node."
+        REVISION        "201306250000Z"
+        DESCRIPTION     "The modification of this mib file is following:
+                        - New objects for zxAnPortIdIfConfTable:
+                         zxAnPortIdIfConfFormatProfile         
+                         zxAnPortIdIfConfRidFormatProfile
+                        - Delete zxAnPortIdCidSyntaxTable."        
+        REVISION        "201208011030Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= { zxAnServiceSecurity 50 }
+
+    zxAnPortIdGlobalObjects        OBJECT IDENTIFIER ::= {zxAnPortIdentificationMib 1}
+    zxAnPortIdObjects              OBJECT IDENTIFIER ::= {zxAnPortIdentificationMib 2}
+
+--------------------------------------------------------------------------------
+-- 1. Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnPortIdAccessNodeName OBJECT-TYPE
+        SYNTAX      DisplayString  ( SIZE ( 1 .. 50  ) )
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The name of access node."
+        DEFVAL { "ZXAN" }
+        ::= { zxAnPortIdGlobalObjects 1 }
+
+    zxAnPortIdAccessNodeIdType OBJECT-TYPE
+        SYNTAX      INTEGER
+             {   
+                inbandMac(1),
+                accessNodeName(2),
+                sysName(3)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Access Node Identifier type. There are three types:
+                    - inbandMac: the inband mac of access node
+                    - accessNodeName: the name of access node.
+                    - sysName: the system name. 
+
+             If set to inbandMac, the inband mac will be used 
+             as the Access-Node-ID or Access-Node-ID1 in the 
+             circuit ID; 
+             If set to accessNodeName, the name of access node 
+             will be used;
+             If set to sysName, the system name will be used.
+             C6XX only support inbandMac(1), accessNodeName(2).
+            "
+        DEFVAL { inbandMac }
+        ::= { zxAnPortIdGlobalObjects 2 }
+        
+    zxAnPortIdRack OBJECT-TYPE
+        SYNTAX      Integer32 (0..63)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Rack Number of access node, which will be used in circuit ID."
+        DEFVAL { 0 }
+        ::= { zxAnPortIdGlobalObjects 4 }
+
+
+    zxAnPortIdShelf OBJECT-TYPE
+        SYNTAX      Integer32 (0..31)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Shelf Number of access node, which will be used in circuit ID."
+        DEFVAL { 0 }
+        ::= { zxAnPortIdGlobalObjects 5 }
+    
+
+-------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1.PortId Interface Table
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- 1. PortId Interface Table
+-------------------------------------------------------------------------------
+    
+    zxAnPortIdIfConfTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnPortIdIfConfEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "The table of port identification data at interface level." 
+        ::= { zxAnPortIdObjects 1 }
+    
+    zxAnPortIdIfConfEntry OBJECT-TYPE 
+        SYNTAX      ZxAnPortIdIfConfEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "The entry of the table."
+        INDEX { ifIndex, zxAnSubIfIndex } 
+        ::= { zxAnPortIdIfConfTable 1 }
+    
+    ZxAnPortIdIfConfEntry ::= SEQUENCE {
+        zxAnPortIdIfConfRid                   DisplayString,
+        zxAnPortIdIfConfUserDefinedCid        DisplayString
+        }
+    
+    zxAnPortIdIfConfRid OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (0..64))
+        MAX-ACCESS  read-write 
+        STATUS      current 
+        DESCRIPTION 
+            "The remote ID, which is a string with maximum length 64."
+        DEFVAL { "" }
+        ::= { zxAnPortIdIfConfEntry 3 }
+       
+   zxAnPortIdIfConfUserDefinedCid OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (0..64))
+        MAX-ACCESS  read-write 
+        STATUS      current 
+        DESCRIPTION 
+            "The user-defined circuit ID, which is a string with maximum length 64.
+             It will be used as the circuit ID of an interface, if the format of the
+             interface is set to franceTel(9)."
+        DEFVAL { "" }
+        ::= { zxAnPortIdIfConfEntry 5 }
+        
+--------------------------------------------------------------------------------
+-- 31. zxAnPortIdConformance
+--------------------------------------------------------------------------------
+
+zxAnPortIdConformance      OBJECT IDENTIFIER ::= {zxAnPortIdentificationMib 4}
+
+zxAnPortIdCompliances      OBJECT IDENTIFIER ::= {zxAnPortIdConformance 1}
+zxAnPortIdGroups           OBJECT IDENTIFIER ::= {zxAnPortIdConformance 2}
+
+    zxAnPortIdCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-PORT-IDENTIFICATION-MIB."
+        MODULE
+        
+-- Note: MANDATORY-GROUPS
+
+            MANDATORY-GROUPS {
+                zxAnPortIdGlobalGroup,
+                zxAnPortIdGroup
+            }
+        ::= { zxAnPortIdCompliances 1 }
+
+-- Note: the global variables and table variables in group have to be 
+--implemented by access node.
+                         
+    zxAnPortIdGlobalGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdAccessNodeName, 
+            zxAnPortIdAccessNodeIdType
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of global objects providing port-identification 
+            functions."
+        ::= { zxAnPortIdGroups 1 } 
+            
+    zxAnPortIdGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdIfConfRid
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of interface objects providing port-identification 
+            functions."
+        ::= { zxAnPortIdGroups 2 }    
+
+-- Note: the following trap groups have to be implemented by access node.
+        
+END
+

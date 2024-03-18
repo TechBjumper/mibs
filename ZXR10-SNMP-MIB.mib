@@ -1,0 +1,621 @@
+-- *****************************************************************
+-- ZXR10-SNMP-MIB.mib
+--
+-- ZTE Corporation Enterprise Structure of Management Information
+--
+-- Copyright (c) 2009 by ZTE Corporation
+-- All rights reserved.
+-- *****************************************************************
+--
+ZXR10-SNMP-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        RowStatus, DisplayString, TEXTUAL-CONVENTION FROM SNMPv2-TC
+        MODULE-IDENTITY, OBJECT-IDENTITY,
+        OBJECT-TYPE, enterprises,
+        Integer32, Gauge32                  FROM SNMPv2-SMI
+        zxr10RosngMIB                       FROM ZXR10-SMI
+        SnmpEngineID                        FROM SNMP-FRAMEWORK-MIB  
+        MODULE-COMPLIANCE,OBJECT-GROUP      FROM SNMPv2-CONF
+        
+        snmpTargetAddrEntry
+           FROM SNMP-TARGET-MIB;
+    
+    zxr10SnmpMIB MODULE-IDENTITY
+        LAST-UPDATED "201909010000Z"  
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO "ZTE Corporation 
+                      Mail: zhu.changyang@zte.com.cn
+                      "
+        DESCRIPTION  
+            "The MIB module to describe the information for Snmp." 
+
+        REVISION     "201909010000Z"
+        DESCRIPTION
+             "Add zxr10SnmpMibModuleTable.
+             The zxr10SnmpMibModuleTable is used to display 
+             the last revision information of MIB files."
+            
+        REVISION     "201904111400Z"
+        DESCRIPTION
+             "Add SNMP global configuration items, including the SNMP version, 
+              the SNMP agent listen port, and the aging time of the dynamically 
+              trusted user."
+        
+        REVISION     "201902140000Z"
+        DESCRIPTION  
+            "Add new node zxr10SnmpObjects and Zxr10SnmpUDPAddress
+             textual convention"
+            
+        REVISION     "201709201500Z"
+        DESCRIPTION  
+            "Initial version of this MIB module."
+        ::= {zxr10RosngMIB 101} 
+    zxr10SnmpObjects  OBJECT IDENTIFIER ::= { zxr10SnmpMIB 2 }
+
+    zxr10SnmpSetCmdErrCode  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "Error code for Snmp set command. When agent executes an Snmp set,
+             this variable should be maintained. Value 0 means no error."
+        DEFVAL { 0 }
+        ::={zxr10SnmpMIB 1}   
+       
+    Zxr10SnmpUDPAddress ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "x"
+    STATUS       current
+    DESCRIPTION
+            "It consists of vrf name, ip address, and port, in the form of 
+            length and data. ip address and port are the network-byte order. 
+            The length of vrf name must be 0-32, the length of ip address 
+            must be 4 or 16. the length of port must be 2.
+ 
+            For example:
+            1)The vrf name is mng, ipv4 address is 192.168.100.250, port is 161.
+              the data should be like this: 03.6D.6E.67.04.C0.A8.64.FA.02.00.A1
+              
+            2)The vrf name is mng, ipv6 address is 1:2::3:4, port is 161. 
+              the data should be like this: 03.6D.6E.67.10.00.01.00.02.00.00.00.
+              00.00.00.00.00.00.03.00.04.02.00.A1
+              
+            3)The vrf name is zero-length, ipv4 address is 192.168.100.250, 
+              port is 161. the data should be like this: 00.04.01.02.03.04.02.
+              00.A1     
+            "
+              
+    SYNTAX OCTET STRING (SIZE (1..255))
+    
+    zxr10SnmpUDPDomain  OBJECT-IDENTITY  
+    STATUS     current
+    DESCRIPTION
+            "The corresponding transport address is of type Zxr10SnmpUDPAddress"
+    ::= { zxr10SnmpObjects 1 }
+
+    
+
+   zxr10SnmpTargetAddrTable OBJECT-TYPE
+       SYNTAX      SEQUENCE OF Zxr10SnmpTargetAddrEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+           "Used to configure the engine ID."
+       ::= { zxr10SnmpObjects 2 }
+
+   zxr10SnmpTargetAddrEntry OBJECT-TYPE
+       SYNTAX      Zxr10SnmpTargetAddrEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+           "Used to configure the engine ID."
+       AUGMENTS { snmpTargetAddrEntry }
+       ::= { zxr10SnmpTargetAddrTable 1 }
+       
+   Zxr10SnmpTargetAddrEntry ::= SEQUENCE {
+       zxr10SnmpTargetAddrEngineID         SnmpEngineID
+   }
+
+   zxr10SnmpTargetAddrEngineID OBJECT-TYPE
+       SYNTAX      SnmpEngineID (SIZE(5..32))
+       MAX-ACCESS  read-write             
+       STATUS      current
+       DESCRIPTION
+           "Configure engine ID."
+       ::= { zxr10SnmpTargetAddrEntry 1 }
+       
+-- SNMP global objects config 
+    zxr10SnmpGlobalConfig  OBJECT IDENTIFIER
+                ::= { zxr10SnmpMIB 3 }
+                
+    zxr10SnmpGlobalVersionV1    OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                enable(1),
+                disable(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "To enable or disable SNMPv1."
+        DEFVAL        {disable}
+        ::=  {  zxr10SnmpGlobalConfig  1  }
+
+    zxr10SnmpGlobalVersionV2C    OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                enable(1),
+                disable(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "To enable or disable SNMPv2c."
+        DEFVAL        {disable}
+        ::=  {  zxr10SnmpGlobalConfig  2  }
+        
+    zxr10SnmpGlobalVersionV3    OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                enable(1),
+                disable(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "To enable or disable SNMPv3."
+        DEFVAL        {disable}
+        ::=  {  zxr10SnmpGlobalConfig  3  }
+    
+    zxr10SnmpGlobalListenPort    OBJECT-TYPE
+        SYNTAX      Integer32(161 | 1024..20000)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "SNMP agent listening port."
+        DEFVAL      {161}
+        ::=  {  zxr10SnmpGlobalConfig  4  }
+
+    zxr10SnmpCommunityTable OBJECT-TYPE
+        SYNTAX       SEQUENCE OF Zxr10SnmpCommunityEntry
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The table of community configured in the SNMP."
+        ::= { zxr10SnmpObjects 3 }
+
+    zxr10SnmpCommunityEntry OBJECT-TYPE
+        SYNTAX       Zxr10SnmpCommunityEntry
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "Information about a particular community."
+        INDEX       { zxr10SnmpCommunityName }
+        ::= { zxr10SnmpCommunityTable 1 }
+
+    Zxr10SnmpCommunityEntry ::= SEQUENCE {
+        zxr10SnmpCommunityName                DisplayString,
+        zxr10SnmpCommunityViewName            DisplayString,
+        zxr10SnmpCommunityAccessType          INTEGER,
+        zxr10SnmpCommunityStatus              RowStatus
+    }
+
+    zxr10SnmpCommunityName OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The community string for which a row in this table represents a 
+             configuration."
+        ::= { zxr10SnmpCommunityEntry 1 }
+
+    zxr10SnmpCommunityViewName OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The view name for which a row in this table represents a 
+             configuration."
+        DEFVAL { "DefaultView" }
+        ::= { zxr10SnmpCommunityEntry 2 }
+
+    zxr10SnmpCommunityAccessType  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            readOnly(1),
+            readWrite(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The access type of community table."
+        DEFVAL { readOnly }
+        ::={ zxr10SnmpCommunityEntry 3 } 
+
+    zxr10SnmpCommunityStatus OBJECT-TYPE
+        SYNTAX       RowStatus
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The status of this conceptual row in the zxr10SnmpCommunityTable."
+        ::= { zxr10SnmpCommunityEntry 50 }
+
+    zxr10SnmpViewTable OBJECT-TYPE
+        SYNTAX       SEQUENCE OF Zxr10SnmpViewEntry
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The table of view configured in the SNMP."
+        ::= { zxr10SnmpObjects 4 }
+
+    zxr10SnmpViewEntry OBJECT-TYPE
+        SYNTAX       Zxr10SnmpViewEntry
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "Information about a particular view."
+        INDEX       { zxr10SnmpViewName, zxr10SnmpSubTreeId }
+        ::= { zxr10SnmpViewTable 1 }
+
+    Zxr10SnmpViewEntry ::= SEQUENCE {
+        zxr10SnmpViewName                   DisplayString,
+        zxr10SnmpSubTreeId                  DisplayString,
+        zxr10SnmpViewType                   INTEGER,
+        zxr10SnmpViewStatus                 RowStatus
+    }
+
+    zxr10SnmpViewName OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The view name for which a row in this table represents a 
+             configuration."
+        ::= { zxr10SnmpViewEntry 1 }
+
+    zxr10SnmpSubTreeId OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..79))
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The subtree ID string for which a row in this table represents a 
+             configuration."
+        ::= { zxr10SnmpViewEntry 2 }
+
+    zxr10SnmpViewType  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            included(1),
+            excluded(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The view type of view table."
+        ::={ zxr10SnmpViewEntry 3 } 
+
+    zxr10SnmpViewStatus OBJECT-TYPE
+        SYNTAX       RowStatus
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The status of this conceptual row in the zxr10SnmpViewTable."
+        ::= { zxr10SnmpViewEntry 50 }
+
+    zxr10SnmpUserTable OBJECT-TYPE
+        SYNTAX       SEQUENCE OF Zxr10SnmpUserEntry
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The table of user configured in the SNMP."
+        ::= { zxr10SnmpObjects 5 }
+
+    zxr10SnmpUserEntry OBJECT-TYPE
+        SYNTAX       Zxr10SnmpUserEntry
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "Information about a particular user."
+        INDEX       { zxr10SnmpUserName }
+        ::= { zxr10SnmpUserTable 1 }
+
+    Zxr10SnmpUserEntry ::= SEQUENCE {
+        zxr10SnmpUserName                       DisplayString,
+        zxr10SnmpUserGroupName                  DisplayString,
+        zxr10SnmpUserAuthProtocol               INTEGER,
+        zxr10SnmpUserAuthPwd                    DisplayString,
+        zxr10SnmpUserPrivProtocol               INTEGER,
+        zxr10SnmpUserPrivPwd                    DisplayString,
+        zxr10SnmpUserSecurityModel              INTEGER,
+        zxr10SnmpUserStatus                     RowStatus
+    }
+
+    zxr10SnmpUserName OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The user name for which a row in this table represents a 
+             configuration."
+        ::= { zxr10SnmpUserEntry 1 }
+
+    zxr10SnmpUserGroupName OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The user group name for which a row in this table represents a 
+             configuration."
+        ::= { zxr10SnmpUserEntry 2 }
+
+    zxr10SnmpUserAuthProtocol  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            noAuth(0),
+            md5(1),
+            sha(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The user authorization type of user table."
+        DEFVAL { noAuth }
+        ::={ zxr10SnmpUserEntry 3 } 
+
+    zxr10SnmpUserAuthPwd OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The user authorization password for which a row in this table
+             represents a configuration."
+        ::= { zxr10SnmpUserEntry 4 }
+
+    zxr10SnmpUserPrivProtocol  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            noPriv(0),
+            des56(6),
+            aes128(8)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The user privacy type of user table."
+        DEFVAL { noPriv }
+        ::={ zxr10SnmpUserEntry 5 } 
+
+    zxr10SnmpUserPrivPwd OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The user privacy password for which a row in this table represents
+             a configuration."
+        ::= { zxr10SnmpUserEntry 6 }
+
+    zxr10SnmpUserSecurityModel  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            v3(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The security model of user table."
+        DEFVAL { v3 }
+        ::={ zxr10SnmpUserEntry 7 } 
+
+    zxr10SnmpUserStatus OBJECT-TYPE
+        SYNTAX       RowStatus
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The status of this conceptual row in the zxr10SnmpUserTable."
+        ::= { zxr10SnmpUserEntry 50 }
+
+    zxr10SnmpGroupTable OBJECT-TYPE
+        SYNTAX       SEQUENCE OF Zxr10SnmpGroupEntry
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The table of group configured in the SNMP."
+        ::= { zxr10SnmpObjects 6 }
+
+    zxr10SnmpGroupEntry OBJECT-TYPE
+        SYNTAX       Zxr10SnmpGroupEntry
+        MAX-ACCESS   not-accessible
+        STATUS       current
+
+        DESCRIPTION
+            "Information about a particular group."
+        INDEX       { zxr10SnmpGroupName, zxr10SnmpGroupSecurityLevel, 
+                      zxr10SnmpGroupContextName }
+        ::= { zxr10SnmpGroupTable 1 }
+
+    Zxr10SnmpGroupEntry ::= SEQUENCE {
+        zxr10SnmpGroupName                      DisplayString,
+        zxr10SnmpGroupSecurityLevel             INTEGER,
+        zxr10SnmpGroupContextName               DisplayString,
+        zxr10SnmpGroupSecurityModel             INTEGER,
+        zxr10SnmpGroupMatchPrefix               INTEGER,
+        zxr10SnmpGroupMatchExact                INTEGER,
+        zxr10SnmpGroupReadView                  DisplayString,
+        zxr10SnmpGroupWriteView                 DisplayString,
+        zxr10SnmpGroupNotifyView                DisplayString,
+        zxr10SnmpGroupStatus                    RowStatus
+    }
+
+    zxr10SnmpGroupName OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The group name for which a row in this table epresents a 
+             configuration."
+        ::= { zxr10SnmpGroupEntry 1 }
+
+    zxr10SnmpGroupSecurityLevel  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            auth(1),
+            noAuth(2),
+            priv(3)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The security level of group table."
+        ::={ zxr10SnmpGroupEntry 2 } 
+
+    zxr10SnmpGroupContextName OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(0..30))
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The context name for which a row in this table represents a 
+             configuration."
+        ::= { zxr10SnmpGroupEntry 3 }
+
+    zxr10SnmpGroupSecurityModel  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            v3(1)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The security model of group table."
+        DEFVAL { v3 }
+        ::={ zxr10SnmpGroupEntry 4 } 
+
+    zxr10SnmpGroupMatchPrefix  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            mismatch(0),
+            matchPrefix(8)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The match prefix of context name, mutual exclusion with 
+             zxr10SnmpGroupMatchExact."
+        DEFVAL { mismatch }
+        ::={ zxr10SnmpGroupEntry 5 } 
+
+    zxr10SnmpGroupMatchExact  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            mismatch(0),
+            matchExact(7)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The match exact of context name, mutual exclusion with 
+             zxr10SnmpGroupMatchPrefix."
+        DEFVAL { mismatch }
+        ::={ zxr10SnmpGroupEntry 6 } 
+
+    zxr10SnmpGroupReadView OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The read view name for which a row in this table represents a
+             configuration."
+        DEFVAL { "DefaultView" }
+        ::= { zxr10SnmpGroupEntry 7 }
+
+    zxr10SnmpGroupWriteView OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The write view name for which a row in this table represents a 
+             configuration."
+        ::= { zxr10SnmpGroupEntry 8 }
+
+    zxr10SnmpGroupNotifyView OBJECT-TYPE
+        SYNTAX       DisplayString(SIZE(1..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The notify view name for which a row in this table represents a 
+             configuration."
+        ::= { zxr10SnmpGroupEntry 9 }
+
+    zxr10SnmpGroupStatus OBJECT-TYPE
+        SYNTAX       RowStatus
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "The status of this conceptual row in the zxr10SnmpGroupTable."
+        ::= { zxr10SnmpGroupEntry 50 }
+       
+-- SNMP global objects config --
+    zxr10SnmpGlobalDynTrustIdleTime    OBJECT-TYPE
+        SYNTAX      Integer32( 1..65535 )
+        UNITS       "Seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This node is used to configure the aging time of
+             dynamically trusted users. When the dynamic user
+             exceeds this aging time, it will be deleted."
+        DEFVAL        {1800}
+        ::=  {  zxr10SnmpGlobalConfig  5  }
+
+    zxr10SnmpMibModuleTable OBJECT-TYPE
+       SYNTAX      SEQUENCE OF Zxr10SnmpMibModuleEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+           "This table is used to display module name and the last revision of MIB files."
+       ::= { zxr10SnmpMIB 4 }
+       
+     zxr10SnmpMibModuleEntry OBJECT-TYPE
+       SYNTAX      Zxr10SnmpMibModuleEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+           "An entry in this table display module name and the last revision of one MIB file.
+            Entries in the zxr10SnmpMibModuleTable can not be created and deleted."
+       INDEX { IMPLIED zxr10SnmpMibModuleName }
+       ::= { zxr10SnmpMibModuleTable 1 } 
+       
+     Zxr10SnmpMibModuleEntry ::= SEQUENCE {
+       zxr10SnmpMibModuleName         DisplayString,
+       zxr10SnmpMibModuleOID          OBJECT IDENTIFIER,
+       zxr10SnmpMibModuleRevision     DisplayString
+       }
+       
+     zxr10SnmpMibModuleName OBJECT-TYPE 
+       SYNTAX        DisplayString (SIZE (1..64))
+       MAX-ACCESS    not-accessible 
+       STATUS        current 
+       DESCRIPTION
+           "The name of the top node in one MIB file. For instance,
+           zxr10SnmpMIB is the top node in ZXR10-SNMP-MIB.mib."  
+       ::= { zxr10SnmpMibModuleEntry 1 }
+    
+     zxr10SnmpMibModuleOID OBJECT-TYPE
+       SYNTAX      OBJECT IDENTIFIER
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+           "OID of the top node in one MIB file. 
+           For instance, zxr10SnmpMIB is the top node in ZXR10-SNMP-MIB.mib 
+           and zxr10SnmpMibModuleOID displays zxr10SnmpMIB's OID."
+       ::= { zxr10SnmpMibModuleEntry 2 }     
+       
+     zxr10SnmpMibModuleRevision OBJECT-TYPE
+       SYNTAX      DisplayString (SIZE (11 | 13))
+       MAX-ACCESS  read-only
+       STATUS      current
+       DESCRIPTION
+           "The last revision of the MIB file. 
+           Contents are indicated by 'Last updated' field in the MIB file."
+       ::= { zxr10SnmpMibModuleEntry 3 }
+
+END

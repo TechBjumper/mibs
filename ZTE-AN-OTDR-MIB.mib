@@ -1,0 +1,4095 @@
+
+ZTE-AN-OTDR-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY                       FROM SNMPv2-SMI
+        NOTIFICATION-TYPE                     FROM SNMPv2-SMI
+        OBJECT-TYPE                           FROM SNMPv2-SMI
+        Integer32                             FROM SNMPv2-SMI
+        DisplayString                         FROM SNMPv2-TC
+        DateAndTime                           FROM SNMPv2-TC
+        RowStatus                             FROM SNMPv2-TC
+        ifIndex                               FROM IF-MIB
+        InetAddressType                       FROM INET-ADDRESS-MIB
+        InetAddress                           FROM INET-ADDRESS-MIB
+        zxAnOfd                               FROM ZTE-AN-OFD-SMI;
+
+    zxAnOtdrMib MODULE-IDENTITY
+        LAST-UPDATED    "201303051200Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Li Yuan     ZTE Corporation
+                         Mail: li.yuan@zte.com.cn
+                         Tel : +86-021-68897208"
+        DESCRIPTION     "The MIB module for the management of OTDR equipment."
+        REVISION        "201303051200Z"
+        DESCRIPTION     "Initial version of this MIB module."
+        ::= { zxAnOfd 5 }
+
+-------------------------------------------------------------------------------
+
+-- Following management objects  are defined.
+-- 1.  OTDR Global Objects
+--  1.1 OTDR Capacity Global Objects
+--  1.2 OTDR Environment Global Objects
+--   1.2.1 OTDR Environment Control Card Global Objects
+--   1.2.2 OTDR Environment Fan Global Objects
+--   1.2.3 OTDR Environment APD Global Objects
+--  1.3 OTDR Port Utilization Global Objects
+
+-- 2. OTDR Objects
+--  2.1 OTDR Interface Objects
+--   2.1.1 OTDR Interface Global Objects
+--   2.1.2 OTDR Test Parameter Profile Table
+--   2.1.3 OTDR Interface Table
+--   2.1.4 OTDR Network Property Profile Table
+
+--  2.2 OTDR Fast Test Objects
+--   2.2.1 OTDR Fast Test Configuraton Objects
+--    2.2.1.1 OTDR Fast Test Action Objects
+--    2.2.1.2 OTDR Fast Test Interface Table
+--   2.2.2 OTDR Fast Test Status Objects
+--    2.2.2.1 OTDR Fast Test Status Global Table
+--    2.2.2.2 OTDR Fast Test Interface Status Table
+--   2.2.3 OTDR Fast Test File FTP Objects
+--    2.2.3.1 OTDR File FTP Objects
+--    2.2.3.2 OTDR File FTP Uploading Status Table
+
+--  2.3 OTDR Routine Test Objects
+--   2.3.1 OTDR Routine Task Interface Table
+--   2.3.2 OTDR Routine Task Table
+--   2.3.3 OTDR Routine Task Interface Status Table
+
+--  2.4 OTDR FTP Server Objects
+--   2.4.1 OTDR FTP Server Table
+
+--  2.5 OTDR Algorithm Objects
+--   2.5.1 OTDR Algorithm Table
+
+--  2.6 OTDR Test Capacity Objects
+--   2.6.1 OTDR Test Capacity Distance Objects
+--    2.6.1.1 OTDR Test Capacity Distance Global Objects
+--    2.6.1.2 OTDR Test Capacity Pulse Width Distance Table
+--    2.6.1.3 OTDR Test Capacity Code Width Distance Table
+--   2.6.2 OTDR Test Capacity Duration Objects
+
+
+--  2.7 OTDR Test Task Objects
+--   2.7.1 OTDR Test Task Status Table
+--   2.7.2 OTDR Test Task Configuration Table
+
+--  2.8 OTDR Node Monitoring Objects
+--   2.8.1 OTDR Node Monitoring Global Objects
+--   2.8.2 OTDR Monitoring Node Configuration Table
+--   2.8.3 OTDR Monitoring Port Link Status Table
+--   2.8.4 OTDR Monitoring Reflector Labelling Table
+
+--  2.9 OTDR Optical Module Monitoring Objects
+--   2.9.1 OTDR Optical Module Global Objects
+--   2.9.2 OTDR Optical Module Interface Table
+
+--  2.10 OTDR Fault Locating Objects
+--   2.10.1 OTDR Fault Locating Global Objects
+--   2.10.2 OTDR P2MP Fault Locating Profile Table
+--   2.10.3 OTDR P2P Fault Locating Profile Table
+--   2.10.4 OTDR Interface Fault Locating Table
+
+--  2.11 OTDR Event Objects
+--   2.11.1 OTDR Interface Event Batch Configuration Table
+--   2.11.2 OTDR Interface Event Configuration Table
+
+--  2.12 OTDR Adaptive Test Objects
+--   2.12.1 OTDR Adaptive Test Link Objects
+--    2.12.1.1 OTDR Adaptive Test Link Global Objects
+--    2.12.1.2 OTDR Adaptive Test Link Threshold Interface Configuration Table
+--   2.12.2 OTDR Adaptive Test Device Objects
+--    2.12.2.1 OTDR Adaptive Test Device Global Objects
+--    2.12.2.2 OTDR Adaptive Test Device Threshold Interface Configuration Table
+
+--  2.13 OTDR Detection Line Objects
+--   2.13.1 OTDR Detection Line Configuration Table
+
+-- Following notification objects are defined.
+-- 3. OTDR Notifications
+--  3.1 OTDR Routine Task Finished
+--  3.2 OTDR Port Test Finished
+--  3.50 OTDR Environment Traps
+--  3.51 OTDR Monitoring Node Traps
+--  3.52 OTDR Optical Module Monitoring Traps
+--  3.53 OTDR Detection Line Monitoring Traps
+
+-------------------------------------------------------------------------------
+
+zxAnOtdrGlobalObjects           OBJECT IDENTIFIER ::= { zxAnOtdrMib 1 }
+zxAnOtdrObjects                 OBJECT IDENTIFIER ::= { zxAnOtdrMib 2 }
+zxAnOtdrNotifications           OBJECT IDENTIFIER ::= { zxAnOtdrMib 3 }
+
+zxAnOtdrIfObjects               OBJECT IDENTIFIER ::= { zxAnOtdrObjects 1 }
+zxAnOtdrFastTestObjects         OBJECT IDENTIFIER ::= { zxAnOtdrObjects 2 }
+zxAnOtdrRoutineTestObjects      OBJECT IDENTIFIER ::= { zxAnOtdrObjects 3 }
+zxAnOtdrFtpServerObjects        OBJECT IDENTIFIER ::= { zxAnOtdrObjects 4 }
+zxAnOtdrAlgorithmObjects        OBJECT IDENTIFIER ::= { zxAnOtdrObjects 5 }
+zxAnOtdrTestCapacityObjects     OBJECT IDENTIFIER ::= { zxAnOtdrObjects 6 }
+zxAnOtdrTestCapDistanceObjects
+                    OBJECT IDENTIFIER ::= { zxAnOtdrTestCapacityObjects 1 }
+zxAnOtdrTestCapDistanceGlbObjs
+                    OBJECT IDENTIFIER ::= { zxAnOtdrTestCapDistanceObjects 1 }
+zxAnOtdrTestCapDurationObjects
+                    OBJECT IDENTIFIER ::= { zxAnOtdrTestCapacityObjects 2 }
+zxAnOtdrTestCapDurationGlbObjs
+                    OBJECT IDENTIFIER ::= { zxAnOtdrTestCapDurationObjects 1 }
+
+zxAnOtdrTestTaskObjects         OBJECT IDENTIFIER ::= { zxAnOtdrObjects 7 }
+zxAnOtdrMonNodeObjects          OBJECT IDENTIFIER ::= { zxAnOtdrObjects 8 }
+zxAnOtdrOptModuleMonitorObjects OBJECT IDENTIFIER ::= { zxAnOtdrObjects 9 }
+zxAnOtdrFaultLocateObjects      OBJECT IDENTIFIER ::= { zxAnOtdrObjects 10 }
+zxAnOtdrEventObjects            OBJECT IDENTIFIER ::= { zxAnOtdrObjects 11 }
+zxAnOtdrAdaptiveTestObjects     OBJECT IDENTIFIER ::= { zxAnOtdrObjects 12 }
+zxAnOtdrDetectionLineObjects    OBJECT IDENTIFIER ::= { zxAnOtdrObjects 13 }
+
+zxAnOtdrEnvTraps             OBJECT IDENTIFIER ::= { zxAnOtdrNotifications 50 }
+zxAnOtdrMonNodeTraps         OBJECT IDENTIFIER ::= { zxAnOtdrNotifications 51 }
+zxAnOtdrOptModuleMonitorTraps
+                             OBJECT IDENTIFIER ::= { zxAnOtdrNotifications 52 }
+zxAnOtdrDetectionLineTraps   OBJECT IDENTIFIER ::= { zxAnOtdrNotifications 53 }
+-------------------------------------------------------------------------------
+
+-- 1. OTDR Global Objects -----------------------------------------------------
+-------------------------------------------------------------------------------
+-- 1.1 OTDR Capacity Global Objects
+-------------------------------------------------------------------------------
+
+    zxAnOtdrCapacityGlobalObjects    OBJECT IDENTIFIER
+        ::= { zxAnOtdrGlobalObjects 1 }
+
+    zxAnOtdrWaveLengthList    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..255))
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The wave length supported by OTDR. The value divided by '|'.
+             The unit of wave length is nm.
+             PON OLTs support 1625.
+             eOMUs support 1550|1625."
+        ::= { zxAnOtdrCapacityGlobalObjects 1 }
+
+    zxAnOtdrTestPulseWidthList    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..255))
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The pulse width supported by OTDR. The value divided by '|'.
+             The unit of pulse width is ns.
+             The value 200001 means 2.5ns.
+             e.g., 5|10|30|100|200|500|10000|20000|200001."
+        ::= { zxAnOtdrCapacityGlobalObjects 2 }
+
+    zxAnOtdrTotalPorts    OBJECT-TYPE
+        SYNTAX          Integer32(1..256)
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The total port number of OTDR."
+        ::= { zxAnOtdrCapacityGlobalObjects 3 }
+
+    zxAnOtdrTestSeqCodeLenList    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..255))
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The sequence code length supported by OTDR. The value divided
+             by '|'.
+             PON OLTs support 512|1024|2048|4096.
+             eOMUs support 64|256|512|1024."
+        ::= { zxAnOtdrCapacityGlobalObjects 4 }
+
+    zxAnOtdrTestSeqCodeWidthList    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..255))
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The sequence code width supported by OTDR. The value divided
+             by '|'.
+             The unit of pulse width is ns.
+             PON OLTs support 5|10|20|30|50.
+             eOMUs support 5|10|20|30."
+        ::= { zxAnOtdrCapacityGlobalObjects 5 }
+
+    zxAnOtdrDualWavelengthTestMode    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            cascade(1),
+            nonCascade(2)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The test mode of dual wavelength.
+             cascade(1): dual wavelength testing on two NEs by cascade.
+             nonCascade(2): dual wavelength testing on one NE."
+        ::= { zxAnOtdrCapacityGlobalObjects 6 }
+
+    zxAnOtdrCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            fastHealthPrfDiff(0),
+            seqCodeLen(1),
+            routineTaskTestMode(2),
+            priorityTaskTest(3),
+            reflectorTest(4),
+            globalTestParamPrf(5),
+            opticalFiberLabefaction(6),
+            bothwayTest(7),
+            controlCardIndependentTest(8)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The OTDR capabilities of this equipment.
+
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             - fastHealthPrfDiff(0):
+               value 1 means supporting zxAnOtdrIfHealthTestParamPrf and
+               zxAnOtdrTestType.
+             - seqCodeLen(1):
+               value 1 means supporting zxAnOtdrTestParamPrfSeqCodeLen.
+             - routineTaskTestMode(2):
+               value 1 means supporting zxAnOtdrRoutineTaskTestMode.
+             - priorityTaskTest(3):
+               value 1 means supporting zxAnOtdrFastTestPriority and
+               zxAnOtdrFastTestRequestSource.
+             - reflectorTest(4):
+               value 1 means supporting zxAnOtdrIfReflectorTestParamPrf and
+               zxAnOtdrTestType.
+             - globalTestParamPrf(5):
+               value 1 means supporting global test parameter profile.
+             - opticalFiberLabefaction(6):
+               value 1 means supporting optical fiber labefaction predication.
+             - bothwayTest(7):
+               value 1 means supporting zxAnOtdrIfBothwayTestParamPrf and 
+               zxAnOtdrTestType.
+             - controlCardIndependentTest(8):
+               value 1 means supporting the control card test without line card."
+        ::= { zxAnOtdrCapacityGlobalObjects 51 }
+
+-------------------------------------------------------------------------------
+--  1.2 OTDR Environment Global Objects
+-------------------------------------------------------------------------------
+-- 1.2.1 OTDR Environment Control Card Global Objects
+-------------------------------------------------------------------------------
+
+    zxAnOtdrEnvGlobalObjects            OBJECT IDENTIFIER
+                                        ::= { zxAnOtdrGlobalObjects 2 }
+
+    zxAnOtdrEnvCtrlCardGlobalObjects    OBJECT IDENTIFIER
+                                        ::= { zxAnOtdrEnvGlobalObjects 1 }
+
+    zxAnOtdrCtrlCardCurrentTemp OBJECT-TYPE
+       SYNTAX       Integer32
+       UNITS        "Centigrade"
+       MAX-ACCESS   read-only
+       STATUS       current
+       DESCRIPTION
+            "The current control card temperature of OTDR equipment. "
+       ::= { zxAnOtdrEnvCtrlCardGlobalObjects 1 }
+
+    zxAnOtdrCtrlCardTempHighThresh OBJECT-TYPE
+       SYNTAX       Integer32(75..95)
+       UNITS        "Centigrade"
+       MAX-ACCESS   read-write
+       STATUS       current
+       DESCRIPTION
+            "The high threshold of the control card temperature, the
+             zxAnOtdrEnvCtrlCardHighTempAlm trap should be generated when
+             zxAnOtdrCtrlCardCurrentTemp is higher than it.
+             Otherwise, zxAnOtdrEnvCtrlCardHighTempClr trap should be generated
+             when zxAnOtdrCtrlCardCurrentTemp is lower than it."
+       DEFVAL { 95 }
+       ::= { zxAnOtdrEnvCtrlCardGlobalObjects 2 }
+
+    zxAnOtdrCtrlCardTempLowThresh OBJECT-TYPE
+       SYNTAX       Integer32(-45..-25)
+       UNITS        "Centigrade"
+       MAX-ACCESS   read-write
+       STATUS       current
+       DESCRIPTION
+            "The low threshold of the control card temperature, the
+             zxAnOtdrEnvCtrlCardLowTempAlm trap should be generated when
+             zxAnOtdrCtrlCardCurrentTemp is lower than it.
+             Otherwise, zxAnOtdrEnvCtrlCardLowTempClr trap should be generated
+             when zxAnOtdrCtrlCardCurrentTemp is higher than it."
+       DEFVAL { -45 }
+       ::= { zxAnOtdrEnvCtrlCardGlobalObjects 3 }
+
+-------------------------------------------------------------------------------
+--   1.2.2 OTDR Environment Fan Global Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrEnvFanGlobalObjects    OBJECT IDENTIFIER
+                                   ::= { zxAnOtdrEnvGlobalObjects 2 }
+
+    zxAnOtdrEnvFanStatus  OBJECT-TYPE
+        SYNTAX          INTEGER {
+                normal(1),
+                abnormal(2)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The fan status. When zxAnOtdrEnvFanStatus
+             is abnormal, zxAnOtdrEnvFanFailureAlm trap should be sent
+             to manager. If zxAnOtdrEnvFanStatus is normal,
+             zxAnOtdrEnvFanFailureClr trap should be sent."
+
+        ::=  {  zxAnOtdrEnvFanGlobalObjects  1  }
+
+    zxAnOtdrEnvFanOperStatus   OBJECT-TYPE
+        SYNTAX          INTEGER {
+                up(1),
+                down(2)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The operational status of fan."
+        ::=  {  zxAnOtdrEnvFanGlobalObjects  2  }
+
+-------------------------------------------------------------------------------
+--   1.2.3 OTDR Environment APD Global Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrEnvApdGlobalObjects    OBJECT IDENTIFIER
+                                   ::= { zxAnOtdrEnvGlobalObjects 3 }
+
+    zxAnOtdrEnvApdCurrentTemp OBJECT-TYPE
+       SYNTAX       Integer32
+       UNITS        "Centigrade"
+       MAX-ACCESS   read-only
+       STATUS       current
+       DESCRIPTION
+           "The current temperature of APD. "
+       ::= { zxAnOtdrEnvApdGlobalObjects 1 }
+
+    zxAnOtdrEnvApdTempHighThresh OBJECT-TYPE
+       SYNTAX       Integer32(60..100)
+       UNITS        "Centigrade"
+       MAX-ACCESS   read-write
+       STATUS       current
+       DESCRIPTION
+           "The high threshold of the APD temperature, the
+            zxAnOtdrEnvApdHighTempAlm trap should be generated when
+            zxAnOtdrEnvApdCurrentTemp is higher than it.
+            Otherwise, zxAnOtdrEnvApdHighTempClr trap should be generated
+            when zxAnOtdrEnvApdCurrentTemp is lower than it."
+       DEFVAL { 60 }
+       ::= { zxAnOtdrEnvApdGlobalObjects 2 }
+
+    zxAnOtdrEnvApdTempLowThresh OBJECT-TYPE
+       SYNTAX       Integer32(-55..-20)
+       UNITS        "Centigrade"
+       MAX-ACCESS   read-write
+       STATUS       current
+       DESCRIPTION
+           "The low threshold of the APD temperature, the
+            zxAnOtdrEnvApdLowTempAlm trap should be generated when
+            zxAnOtdrEnvApdCurrentTemp is lower than it.
+            Otherwise, zxAnOtdrEnvApdLowTempClr trap should be generated
+            when zxAnOtdrEnvApdCurrentTemp higher than it."
+       DEFVAL { -20 }
+       ::= { zxAnOtdrEnvApdGlobalObjects 3 }
+
+-------------------------------------------------------------------------------
+--  1.3 OTDR Port Utilization Global Objects
+-------------------------------------------------------------------------------
+
+    zxAnOtdrPortUtilGlobalObjects    OBJECT IDENTIFIER
+        ::= { zxAnOtdrGlobalObjects 3 }
+
+    zxAnOtdrPortUtilization OBJECT-TYPE
+       SYNTAX       Integer32(0..100)
+       UNITS        "Percents"
+       MAX-ACCESS   read-only
+       STATUS       current
+       DESCRIPTION
+            "The current port utilization of OTDR equipment. "
+       ::= { zxAnOtdrPortUtilGlobalObjects 1 }
+
+    zxAnOtdrPortUtilizationThresh OBJECT-TYPE
+       SYNTAX       Integer32(0..100)
+       UNITS        "Percents"
+       MAX-ACCESS   read-write
+       STATUS       current
+       DESCRIPTION
+            "The threshold of zxAnOtdrPortUtilization.
+             When zxAnOtdrPortUtilization exceeds this threshold,
+             the zxAnOtdrPortUtlExceedAlm trap should be generated."
+       DEFVAL { 100 }
+       ::= { zxAnOtdrPortUtilGlobalObjects 2 }
+
+-- 2. OTDR Objects ------------------------------------------------------------
+--  2.1 OTDR Interface Objects ------------------------------------------------
+-------------------------------------------------------------------------------
+--   2.1.1 OTDR Interface Global Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrIfGlobalObjects    OBJECT IDENTIFIER
+        ::= { zxAnOtdrIfObjects 1 }
+
+    zxAnOtdrGlobalTestParamPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The OTDR global test parameter profile name list.
+             The global profile is applied to the interface when the
+             interface test parameter profile is unconfigured."
+        DEFVAL { "DEFAULT_PULSE" }
+        ::= { zxAnOtdrIfGlobalObjects 1 }
+
+    zxAnOtdrGlobalNetworkPropertyPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The OTDR global network property profile name list.
+             The global profile is applied to the interface when the
+             interface network property profile is unconfigured."
+        DEFVAL { "DEFAULT_NETWORK" }
+        ::= { zxAnOtdrIfGlobalObjects 2 }
+
+    zxAnOtdrGlobalAcceptanceTestPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The OTDR acceptance test parameter profile name list, such as
+             'DEFAULT_ACCEPTANCE_1,DEFAULT_ACCEPTANCE_2,DEFAULT_ACCEPTANCE_3',
+             which are in order of decreasing priority.
+             The global profile is applied to the interface when
+             zxAnOtdrIfAcceptanceTestPrf is unconfigured."
+        DEFVAL { "DEFAULT_ACCEPTANCE_1,
+                 DEFAULT_ACCEPTANCE_2, DEFAULT_ACCEPTANCE_3" }
+        ::= { zxAnOtdrIfGlobalObjects 3 }
+
+-------------------------------------------------------------------------------
+--   2.1.2 OTDR Test Parameter Profile Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrTestParamPrfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrTestParamPrfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "This table includes OTDR test parameter Profile information."
+        ::= {zxAnOtdrIfObjects 2 }
+
+    zxAnOtdrTestParamPrfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrTestParamPrfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR test parameter profile entry."
+        INDEX   { zxAnOtdrTestParamPrfName }
+        ::= { zxAnOtdrTestParamPrfTable 1 }
+
+    ZxAnOtdrTestParamPrfEntry  ::=  SEQUENCE {
+        zxAnOtdrTestParamPrfName                 DisplayString,
+        zxAnOtdrTestParamPrfMode                 INTEGER,
+        zxAnOtdrTestParamPrfWaveLength           Integer32,
+        zxAnOtdrTestParamPrfDistance             Integer32,
+        zxAnOtdrTestParamPrfFiberIor             Integer32,
+        zxAnOtdrTestParamPrfPulseWidth           Integer32,
+        zxAnOtdrTestParamPrfDuration             Integer32,
+        zxAnOtdrTestParamPrfSeqCodeLen           Integer32,
+        zxAnOtdrTestParamPrfSeqCodeWidth         Integer32,
+        zxAnOtdrTestParamPrfRowStatus            RowStatus
+        }
+
+    zxAnOtdrTestParamPrfName    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR test parameter profile name."
+        ::= { zxAnOtdrTestParamPrfEntry 1 }
+
+    zxAnOtdrTestParamPrfMode    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            pulseMethod(1),
+            sequenceMethod(2)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR test mode.
+
+             When the mode is pulseMethod,
+             zxAnOtdrTestParamPrfWaveLength, zxAnOtdrTestParamPrfDistance,
+             zxAnOtdrTestParamPrfFiberIor, zxAnOtdrTestParamPrfPulseWidth,
+             zxAnOtdrTestParamPrfDuration are valid.
+
+             When the mode is sequenceMethod,
+             zxAnOtdrTestParamPrfWaveLength, zxAnOtdrTestParamPrfDistance,
+             zxAnOtdrTestParamPrfFiberIor, zxAnOtdrTestParamPrfDuration,
+             zxAnOtdrTestParamPrfSeqCodeLen, zxAnOtdrTestParamPrfSeqCodeWidth
+             are valid."
+        ::= {zxAnOtdrTestParamPrfEntry 2 }
+
+    zxAnOtdrTestParamPrfWaveLength    OBJECT-TYPE
+        SYNTAX          Integer32(1625..1650)
+        UNITS           "Nanometers"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR test wave length."
+        ::= { zxAnOtdrTestParamPrfEntry 3 }
+
+    zxAnOtdrTestParamPrfDistance    OBJECT-TYPE
+        SYNTAX          Integer32(500..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR test distance."
+        ::= { zxAnOtdrTestParamPrfEntry 4 }
+
+    zxAnOtdrTestParamPrfFiberIor    OBJECT-TYPE
+        SYNTAX          Integer32(1400000..1600000)
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR test fiber IOR. The range is from 1.4*(10^6) to 1.6*(10^6)."
+        ::= { zxAnOtdrTestParamPrfEntry 5 }
+
+    zxAnOtdrTestParamPrfPulseWidth    OBJECT-TYPE
+        SYNTAX          Integer32(5..200000 | 200001..300000 | 0)
+        UNITS           "Nanoseconds"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR test pulse width. '0' means not configured.
+             A value less than 200000 is mapped to an integer pulse width
+             value.
+             A value greater than 200000 is mapped to a specific pulse width
+             value.
+             e.g., The value 5 is mapped to 5ns, the value 200001 is mapped to
+             2.5ns."
+        ::= { zxAnOtdrTestParamPrfEntry 6 }
+
+    zxAnOtdrTestParamPrfDuration    OBJECT-TYPE
+        SYNTAX          Integer32(0 | 1..3600)
+        UNITS           "Seconds"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR test duration. '0' means not configured"
+        ::= { zxAnOtdrTestParamPrfEntry 7 }
+
+    zxAnOtdrTestParamPrfSeqCodeLen    OBJECT-TYPE
+        SYNTAX          Integer32(0 | 16..16384)
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR test sequence code length.
+             The valid value is the power of two, For example:16,32,64.
+             '0' means not configured."
+        ::= { zxAnOtdrTestParamPrfEntry 8 }
+
+    zxAnOtdrTestParamPrfSeqCodeWidth    OBJECT-TYPE
+        SYNTAX          Integer32(0 | 5..1275)
+        UNITS           "Nanoseconds"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR test sequence code width. '0' means not configured."
+        ::= { zxAnOtdrTestParamPrfEntry 9 }
+
+    zxAnOtdrTestParamPrfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnOtdrTestParamPrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrTestParamPrfEntry 50 }
+
+-------------------------------------------------------------------------------
+--   2.1.3 OTDR Interface Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrIfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrIfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "This table includes OTDR test interface information."
+        ::= {zxAnOtdrIfObjects 3}
+
+    zxAnOtdrIfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrIfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR interface entry."
+        INDEX   { ifIndex }
+        ::= { zxAnOtdrIfTable 1 }
+
+    ZxAnOtdrIfEntry  ::=  SEQUENCE {
+        zxAnOtdrIfAlias                   DisplayString,
+        zxAnOtdrIfFastTestParamPrf        DisplayString,
+        zxAnOtdrIfRoutineTestParamPrf     DisplayString,
+        zxAnOtdrIfHealthTestParamPrf      DisplayString,
+        zxAnOtdrIfReflectorTestParamPrf   DisplayString,
+        zxAnOtdrIfNetworkPropertyPrf      DisplayString,
+        zxAnOtdrIfAcceptanceTestPrf       DisplayString,
+        zxAnOtdrIfNetworkProperty         INTEGER,
+        zxAnOtdrIfWorkingStatus           INTEGER,
+        zxAnOtdrIfUsageStatus             INTEGER,
+        zxAnOtdrIfUsageStatusSwitch       INTEGER,
+        zxAnOtdrIfWorkMode                INTEGER,
+        zxAnOtdrIfBothwayTestPrf          DisplayString
+        }
+         
+    zxAnOtdrIfAlias    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..32))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR interface alias."
+        ::= { zxAnOtdrIfEntry 5 }
+
+    zxAnOtdrIfFastTestParamPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test parameter profile name list, such as
+             'DEFAULT_PULSE,DEFAULT_SEQUENCE'.
+             Empty string means unconfigured."
+        DEFVAL { "" }
+        ::= { zxAnOtdrIfEntry 6 }
+
+    zxAnOtdrIfRoutineTestParamPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR routine test parameter profile name list, such as
+             'DEFAULT_PULSE,DEFAULT_SEQUENCE'.
+             Empty string means unconfigured."
+        DEFVAL { "" }
+        ::= { zxAnOtdrIfEntry 7 }
+
+    zxAnOtdrIfHealthTestParamPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR health test parameter profile name list, such as
+             'DEFAULT_PULSE,DEFAULT_SEQUENCE'.
+             Empty string means unconfigured."
+        DEFVAL { "" }
+        ::= { zxAnOtdrIfEntry 8 }
+
+    zxAnOtdrIfReflectorTestParamPrf  OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR reflector test parameter profile name list,
+             such as 'DEFAULT_REFLECTOR'."
+        ::= { zxAnOtdrIfEntry 9 }
+
+    zxAnOtdrIfNetworkPropertyPrf  OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface network property profile name list.
+             Empty string means unconfigured."
+        DEFVAL { "" }
+        ::= { zxAnOtdrIfEntry 10 }
+
+    zxAnOtdrIfAcceptanceTestPrf  OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR acceptance test parameter profile name list, such as
+             'DEFAULT_PULSE,DEFAULT_SEQUENCE,DEFAULT_ACCEPTANCE',
+             which are in order of decreasing priority.
+             Empty string means unconfigured."
+        DEFVAL { "" }
+        ::= { zxAnOtdrIfEntry 11 }
+
+    zxAnOtdrIfNetworkProperty    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            p2mp(1),
+            p2p(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The network property of OTDR interface.
+             p2mp(1): the network of point to multi-points.
+             p2p(2): the network of point to point."
+        DEFVAL { "p2mp" }
+        ::= { zxAnOtdrIfEntry 17 }
+
+    zxAnOtdrIfWorkingStatus    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            testing(1),
+            idle(2)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The working status of OTDR interface."
+        ::= { zxAnOtdrIfEntry 18 }
+
+    zxAnOtdrIfUsageStatus    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            used(1),
+            unused(2),
+            preconfigured(3),
+            reserved(4)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The usage status of OTDR interface.
+             used(1): Health test has been run successfully.
+             unused(2): No test parameter profile is bound to the port and the
+             health test never runs.
+             preconfigured(3): Test parameter profile is bound to the port.
+             reserved(4): The port is reserved by administrator.
+             Test parameter profile cannot be bound to a reserved port
+             and the health test cannot run on it."
+        DEFVAL { "unused" }
+        ::= { zxAnOtdrIfEntry 19 }
+
+    zxAnOtdrIfUsageStatusSwitch    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            switchToUnused(1),
+            switchToReserved(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The usage status switch of OTDR interface.
+             An unused status can be switched to reserved, and reserved status
+             can be switched to unused.
+             When get this variable, always return 1."
+        ::= { zxAnOtdrIfEntry 20 }
+
+    zxAnOtdrIfWorkMode OBJECT-TYPE
+        SYNTAX          INTEGER{
+            faultLocating(1),
+            nodeMonitoring(2),
+            opticalPowerMonitoring(3),
+            lineDetection(4),
+            bothwayTest(5),
+            unusable(255)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The working mode of OTDR interface.
+             When the mode is faultLocating, the interface can be used for
+             fault locating.
+             When the mode is nodeMonitoring, the interface can be used for
+             node monitoring.
+             When the mode is opticalPowerMonitoring,the interface can be used
+             for optical power monitoring.
+             When the mode is lineDetection, the interface can be used for line
+             detection.
+             When the mode is bothwayTest, the interface can be used for bothway
+             test. Bothway test uses two NEs linked by one fiber.
+             When the mode is unusable, the interface can not be use."
+        ::= {zxAnOtdrIfEntry 21 }
+
+    zxAnOtdrIfBothwayTestPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR bothway test parameter profile name list, such as
+             'DEFAULT_P2P'. Empty string means unconfigured."
+        DEFVAL { "" }
+        ::= { zxAnOtdrIfEntry 22 }
+
+-------------------------------------------------------------------------------
+--   2.1.4 OTDR Network Property Profile Table
+-------------------------------------------------------------------------------
+    zxAnOtdrNetPropPrfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrNetPropPrfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR network property profile table."
+        ::= {zxAnOtdrIfObjects 4 }
+
+    zxAnOtdrNetPropPrfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrNetPropPrfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR network property profile entry."
+        INDEX   { zxAnOtdrNetPrfName }
+        ::= { zxAnOtdrNetPropPrfTable 1 }
+
+    ZxAnOtdrNetPropPrfEntry  ::=  SEQUENCE {
+        zxAnOtdrNetPrfName                     DisplayString,
+        zxAnOtdrNetPrfLinkType                 INTEGER,
+        zxAnOtdrNetPrfFirstSplitRatio          INTEGER,
+        zxAnOtdrNetPrfSecondSplitRatio         INTEGER,
+        zxAnOtdrNetPrfThirdSplitRatio          INTEGER,
+        zxAnOtdrNetPrfLinkLength               Integer32,
+        zxAnOtdrNetPrfRowStatus                RowStatus
+        }
+
+    zxAnOtdrNetPrfName    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR network property profile name."
+        ::= { zxAnOtdrNetPropPrfEntry 1 }
+
+    zxAnOtdrNetPrfLinkType    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            p2mp(1),
+            p2p(2)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR link type.
+             p2mp(1): the network of point to multi-points.
+             p2p(2): the network of point to point."
+        ::= {zxAnOtdrNetPropPrfEntry 2 }
+
+    zxAnOtdrNetPrfFirstSplitRatio    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            ratio1-2(1),
+            ratio1-4(2),
+            ratio1-8(3),
+            ratio1-16(4),
+            ratio1-32(5),
+            ratio1-64(6),
+            ratio1-128(7),
+            ratio1-x(20),
+            none(255)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR first-level splitting ratio.
+             ratio1-x(20) : first-level splitting ratio is unknown.
+             none(255) :  first-level splitting does not exist."
+        ::= {zxAnOtdrNetPropPrfEntry 3 }
+
+    zxAnOtdrNetPrfSecondSplitRatio    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            ratio1-2(1),
+            ratio1-4(2),
+            ratio1-8(3),
+            ratio1-16(4),
+            ratio1-32(5),
+            ratio1-64(6),
+            ratio1-128(7),
+            ratio1-x(20),
+            none(255)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR second-level splitting ratio.
+             ratio1-x(20) : second-level splitting ratio is unknown.
+             none(255) :  second-level splitting does not exist."
+        ::= {zxAnOtdrNetPropPrfEntry 4 }
+
+    zxAnOtdrNetPrfThirdSplitRatio    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            ratio1-2(1),
+            ratio1-4(2),
+            ratio1-8(3),
+            ratio1-16(4),
+            ratio1-32(5),
+            ratio1-64(6),
+            ratio1-128(7),
+            ratio1-x(20),
+            none(255)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR third-level splitting ratio.
+             ratio1-x(20) : third-level splitting ratio is unknown.
+             none(255) :  third-level splitting does not exist."
+        ::= {zxAnOtdrNetPropPrfEntry 5 }
+
+    zxAnOtdrNetPrfLinkLength    OBJECT-TYPE
+        SYNTAX          Integer32(0..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "OTDR link length. Value 0 means unconfigured."
+        ::= { zxAnOtdrNetPropPrfEntry 6 }
+
+    zxAnOtdrNetPrfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnOtdrTestParamPrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrNetPropPrfEntry 50 }
+
+-- 2.2 OTDR Fast Test Objects -------------------------------------------------
+-- 2.2.1 OTDR Fast Test Configuraton Objects ----------------------------------
+-------------------------------------------------------------------------------
+-- 2.2.1.1 OTDR Fast Test Action Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrFastTestConfObjects
+        OBJECT IDENTIFIER ::= { zxAnOtdrFastTestObjects 1 }
+    zxAnOtdrFastTestStatusObjects
+        OBJECT IDENTIFIER ::= { zxAnOtdrFastTestObjects 2 }
+    zxAnOtdrFastTestFileFtpObjects
+        OBJECT IDENTIFIER ::= { zxAnOtdrFastTestObjects 3 }
+    zxAnOtdrFastTestActionObjects   OBJECT IDENTIFIER
+        ::= { zxAnOtdrFastTestConfObjects 1 }
+
+    zxAnOtdrFastTestSn    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..128))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR fast test serial number."
+        ::= { zxAnOtdrFastTestActionObjects 1 }
+
+    zxAnOtdrFastTestAction    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            start(1),
+            stop(2),
+            complete(3),
+            lock(4),
+            unlock(5)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR fast test action."
+        ::= { zxAnOtdrFastTestActionObjects 2 }
+
+    zxAnOtdrFastTestMode    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            pulseMethod(1),
+            sequenceMethod(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test mode.
+
+             When the mode is pulseMethod,
+             zxAnOtdrFastTestWaveLength, zxAnOtdrFastTestDistance,
+             zxAnOtdrFastTestFiberIor, zxAnOtdrFastTestPulseWidth,
+             zxAnOtdrFastTestDuration are valid.
+
+             When the mode is sequenceMethod,
+             zxAnOtdrFastTestWaveLength, zxAnOtdrFastTestDistance,
+             zxAnOtdrFastTestFiberIor, zxAnOtdrFastTestDuration,
+             zxAnOtdrFastTestSeqCodeLen, zxAnOtdrFastTestSeqCodeWidth
+             are valid."
+        ::= {zxAnOtdrFastTestActionObjects 3 }
+
+    zxAnOtdrFastTestWaveLength    OBJECT-TYPE
+        SYNTAX          Integer32(1625..1650)
+        UNITS           "Nanometers"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test wave length."
+        ::= { zxAnOtdrFastTestActionObjects 4 }
+
+    zxAnOtdrFastTestDistance    OBJECT-TYPE
+        SYNTAX          Integer32(500..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test distance."
+        ::= { zxAnOtdrFastTestActionObjects 5 }
+
+    zxAnOtdrFastTestFiberIor    OBJECT-TYPE
+        SYNTAX          Integer32(1400000..1600000)
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test fiber IOR.
+             The range is from 1.4*(10^6) to 1.6*(10^6)."
+        ::= { zxAnOtdrFastTestActionObjects 6 }
+
+    zxAnOtdrFastTestPulseWidth    OBJECT-TYPE
+        SYNTAX          Integer32(5..200000 | 200001..300000)
+        UNITS           "Nanoseconds"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test pulse width.
+             A value less than 200000 is mapped to an integer pulse width
+             value.
+             A value greater than 200000 is mapped to a specific pulse width
+             value.
+             e.g., 5 is mapped to 5ns, 200001 is mapped to 2.5ns."
+        ::= { zxAnOtdrFastTestActionObjects 7 }
+
+    zxAnOtdrFastTestDuration    OBJECT-TYPE
+        SYNTAX          Integer32(1..3600)
+        UNITS           "Seconds"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test duration."
+        ::= { zxAnOtdrFastTestActionObjects 8 }
+
+    zxAnOtdrFastTestSeqCodeLen    OBJECT-TYPE
+        SYNTAX          Integer32(16..16384)
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test sequence code length.
+             The valid value is the power of two, For example:16,32,64."
+        ::= { zxAnOtdrFastTestActionObjects 9 }
+
+    zxAnOtdrFastTestSeqCodeWidth    OBJECT-TYPE
+        SYNTAX          Integer32(5..1275)
+        UNITS           "Nanoseconds"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test sequence code width."
+        ::= { zxAnOtdrFastTestActionObjects 10 }
+
+    zxAnOtdrTestType    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            fast(1),
+            health(2),
+            adHoc(3),
+            reflector(4),
+            alarmTrigger(5),
+            adaptive(6),
+            acceptance(7),
+            labefaction(8),
+            lineDetectionHealth(9),
+            lineDetectionFast(10),
+            bothway(11)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR test type."
+        ::= { zxAnOtdrFastTestActionObjects 11 }
+
+    zxAnOtdrFastTestPriority    OBJECT-TYPE
+        SYNTAX          Integer32(1..256)
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test priority."
+        ::= { zxAnOtdrFastTestActionObjects 12 }
+
+    zxAnOtdrFastTestRequestSource    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            ems(1),
+            tl1(2),
+            app(3)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR fast test request source."
+        ::= { zxAnOtdrFastTestActionObjects 13 }
+
+    zxAnOtdrFastTestRequestSrcIpType     OBJECT-TYPE
+        SYNTAX          InetAddressType
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "IP address type of the OTDR fast test request source."
+        DEFVAL  { "ipv4" }
+        ::= { zxAnOtdrFastTestActionObjects 14 }
+
+    zxAnOtdrFastTestRequestSrcIp        OBJECT-TYPE
+        SYNTAX          InetAddress
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "IP address of the OTDR fast test request source."
+        ::= { zxAnOtdrFastTestActionObjects 15 }
+
+    zxAnOtdrMonNodeTestType        OBJECT-TYPE
+        SYNTAX          INTEGER
+            {
+                openTest(1),
+                closeTest(2)
+            }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR monitoring node test type."
+        ::= { zxAnOtdrFastTestActionObjects 16 }
+
+
+-------------------------------------------------------------------------------
+-- 2.2.1.2 OTDR Fast Test Interface Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrFastTestIfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrFastTestIfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR fast test interface table."
+        ::= {zxAnOtdrFastTestConfObjects 2}
+
+    zxAnOtdrFastTestIfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrFastTestIfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR fast test interface entry.
+            The OTDR fast test consists of two steps,
+            creating fast test ports(zxAnOtdrFastTestIfTable), and then
+            starting fast test(zxAnOtdrFastTestSn, zxAnOtdrFastTestAction).
+            NE restores to a previous state when the erroneous operations are
+            performed.
+            e.g. 1, When creating a port failed, NE needs to delete all the
+            ports of this SN.
+            e.g. 2, When creating ports succeeded, then starting test failed,
+            NE needs to delete all the ports of this SN."
+        INDEX   { zxAnOtdrFastTestIfSn, ifIndex}
+        ::= { zxAnOtdrFastTestIfTable 1 }
+
+    ZxAnOtdrFastTestIfEntry  ::=  SEQUENCE {
+        zxAnOtdrFastTestIfSn                DisplayString,
+        zxAnOtdrAcceptanceTestIfParamPrf    DisplayString,
+        zxAnOtdrFastTestIfRowStatus         RowStatus
+        }
+
+    zxAnOtdrFastTestIfSn    OBJECT-TYPE
+        SYNTAX           DisplayString (SIZE (1..128))
+        MAX-ACCESS       not-accessible
+        STATUS           current
+        DESCRIPTION      "OTDR fast test serial number."
+        ::= { zxAnOtdrFastTestIfEntry 1 }
+
+    zxAnOtdrAcceptanceTestIfParamPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR acceptance test parameter profile name list
+             chosen from zxAnOtdrIfAcceptanceTestPrf.
+             e.g. 'DEFAULT-PULSE','DEFAULT-PULSE,DEFAULT-SEQUENCE',
+             'DEFAULT-PULSE,DEFAULT-SEQUENCE,DEFAULT-ACCEPTANCE'.
+             If zxAnOtdrTestType is not acceptance(7), this should
+             be empty."
+        ::= { zxAnOtdrFastTestIfEntry 2 }
+
+    zxAnOtdrFastTestIfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnOtdrFastTestIfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrFastTestIfEntry 50 }
+
+-- 2.2.2 OTDR Fast Test Status Objects ----------------------------------------
+-------------------------------------------------------------------------------
+-- 2.2.2.1 OTDR Fast Test Status Global Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrFastTestStatusGlbObjects    OBJECT IDENTIFIER
+        ::= { zxAnOtdrFastTestStatusObjects 1 }
+
+    zxAnOtdrFastTestCurrentPort    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..32))
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Current fast testing port index such as '1-1-3-2'.
+             Return empty string means no port is being tested."
+        ::= { zxAnOtdrFastTestStatusGlbObjects 1 }
+
+    zxAnOtdrFastTestWaitTestPorts    OBJECT-TYPE
+        SYNTAX          Integer32(0..255)
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Current fast test waiting test port number.
+             Return 0 measns no port waiting test."
+        ::= { zxAnOtdrFastTestStatusGlbObjects 2 }
+
+-------------------------------------------------------------------------------
+-- 2.2.2.2 OTDR Fast Test Interface Status Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrFastTestIfStatusTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrFastTestIfStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR fast test port status table."
+        ::= {zxAnOtdrFastTestStatusObjects 2}
+
+    zxAnOtdrFastTestIfStatusEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrFastTestIfStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR fast test interface status entry."
+        INDEX   { zxAnOtdrFastTestIfSn, ifIndex}
+        ::= { zxAnOtdrFastTestIfStatusTable 1 }
+
+    ZxAnOtdrFastTestIfStatusEntry  ::=  SEQUENCE {
+        zxAnOtdrFastTestIfStatus            INTEGER,
+        zxAnOtdrFastTestIfFailedReason      INTEGER,
+        zxAnOtdrFastTestIfResultFile        DisplayString,
+        zxAnOtdrFastTestIfParamPrfs         Integer32,
+        zxAnOtdrFastTestIfFinishedPrfs      Integer32,
+        zxAnOtdrFastTestIfEvalTotalTime     Integer32,
+        zxAnOtdrFastTestIfElapsedTime       Integer32
+        }
+
+    zxAnOtdrFastTestIfStatus    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            notStarted(1),
+            inProgress(2),
+            success(3),
+            failed(4),
+            stopped(5),
+            waiting(6)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The result status of OTDR fast test."
+        ::= { zxAnOtdrFastTestIfStatusEntry 1 }
+
+    zxAnOtdrFastTestIfFailedReason    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            noError(1),
+            getTestParamsFailed(2),
+            communicationError(3),
+            apdAlarm(4),
+            noBindingProfile(5),
+            opticalSwitchFailed(6),
+            outOfMemory(7),
+            chipTestFailed(8),
+            algorithmError(9),
+            saveFileFailed(10),
+            testTimeout(11),
+            fiberNotConnected(12),
+            endToEndOpticalPowerLossLow(13),
+            waitTimeout(14),
+            preempted(15),
+            otherErrors(255)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR fast test failed reason."
+        ::= { zxAnOtdrFastTestIfStatusEntry 2 }
+
+    zxAnOtdrFastTestIfResultFile    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..64))
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Fast test result file name.
+             NE returns file name such as '1-1-5-1-20120505143302.csv' when the
+             fast test sucess.
+             NE returns empty string when the fast test failed."
+        ::= { zxAnOtdrFastTestIfStatusEntry 3 }
+
+    zxAnOtdrFastTestIfParamPrfs OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Number of test parameter profile."
+        ::= { zxAnOtdrFastTestIfStatusEntry 4 }
+
+    zxAnOtdrFastTestIfFinishedPrfs OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Number of finished test parameter profile."
+        ::= { zxAnOtdrFastTestIfStatusEntry 5 }
+
+    zxAnOtdrFastTestIfEvalTotalTime    OBJECT-TYPE
+        SYNTAX          Integer32
+        UNITS           "Seconds"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "OTDR test estimated total time."
+        ::= { zxAnOtdrFastTestIfStatusEntry 6 }
+
+    zxAnOtdrFastTestIfElapsedTime    OBJECT-TYPE
+        SYNTAX          Integer32
+        UNITS           "Seconds"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "OTDR test elapsed time."
+        ::= { zxAnOtdrFastTestIfStatusEntry 7 }
+
+-- 2.2.3 OTDR Fast Test File FTP Objects --------------------------------------
+-------------------------------------------------------------------------------
+-- 2.2.3.1 OTDR File FTP Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrFileFtpObjects OBJECT IDENTIFIER
+        ::= {zxAnOtdrFastTestFileFtpObjects 1}
+
+    zxAnOtdrFileFtpIpAddressType    OBJECT-TYPE
+        SYNTAX          InetAddressType
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "IP address type of the FTP server."
+        DEFVAL  { "ipv4" }
+        ::=  {  zxAnOtdrFileFtpObjects  1  }
+
+    zxAnOtdrFileFtpIpAddress    OBJECT-TYPE
+        SYNTAX          InetAddress
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "IP address of the FTP server."
+        ::=  {  zxAnOtdrFileFtpObjects  2  }
+
+    zxAnOtdrFileFtpProtocolType    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            ftp(1),
+            sftp(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "Protocol type of the FTP server.
+             ftp(1):    File Transfer Protocol.
+             sftp(2):   Ssh File Transfer Protocol.
+            "
+        DEFVAL  { "ftp" }
+        ::=  {  zxAnOtdrFileFtpObjects  3 }
+
+    zxAnOtdrFileFtpUserName    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "User name of the FTP server."
+        ::=  {  zxAnOtdrFileFtpObjects  4  }
+
+    zxAnOtdrFileFtpUserPwd    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "User password of the FTP server."
+        ::=  {  zxAnOtdrFileFtpObjects  5  }
+
+    zxAnOtdrFileFtpPath    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..255))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "File path which starts from the root directory."
+        ::=  {  zxAnOtdrFileFtpObjects  6 }
+
+    zxAnOtdrFileFtpFileName    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..64))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "The FTP file name."
+        ::=  {  zxAnOtdrFileFtpObjects  7 }
+
+-------------------------------------------------------------------------------
+-- 2.2.3.2 OTDR File FTP Uploading Status Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrFileFtpUploadStatusTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE  OF  ZxAnOtdrFileFtpUploadStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR file FTP status table."
+        ::=  { zxAnOtdrFastTestFileFtpObjects  2 }
+
+    zxAnOtdrFileFtpUploadStatusEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrFileFtpUploadStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "File FTP status entry."
+        INDEX   { zxAnOtdrFileFtpUploadFileName }
+        ::=  { zxAnOtdrFileFtpUploadStatusTable 1 }
+
+    ZxAnOtdrFileFtpUploadStatusEntry  ::=  SEQUENCE {
+        zxAnOtdrFileFtpUploadFileName        DisplayString,
+        zxAnOtdrFileFtpUploadStatus          INTEGER,
+        zxAnOtdrFileFtpUploadFailReason      INTEGER
+        }
+
+    zxAnOtdrFileFtpUploadFileName    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..64))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR test file name."
+        ::= { zxAnOtdrFileFtpUploadStatusEntry 1 }
+
+    zxAnOtdrFileFtpUploadStatus    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            notStarted(1),
+            inProgress(2),
+            success(3),
+            failed(4)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "OTDR FTP status."
+        ::= { zxAnOtdrFileFtpUploadStatusEntry 2 }
+
+    zxAnOtdrFileFtpUploadFailReason    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            noError(1),
+            fileNotExists(2),
+            connectionFailed(3),
+            otherErrors(255)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "OTDR FTP failed reason."
+        ::= { zxAnOtdrFileFtpUploadStatusEntry 3 }
+
+---2.3 OTDR Routine Test Objects ----------------------------------------------
+-------------------------------------------------------------------------------
+-- 2.3.1 OTDR Routine Task Interface Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrRoutineTaskIfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrRoutineTaskIfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR routine task interface table."
+        ::= {zxAnOtdrRoutineTestObjects 2}
+
+    zxAnOtdrRoutineTaskIfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrRoutineTaskIfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR routine task interface entry.
+            The OTDR routine test consists of two steps,
+            creating routine test ports (zxAnOtdrRoutineTaskIfTable), and then
+            configuring routine task (zxAnOtdrRoutineTaskTable).
+            NE restores to a previous state when the erroneous operations are
+            performed.
+            e.g. 1, When creating a port failed, NE needs to delete all
+            the ports of this task.
+            e.g. 2, When creating ports succeeded, then configuring routine
+            task failed, NE needs to delete all the ports of this task."
+        INDEX   { zxAnOtdrRoutineTaskName, ifIndex}
+        ::= { zxAnOtdrRoutineTaskIfTable 1 }
+
+    ZxAnOtdrRoutineTaskIfEntry  ::=  SEQUENCE {
+        zxAnOtdrRoutineTaskIfRowStatus   RowStatus
+        }
+
+    zxAnOtdrRoutineTaskIfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnOtdrRoutineTaskIfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrRoutineTaskIfEntry 50 }
+
+-------------------------------------------------------------------------------
+-- 2.3.2 OTDR Routine Task Table
+-------------------------------------------------------------------------------
+
+     zxAnOtdrRoutineTaskTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrRoutineTaskEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Routine test task table."
+        ::= {zxAnOtdrRoutineTestObjects 3}
+
+    zxAnOtdrRoutineTaskEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrRoutineTaskEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Routine test task entry."
+        INDEX   { zxAnOtdrRoutineTaskName }
+        ::= { zxAnOtdrRoutineTaskTable 1 }
+
+    ZxAnOtdrRoutineTaskEntry  ::=  SEQUENCE {
+        zxAnOtdrRoutineTaskName             DisplayString,
+        zxAnOtdrRoutineTaskStartTime        DateAndTime,
+        zxAnOtdrRoutineTaskInterval         Integer32,
+        zxAnOtdrRoutineTaskActiveStatus     INTEGER,
+        zxAnOtdrRoutineTaskCurrStartTime    DateAndTime,
+        zxAnOtdrRoutineTaskOperStatus       INTEGER,
+        zxAnOtdrRoutineTaskFailedReason     INTEGER,
+        zxAnOtdrRoutineTaskResultFile       DisplayString,
+        zxAnOtdrRoutineTaskTestMode         INTEGER,
+        zxAnOtdrRoutineTaskRowStatus        RowStatus
+        }
+
+    zxAnOtdrRoutineTaskName    OBJECT-TYPE
+        SYNTAX           DisplayString (SIZE (1..16))
+        MAX-ACCESS       not-accessible
+        STATUS           current
+        DESCRIPTION      "OTDR routine test task name."
+        ::= { zxAnOtdrRoutineTaskEntry 1 }
+
+    zxAnOtdrRoutineTaskStartTime    OBJECT-TYPE
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The start time of OTDR routine test.
+             For example:yyyy-mm-dd HH:MM:SS.(2013-01-01 00:00:00)."
+        ::= { zxAnOtdrRoutineTaskEntry 2 }
+
+    zxAnOtdrRoutineTaskInterval    OBJECT-TYPE
+        SYNTAX          Integer32(0 | 1..525600)
+        UNITS           "Minutes"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "The interval of OTDR routine test.
+                         The NE returns 0, when zxAnOtdrRoutineTaskTestMode is
+                         sequential test."
+        DEFVAL    { 24 }
+        ::=  { zxAnOtdrRoutineTaskEntry 3 }
+
+    zxAnOtdrRoutineTaskActiveStatus    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            activated(1),
+            stopped(2)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "OTDR routine test task active status."
+        ::= {zxAnOtdrRoutineTaskEntry 4 }
+
+    zxAnOtdrRoutineTaskCurrStartTime    OBJECT-TYPE
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The current routine test task start time."
+        ::= { zxAnOtdrRoutineTaskEntry 5 }
+
+    zxAnOtdrRoutineTaskOperStatus    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            notStarted(1),
+            inProgress(2),
+            success(3),
+            failed(4),
+            suspended(5)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "OTDR routine test task operational status."
+        ::= {zxAnOtdrRoutineTaskEntry 6 }
+
+    zxAnOtdrRoutineTaskFailedReason    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            noError(1),
+            getTestParamsFailed(2),
+            communicationError(3),
+            apdAlarm(4),
+            allPortsTestFailed(5),
+            packFileFailed(6),
+            ftpFailed(7),
+            ftpServiceUnconfigured(8),
+            otherErrors(255)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR routine test task failed reason."
+        ::= { zxAnOtdrRoutineTaskEntry 7 }
+
+    zxAnOtdrRoutineTaskResultFile    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..64))
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "Routine test result file name.
+             NE returns file name such as 'taskname-20120505143302.zip' when
+             the routine test sucess.
+             NE returns empty string when the routine test failed."
+        ::= { zxAnOtdrRoutineTaskEntry 8 }
+
+    zxAnOtdrRoutineTaskTestMode    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            periodicalTest(1),
+            sequentialTest(2)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "Routine task test mode."
+        ::= { zxAnOtdrRoutineTaskEntry 9 }
+
+    zxAnOtdrRoutineTaskRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnOtdrRoutineTaskEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnOtdrRoutineTaskEntry 50 }
+
+-------------------------------------------------------------------------------
+-- 2.3.3 OTDR Routine Task Interface Status Table
+-------------------------------------------------------------------------------
+    zxAnOtdrRoutineTaskIfStatusTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrRoutineTaskIfStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR routine task interface status table"
+        ::= {zxAnOtdrRoutineTestObjects 4}
+
+    zxAnOtdrRoutineTaskIfStatusEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrRoutineTaskIfStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR routine task interface status entry."
+        INDEX   { ifIndex}
+        ::= { zxAnOtdrRoutineTaskIfStatusTable 1 }
+
+    ZxAnOtdrRoutineTaskIfStatusEntry  ::=  SEQUENCE {
+        zxAnOtdrRoutineTaskIfStatus          INTEGER,
+        zxAnOtdrRoutineTaskIfFailReason      INTEGER
+        }
+
+    zxAnOtdrRoutineTaskIfStatus    OBJECT-TYPE
+        SYNTAX      INTEGER{
+            notStarted(1),
+            inProgress(2),
+            success(3),
+            failed(4)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The result status of OTDR routine test."
+        ::= {zxAnOtdrRoutineTaskIfStatusEntry 1 }
+
+    zxAnOtdrRoutineTaskIfFailReason    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            noError(1),
+            otherErrors(255)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR routine test failed reason."
+        ::= { zxAnOtdrRoutineTaskIfStatusEntry 2 }
+
+-- 2.4 OTDR FTP Server Objects ------------------------------------------------
+-------------------------------------------------------------------------------
+-- 2.4.1 OTDR FTP Server Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrFtpServerTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE  OF  ZxAnOtdrFtpServerEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "FTP server configuration table."
+        ::=  { zxAnOtdrFtpServerObjects  2 }
+
+    zxAnOtdrFtpServerEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrFtpServerEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "FTP server configuration entry."
+        INDEX   { zxAnOtdrFtpServerId }
+        ::=  { zxAnOtdrFtpServerTable 1 }
+
+    ZxAnOtdrFtpServerEntry  ::=  SEQUENCE {
+        zxAnOtdrFtpServerId               DisplayString,
+        zxAnOtdrFtpServerIpAddressType    InetAddressType,
+        zxAnOtdrFtpServerIpAddress        InetAddress,
+        zxAnOtdrFtpServerProtocolType     INTEGER,
+        zxAnOtdrFtpServerUserName         DisplayString,
+        zxAnOtdrFtpServerUserPwd          DisplayString,
+        zxAnOtdrFtpServerPath             DisplayString,
+        zxAnOtdrFtpServerRowStatus        RowStatus
+        }
+
+    zxAnOtdrFtpServerId    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "FTP server ID."
+        ::=  {  zxAnOtdrFtpServerEntry  1  }
+
+    zxAnOtdrFtpServerIpAddressType    OBJECT-TYPE
+        SYNTAX          InetAddressType
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "IP address type of the FTP server."
+        DEFVAL  { "ipv4" }
+        ::=  {  zxAnOtdrFtpServerEntry  2  }
+
+    zxAnOtdrFtpServerIpAddress    OBJECT-TYPE
+        SYNTAX          InetAddress
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "IP address of the FTP server."
+        ::=  {  zxAnOtdrFtpServerEntry  3  }
+
+    zxAnOtdrFtpServerProtocolType    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            ftp(1),
+            sftp(2)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "Protocol type of the FTP server.
+             ftp(1):    File Transfer Protocol
+             sftp(2):   Ssh File Transfer Protocol
+            "
+        DEFVAL  { "ftp" }
+        ::=  {  zxAnOtdrFtpServerEntry  4 }
+
+    zxAnOtdrFtpServerUserName    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "User name of the FTP server."
+        ::=  {  zxAnOtdrFtpServerEntry  5  }
+
+    zxAnOtdrFtpServerUserPwd    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "User password of the FTP server."
+        ::=  {  zxAnOtdrFtpServerEntry  6  }
+
+    zxAnOtdrFtpServerPath    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..255))
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "File path which starts from the root directory."
+        ::=  {  zxAnOtdrFtpServerEntry  7 }
+
+    zxAnOtdrFtpServerRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnOtdrFtpServerEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnOtdrFtpServerEntry 50 }
+
+-- 2.5 OTDR Algorithm Objects ------------------------------------------------
+-------------------------------------------------------------------------------
+-- 2.5.1 OTDR Algorithm Table
+-------------------------------------------------------------------------------
+    zxAnOtdrAlgorithmTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE  OF  ZxAnOtdrAlgorithmEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR algorithm table."
+        ::=  { zxAnOtdrAlgorithmObjects  2 }
+
+    zxAnOtdrAlgorithmEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrAlgorithmEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR algorithm entry."
+        INDEX   { zxAnOtdrAlgorithmRack, zxAnOtdrAlgorithmShelf,
+        zxAnOtdrAlgorithmSlot }
+        ::=  { zxAnOtdrAlgorithmTable 1 }
+
+    ZxAnOtdrAlgorithmEntry  ::=  SEQUENCE {
+        zxAnOtdrAlgorithmRack       Integer32,
+        zxAnOtdrAlgorithmShelf      Integer32,
+        zxAnOtdrAlgorithmSlot       Integer32,
+        zxAnOtdrAlgorithmVersion    DisplayString
+        }
+
+    zxAnOtdrAlgorithmRack OBJECT-TYPE
+        SYNTAX       Integer32
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The rack No. of device to be used with OTDR."
+        ::= { zxAnOtdrAlgorithmEntry 1 }
+
+    zxAnOtdrAlgorithmShelf OBJECT-TYPE
+        SYNTAX       Integer32
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The shelf No. of device to be used with OTDR."
+        ::= { zxAnOtdrAlgorithmEntry 2 }
+
+    zxAnOtdrAlgorithmSlot OBJECT-TYPE
+        SYNTAX       Integer32
+        MAX-ACCESS   not-accessible
+        STATUS       current
+        DESCRIPTION
+            "The slot No. of device to be used with OTDR."
+        ::= { zxAnOtdrAlgorithmEntry 3 }
+
+    zxAnOtdrAlgorithmVersion OBJECT-TYPE
+        SYNTAX       DisplayString (SIZE(1..64))
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION
+            "The OTDR algorithm version of current card."
+        ::= { zxAnOtdrAlgorithmEntry 4 }
+
+--  2.6 OTDR Test Capacity Objects --------------------------------------------
+--   2.6.1 OTDR Test Capacity Distance Objects --------------------------------
+-------------------------------------------------------------------------------
+--    2.6.1.1 OTDR Test Capacity Distance Global Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrTestCapDistanceType    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            global(1),
+            pulseWidth(2)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The type of the test capacity distance supported by OTDR.
+
+             global(1):
+             it means getting maximum-minimum distance by the global objects
+             'zxAnOtdrTestCapMaxDistance' and 'zxAnOtdrTestCapMinDistance'.
+
+             pulseWidth(2):
+             it means getting maximum-minimum distance by the table objects
+             'zxAnOtdrTestCapPwDistanceTable'."
+        ::= { zxAnOtdrTestCapDistanceGlbObjs 1 }
+
+    zxAnOtdrTestCapMaxDistance    OBJECT-TYPE
+        SYNTAX          Integer32(500..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The maximum of the global test capacity distance supported by
+             OTDR."
+        ::= { zxAnOtdrTestCapDistanceGlbObjs 2 }
+
+    zxAnOtdrTestCapMinDistance    OBJECT-TYPE
+        SYNTAX          Integer32(500..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The minimum of the global test capacity distance supported by
+             OTDR."
+        ::= { zxAnOtdrTestCapDistanceGlbObjs 3 }
+
+-------------------------------------------------------------------------------
+--    2.6.1.2 OTDR Test Capacity Pulse Width Distance Table
+-------------------------------------------------------------------------------
+    zxAnOtdrTestCapPwDistanceTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrTestCapPwDistanceEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR test capacity pulse width distance table."
+        ::= { zxAnOtdrTestCapDistanceObjects 2 }
+
+    zxAnOtdrTestCapPwDistanceEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrTestCapPwDistanceEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR test capacity pulse width distance entry."
+        INDEX   { zxAnOtdrTestCapPwDistancePw }
+        ::= { zxAnOtdrTestCapPwDistanceTable 1 }
+
+    ZxAnOtdrTestCapPwDistanceEntry  ::=  SEQUENCE {
+        zxAnOtdrTestCapPwDistancePw         Integer32,
+        zxAnOtdrTestCapPwMaxDistance        Integer32,
+        zxAnOtdrTestCapPwMinDistance        Integer32
+        }
+
+    zxAnOtdrTestCapPwDistancePw     OBJECT-TYPE
+        SYNTAX          Integer32(5..200000 | 200001..300000)
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "The pulse width supported by OTDR.
+             A value less than 200000 is mapped to an integer pulse width
+             value.
+             A value greater than 200000 is mapped to a specific pulse width
+             value.
+             e.g., 5 is mapped to 5ns, 200001 is mapped to 2.5ns."
+        ::= { zxAnOtdrTestCapPwDistanceEntry 1 }
+
+    zxAnOtdrTestCapPwMaxDistance    OBJECT-TYPE
+        SYNTAX          Integer32(500..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The maximum of the test capacity distance supported by the current
+             pulse width."
+        ::= { zxAnOtdrTestCapPwDistanceEntry 2 }
+
+    zxAnOtdrTestCapPwMinDistance    OBJECT-TYPE
+        SYNTAX          Integer32(500..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The minimum of the test capacity distance supported by the current
+             pulse width."
+        ::= { zxAnOtdrTestCapPwDistanceEntry 3 }
+
+-------------------------------------------------------------------------------
+--    2.6.1.3 OTDR Test Capacity Code Width Distance Table
+-------------------------------------------------------------------------------
+    zxAnOtdrTestCapCwDistanceTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrTestCapCwDistanceEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR test capacity code width distance table."
+        ::= { zxAnOtdrTestCapDistanceObjects 3 }
+
+    zxAnOtdrTestCapCwDistanceEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrTestCapCwDistanceEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR test capacity code width distance entry."
+        INDEX   { zxAnOtdrTestCapCwDistanceCw }
+        ::= { zxAnOtdrTestCapCwDistanceTable 1 }
+
+    ZxAnOtdrTestCapCwDistanceEntry  ::=  SEQUENCE {
+        zxAnOtdrTestCapCwDistanceCw         Integer32,
+        zxAnOtdrTestCapCwMaxDistance        Integer32,
+        zxAnOtdrTestCapCwMinDistance        Integer32
+        }
+
+    zxAnOtdrTestCapCwDistanceCw     OBJECT-TYPE
+        SYNTAX          Integer32(5..1275)
+        UNITS           "Nanoseconds"
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "The code width supported by OTDR."
+        ::= { zxAnOtdrTestCapCwDistanceEntry 1 }
+
+    zxAnOtdrTestCapCwMaxDistance    OBJECT-TYPE
+        SYNTAX          Integer32(500..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The maximum of the test capacity distance supported by
+             the current code width."
+        ::= { zxAnOtdrTestCapCwDistanceEntry 2 }
+
+    zxAnOtdrTestCapCwMinDistance    OBJECT-TYPE
+        SYNTAX          Integer32(500..300000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The minimum of the test capacity distance supported by
+             the current code width."
+        ::= { zxAnOtdrTestCapCwDistanceEntry 3 }
+
+-------------------------------------------------------------------------------
+--   2.6.2 OTDR Test Capacity Duration Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrTestCapMaxDuration      OBJECT-TYPE
+        SYNTAX          Integer32(1..3600)
+        UNITS           "Seconds"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The maximum of the test capacity duration supported by OTDR."
+        ::= { zxAnOtdrTestCapDurationGlbObjs 1 }
+
+    zxAnOtdrTestCapMinDuration      OBJECT-TYPE
+        SYNTAX          Integer32(1..3600)
+        UNITS           "Seconds"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The minimum of the test capacity duration supported by OTDR."
+        ::= { zxAnOtdrTestCapDurationGlbObjs 2 }
+
+
+
+-- 2.7 OTDR Test Task Objects -------------------------------------------------
+-------------------------------------------------------------------------------
+-- 2.7.1 OTDR Test Task Status Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrTestTaskStatusTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrTestTaskStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR test task status table."
+        ::= { zxAnOtdrTestTaskObjects 1 }
+
+    zxAnOtdrTestTaskStatusEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrTestTaskStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR test task status entry."
+        INDEX   { zxAnOtdrTestTaskId }
+        ::= { zxAnOtdrTestTaskStatusTable 1 }
+
+    ZxAnOtdrTestTaskStatusEntry  ::=  SEQUENCE {
+        zxAnOtdrTestTaskId                  DisplayString,
+        zxAnOtdrTestTaskStatus              INTEGER,
+        zxAnOtdrTestTaskUnexecutedReason    INTEGER,
+        zxAnOtdrTestTaskPriority            Integer32,
+        zxAnOtdrTestTaskWaitingTime         Integer32,
+        zxAnOtdrTestTaskRequestSource       INTEGER,
+        zxAnOtdrTestTaskType                INTEGER,
+        zxAnOtdrTestTaskStartTime           DateAndTime,
+        zxAnOtdrTestTaskRemainTimeout       Integer32
+        }
+
+    zxAnOtdrTestTaskId    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..128))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR test task ID. The task name is zxAnOtdrRoutineTaskName
+             when the zxAnOtdrTestTaskType is routine,
+             other tests relate to zxAnOtdrFastTestSn."
+        ::= { zxAnOtdrTestTaskStatusEntry 1 }
+
+    zxAnOtdrTestTaskStatus    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            notStarted(1),
+            waiting(2),
+            inProgress(3),
+            suspended(4),
+            success(5),
+            failed(6)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR test task status."
+        ::= { zxAnOtdrTestTaskStatusEntry 2 }
+
+    zxAnOtdrTestTaskUnexecutedReason    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            none(1),
+            preempted(2),
+            waitingPortTestFinished(3),
+            queuing(4),
+            others(255)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR test task unexecuted reason."
+        ::= { zxAnOtdrTestTaskStatusEntry 3 }
+
+    zxAnOtdrTestTaskPriority    OBJECT-TYPE
+        SYNTAX          Integer32(1..256)
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR test task priority."
+        ::= { zxAnOtdrTestTaskStatusEntry 4 }
+
+    zxAnOtdrTestTaskWaitingTime    OBJECT-TYPE
+        SYNTAX          Integer32(0..1440)
+        UNITS           "Minutes"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR test task waiting time. When the task is
+                        in progress, the waiting time is 0."
+        ::= { zxAnOtdrTestTaskStatusEntry 5 }
+
+    zxAnOtdrTestTaskRequestSource    OBJECT-TYPE
+        SYNTAX          INTEGER{
+            ems(1),
+            tl1(2),
+            app(3)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR test task request source."
+        ::= { zxAnOtdrTestTaskStatusEntry 6 }
+
+    zxAnOtdrTestTaskType    OBJECT-TYPE
+        SYNTAX          INTEGER {
+            fast(1),
+            health(2),
+            adHoc(3),
+            reflector(4),
+            alarmTrigger(5),
+            adaptive(6),
+            acceptance(7),
+            labefaction(8),
+            lineDetectionHealth(9),
+            lineDetectionFast(10),
+            bothway(11),
+            periodicalRoutineTest(50),
+            sequentialRoutineTest(51)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The task type.
+             fast(1):                       - Fast test.
+             health(2):                     - Health database test.
+             adHoc(3):                      - Ad hoc test.
+             reflector(4):                  - Reflector test.
+             alarmTrigger(5):               - Alarm triggered test.
+             adaptive(6):                   - Adaptive test.
+             acceptance(7):                 - Acceptance test.
+             labefaction(8):                - Labefaction test.
+             lineDetectionHealth(9):        - Line detection health database
+                                              test.
+             lineDetectionFast(10):         - Line detection fast test.
+             bothway(11):                   - Bothway test. 
+             periodicalRoutineTest(50):     - Periodical routine test.
+             sequentialRoutineTest(51):     - Sequential routine test."
+        ::= { zxAnOtdrTestTaskStatusEntry 7 }
+
+    zxAnOtdrTestTaskStartTime    OBJECT-TYPE
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The test task starting time."
+        ::= { zxAnOtdrTestTaskStatusEntry 8 }
+
+    zxAnOtdrTestTaskRemainTimeout     OBJECT-TYPE
+        SYNTAX          Integer32(-1..1440)
+        UNITS           "Minutes"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The OTDR test task remaining timeout.
+                         A negative indicates the task should never be timeout.
+                         A zero indicates the task has been timeout."
+        ::= { zxAnOtdrTestTaskStatusEntry 9 }
+
+-------------------------------------------------------------------------------
+-- 2.7.2 OTDR Fast Test Task configuration Table
+-------------------------------------------------------------------------------
+    zxAnOtdrFastTestTaskConfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrFastTestTaskConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR fast test task configuration table."
+        ::= { zxAnOtdrTestTaskObjects 2 }
+
+    zxAnOtdrFastTestTaskConfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrFastTestTaskConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR fast test task configuration entry."
+        INDEX   { zxAnOtdrFastTestIfSn }
+        ::= { zxAnOtdrFastTestTaskConfTable 1 }
+
+    ZxAnOtdrFastTestTaskConfEntry  ::=  SEQUENCE {
+        zxAnOtdrFastTaskConfWaitTimeout     Integer32,
+        zxAnOtdrFastTaskConfRowStatus       RowStatus
+        }
+
+    zxAnOtdrFastTaskConfWaitTimeout    OBJECT-TYPE
+        SYNTAX          Integer32(0..1440)
+        UNITS           "Minutes"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "Fast test waiting timeout.
+             The test will be cancelled when timeout."
+        ::= { zxAnOtdrFastTestTaskConfEntry 1 }
+
+    zxAnOtdrFastTaskConfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnOtdrFastTestIfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrFastTestTaskConfEntry 50 }
+
+--  2.8 OTDR Node Monitoring Objects ------------------------------------------
+-------------------------------------------------------------------------------
+--   2.8.1 OTDR Node Monitoring Global Objects
+-------------------------------------------------------------------------------
+
+    zxAnOtdrMonNodeGlobalObjects    OBJECT IDENTIFIER
+        ::= { zxAnOtdrMonNodeObjects 1 }
+
+    zxAnOtdrMonNodeMonitorStatus    OBJECT-TYPE
+        SYNTAX         INTEGER
+           {
+                monitoring(1),
+                idle(2)
+            }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "OTDR node monitoring status."
+        ::= { zxAnOtdrMonNodeGlobalObjects 1 }
+
+    zxAnOtdrMonNodeMonitorAction    OBJECT-TYPE
+        SYNTAX       INTEGER
+           {
+                start(1),
+                stop(2)
+            }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR node monitoring action."
+        ::= { zxAnOtdrMonNodeGlobalObjects 2 }
+
+-------------------------------------------------------------------------------
+--   2.8.2 OTDR Monitoring Node Configuration Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrMonNodeConfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrMonNodeConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR monitoring node configuration table."
+        ::= { zxAnOtdrMonNodeObjects 2 }
+
+    zxAnOtdrMonNodeConfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrMonNodeConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR monitoring node configuration entry."
+        INDEX   { ifIndex, zxAnOtdrMonNodeSn }
+        ::= { zxAnOtdrMonNodeConfTable 1 }
+
+    ZxAnOtdrMonNodeConfEntry  ::=  SEQUENCE {
+        zxAnOtdrMonNodeSn               DisplayString,
+        zxAnOtdrMonNodePosition         Integer32,
+        zxAnOtdrMonNodeStatus           INTEGER,
+        zxAnOtdrNodeConfRowStatus       RowStatus
+        }
+
+    zxAnOtdrMonNodeSn   OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..128))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR monitoring node serial number."
+        ::= { zxAnOtdrMonNodeConfEntry 1 }
+
+    zxAnOtdrMonNodePosition    OBJECT-TYPE
+        SYNTAX          Integer32(0..200000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "OTDR monitoring node position.
+             Value 0 means the monitoring node open/close test is
+             not executed or the test is failed."
+        DEFVAL { 0 }
+        ::= { zxAnOtdrMonNodeConfEntry 2 }
+
+    zxAnOtdrMonNodeStatus    OBJECT-TYPE
+        SYNTAX          INTEGER
+            {
+                opened(1),
+                closed(2),
+                unknown(255)
+            }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "OTDR monitoring node status.
+             A zxAnOtdrMonNodeOpenedAlm trap will be sent when
+             the zxAnOtdrMonNodeStatus is opened.
+             A zxAnOtdrMonNodeOpenedClr trap will be sent when
+             the zxAnOtdrMonNodeStatus is closed."
+        ::= { zxAnOtdrMonNodeConfEntry 3 }
+
+    zxAnOtdrNodeConfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnOtdrFastTestIfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrMonNodeConfEntry 50 }
+
+-------------------------------------------------------------------------------
+--   2.8.3 OTDR Monitoring Port Status Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrMonPortStatusTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrMonPortStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR monitoring port status table."
+        ::= { zxAnOtdrMonNodeObjects 3 }
+
+    zxAnOtdrMonPortStatusEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrMonPortStatusEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR monitoring port status entry."
+        INDEX   { ifIndex }
+        ::= { zxAnOtdrMonPortStatusTable 1 }
+
+    ZxAnOtdrMonPortStatusEntry  ::=  SEQUENCE {
+        zxAnOtdrMonPortLinkStatus   INTEGER
+        }
+
+    zxAnOtdrMonPortLinkStatus    OBJECT-TYPE
+        SYNTAX          INTEGER
+            {
+                normal(1),
+                abnormal(2),
+                unknown(255)
+            }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "OTDR monitoring port link status.
+             A zxAnOtdrMonPortLinkAbnormalAlm trap will be sent when
+             the zxAnOtdrMonPortLinkStatus is abnormal.
+             A zxAnOtdrMonPortLinkAbnormalClr trap will be sent when
+             the zxAnOtdrMonPortLinkStatus is normal."
+        ::= { zxAnOtdrMonPortStatusEntry 1 }
+
+-------------------------------------------------------------------------------
+--   2.8.4 OTDR Monitoring Reflector Labelling Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrMonReflectLabelTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrMonReflectLabelEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR reflector labelling table."
+        ::= { zxAnOtdrMonNodeObjects 4 }
+
+    zxAnOtdrMonReflectLabelEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrMonReflectLabelEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR reflector labelling entry."
+        INDEX   { ifIndex }
+        ::= { zxAnOtdrMonReflectLabelTable 1 }
+
+    ZxAnOtdrMonReflectLabelEntry  ::=  SEQUENCE {
+        zxAnOtdrMonReflectLabelAction       INTEGER,
+        zxAnOtdrMonReflectLabelStatus       INTEGER,
+        zxAnOtdrMonReflectLabelLastTime     DateAndTime
+        }
+
+    zxAnOtdrMonReflectLabelAction    OBJECT-TYPE
+        SYNTAX          INTEGER
+            {
+                start(1)
+            }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR reflector labelling action."
+        ::= {zxAnOtdrMonReflectLabelEntry 1 }
+
+    zxAnOtdrMonReflectLabelStatus    OBJECT-TYPE
+        SYNTAX          INTEGER
+            {
+                notStarted(1),
+                inProgress(2),
+                success(3),
+                failed(4),
+                stopped(5),
+                waiting(6)
+            }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "OTDR reflector labelling status."
+        ::= { zxAnOtdrMonReflectLabelEntry 2 }
+
+    zxAnOtdrMonReflectLabelLastTime    OBJECT-TYPE
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "OTDR reflector last labelling time."
+        ::= { zxAnOtdrMonReflectLabelEntry 3 }
+
+
+--  2.9 OTDR Optical Module Monitoring Objects --------------------------------
+-------------------------------------------------------------------------------
+--   2.9.1 OTDR Optical Module Global Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrOptModuleGlobalObjects    OBJECT IDENTIFIER
+        ::= { zxAnOtdrOptModuleMonitorObjects 1 }
+
+    zxAnOtdrOptModuleStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+            normal(1),
+            abnormal(2)
+        }
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION
+            "The OTDR optical module status.
+             A zxAnOtdrOptModuleAbnormalAlm trap will be sent when the
+             zxAnOtdrOptModuleStatus is abnormal."
+        ::= { zxAnOtdrOptModuleGlobalObjects 1 }
+
+-------------------------------------------------------------------------------
+--   2.9.2 OTDR Optical Module Interface Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrOptModuleIfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrOptModuleIfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR optical module interface table."
+        ::= { zxAnOtdrOptModuleMonitorObjects 2 }
+
+    zxAnOtdrOptModuleIfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrOptModuleIfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR optical module interface entry."
+        INDEX   {ifIndex}
+        ::= { zxAnOtdrOptModuleIfTable 1 }
+
+    ZxAnOtdrOptModuleIfEntry  ::=  SEQUENCE {
+        zxAnOtdrOptModuleIfBasicPwr         Integer32,
+        zxAnOtdrOptModuleIfCurrentPwr       Integer32,
+        zxAnOtdrOptModuleIfPwrVaryThresh    Integer32,
+        zxAnOtdrOptModuleIfPwrAdjust        INTEGER
+        }
+
+    zxAnOtdrOptModuleIfBasicPwr     OBJECT-TYPE
+        SYNTAX          Integer32(-10000..10000|65535)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface basic optical power.
+             '65535' means the basic optical power is invalid."
+        ::= { zxAnOtdrOptModuleIfEntry 1 }
+
+    zxAnOtdrOptModuleIfCurrentPwr    OBJECT-TYPE
+        SYNTAX          Integer32(-10000..10000|65535)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface current optical power.
+             '65535' means the current optical power is invalid."
+        ::= { zxAnOtdrOptModuleIfEntry 2 }
+
+    zxAnOtdrOptModuleIfPwrVaryThresh    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface optical power variaton threshold.
+             A zxAnOtdrOptPowerVaryExceedAlm trap is sent when the difference
+             value of zxAnOtdrOptModuleIfBasicPwr and
+             zxAnOtdrOptModuleIfCurrentPwr is higher than this threshold."
+        DEFVAL          {100}
+        ::= {zxAnOtdrOptModuleIfEntry 3}
+
+    zxAnOtdrOptModuleIfPwrAdjust  OBJECT-TYPE
+        SYNTAX          INTEGER {
+            start(1)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "To adjust the OTDR basic optical power."
+        ::= { zxAnOtdrOptModuleIfEntry 4 }
+
+
+--  2.10 OTDR Fault Locating Objects ------------------------------------------
+-------------------------------------------------------------------------------
+--   2.10.1 OTDR Fault Locating Global Objects
+-------------------------------------------------------------------------------
+
+    zxAnOtdrFaultLocateGlobalObjects    OBJECT IDENTIFIER
+        ::= { zxAnOtdrFaultLocateObjects 1 }
+
+    zxAnOtdrGlobalP2mpFaultLocatePrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR global P2MP fault locating threshold profile name.
+             The global profile is applied to the interface when the
+             interface fault locating profile is unconfigured."
+        DEFVAL { "DEFAULT-FAULT-LOCATE-P2MP" }
+        ::= { zxAnOtdrFaultLocateGlobalObjects 1 }
+
+    zxAnOtdrGlobalP2pFaultLocatePrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR global P2P fault locating threshold profile name.
+             The global profile is applied to the interface when the
+             interface fault locating profile is unconfigured."
+        DEFVAL { "DEFAULT-FAULT-LOCATE-P2P" }
+        ::= { zxAnOtdrFaultLocateGlobalObjects 2 }
+
+-------------------------------------------------------------------------------
+--   2.10.2 OTDR P2MP Fault Locating Profile Table
+-------------------------------------------------------------------------------
+    zxAnOtdrP2mpFaultLocatePrfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrP2mpFaultLocatePrfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP fault locating threshold profile table."
+        ::= {zxAnOtdrFaultLocateObjects 2 }
+
+    zxAnOtdrP2mpFaultLocatePrfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrP2mpFaultLocatePrfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP fault locating threshold profile entry."
+        INDEX   { zxAnOtdrP2mpFaultLocatePrfName }
+        ::= { zxAnOtdrP2mpFaultLocatePrfTable 1 }
+
+    ZxAnOtdrP2mpFaultLocatePrfEntry  ::=  SEQUENCE {
+        zxAnOtdrP2mpFaultLocatePrfName       DisplayString,
+        zxAnOtdrP2mpPositionDiff             Integer32,
+        zxAnOtdrP2mpTrunkBrokenLossDiff      Integer32,
+        zxAnOtdrP2mpTrunkBrokenLoss          Integer32,
+        zxAnOtdrP2mpTrunkAttenLossDiff       Integer32,
+        zxAnOtdrP2mpTrunkAttenLoss           Integer32,
+        zxAnOtdrP2mpTrunkAbnPeakDiff         Integer32,
+        zxAnOtdrP2mpTrunkAbnRtnLoss          Integer32,
+        zxAnOtdrP2mpTrunkAbnLoss             Integer32,
+        zxAnOtdrP2mpBranchBrokenRtnLoss      Integer32,
+        zxAnOtdrP2mpBranchBrokenLoss         Integer32,
+        zxAnOtdrP2mpBranchBrokenPeakDiff     Integer32,
+        zxAnOtdrP2mpBranchAbnPeakDiff        Integer32,
+        zxAnOtdrP2mpFaultLocPrfRowStatus     RowStatus
+        }
+
+    zxAnOtdrP2mpFaultLocatePrfName    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP fault locating threshold profile name."
+        ::= { zxAnOtdrP2mpFaultLocatePrfEntry 1 }
+
+    zxAnOtdrP2mpPositionDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..1000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP position difference threshold."
+        DEFVAL  { 5 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 2 }
+
+    zxAnOtdrP2mpTrunkBrokenLossDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP trunk broken insertion loss difference threshold.
+             This threshold is used to locate trunk broken fault."
+        DEFVAL  { 750 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 3 }
+
+    zxAnOtdrP2mpTrunkBrokenLoss    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP trunk broken insertion loss threshold.
+             This threshold is used to locate trunk broken fault."
+        DEFVAL  { 350 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 4 }
+
+    zxAnOtdrP2mpTrunkAttenLossDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP trunk attenuation insertion loss difference threshold.
+             This threshold is used to locate trunk attenuation fault."
+        DEFVAL  { 85 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 5 }
+
+    zxAnOtdrP2mpTrunkAttenLoss    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP trunk attenuation insertion loss threshold.
+             This threshold is used to locate trunk attenuation fault."
+        DEFVAL  { 35 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 6 }
+
+    zxAnOtdrP2mpTrunkAbnPeakDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP trunk abnormal reflective peak difference threshold.
+             This threshold is used to locate trunk abnormal fault."
+        DEFVAL  { 100 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 7 }
+
+    zxAnOtdrP2mpTrunkAbnRtnLoss    OBJECT-TYPE
+        SYNTAX          Integer32(-10000..10000)
+        UNITS           "0.01"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP trunk abnormal return loss threshold.
+             This threshold is used to locate trunk abnormal fault."
+        DEFVAL  { -5800 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 8 }
+
+    zxAnOtdrP2mpTrunkAbnLoss    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP trunk abnormal insertion loss threshold.
+             This threshold is used to locate trunk abnormal fault."
+        DEFVAL  { 300 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 9 }
+
+    zxAnOtdrP2mpBranchBrokenRtnLoss    OBJECT-TYPE
+        SYNTAX          Integer32(-10000..10000)
+        UNITS           "0.01"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP branch broken return loss threshold.
+             This threshold is used to locate branch broken fault."
+        DEFVAL  { -5800 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 10 }
+
+    zxAnOtdrP2mpBranchBrokenLoss    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP branch broken insertion loss threshold.
+             This threshold is used to locate branch broken fault."
+        DEFVAL  { 300 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 11 }
+
+    zxAnOtdrP2mpBranchBrokenPeakDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP branch broken reflective peak difference threshold.
+             This threshold is used to locate branch broken fault."
+        DEFVAL  { 100 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 12 }
+
+    zxAnOtdrP2mpBranchAbnPeakDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2MP branch abnormal reflective peak difference threshold.
+             This threshold is used to locate branch abnormal fault."
+        DEFVAL  { 100 }
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 13 }
+
+    zxAnOtdrP2mpFaultLocPrfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnOtdrTestParamPrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrP2mpFaultLocatePrfEntry 50 }
+
+-------------------------------------------------------------------------------
+--   2.10.3 OTDR P2P Fault Locating Profile Table
+-------------------------------------------------------------------------------
+    zxAnOtdrP2pFaultLocatePrfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrP2pFaultLocatePrfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P fault locating threshold profile table."
+        ::= {zxAnOtdrFaultLocateObjects 3 }
+
+    zxAnOtdrP2pFaultLocatePrfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrP2pFaultLocatePrfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P fault locating threshold profile entry."
+        INDEX   { zxAnOtdrP2pFaultLocatePrfName }
+        ::= { zxAnOtdrP2pFaultLocatePrfTable 1 }
+
+    ZxAnOtdrP2pFaultLocatePrfEntry  ::=  SEQUENCE {
+        zxAnOtdrP2pFaultLocatePrfName        DisplayString,
+        zxAnOtdrP2pPositionDiff              Integer32,
+        zxAnOtdrP2pBrokenLossDiff            Integer32,
+        zxAnOtdrP2pBrokenLoss                Integer32,
+        zxAnOtdrP2pAttenuationLossDiff       Integer32,
+        zxAnOtdrP2pAttenuationLoss           Integer32,
+        zxAnOtdrP2pAbnormalPeakDiff          Integer32,
+        zxAnOtdrP2pAbnormalReturnLoss        Integer32,
+        zxAnOtdrP2pAbnormalLoss              Integer32,
+        zxAnOtdrP2pFaultLocPrfRowStatus      RowStatus
+        }
+
+    zxAnOtdrP2pFaultLocatePrfName    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (1..32))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P fault locating threshold profile name."
+        ::= { zxAnOtdrP2pFaultLocatePrfEntry 1 }
+
+    zxAnOtdrP2pPositionDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..1000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P position difference threshold."
+        DEFVAL  { 5 }
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 2 }
+
+    zxAnOtdrP2pBrokenLossDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P link broken insertion loss difference threshold.
+             This threshold is used to locate link broken fault."
+        DEFVAL  { 750 }
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 3 }
+
+    zxAnOtdrP2pBrokenLoss    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P link broken insertion loss threshold.
+             This threshold is used to locate link broken fault."
+        DEFVAL  { 350 }
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 4 }
+
+    zxAnOtdrP2pAttenuationLossDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P link attenuation insertion loss difference threshold.
+             This threshold is used to locate link attenuation fault."
+        DEFVAL  { 85 }
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 5 }
+
+    zxAnOtdrP2pAttenuationLoss    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P link attenuation insertion loss threshold.
+             This threshold is used to locate link attenuation fault."
+        DEFVAL  { 35 }
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 6 }
+
+    zxAnOtdrP2pAbnormalPeakDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P link abnormal reflective peak difference threshold.
+             This threshold is used to locate link abnormal fault."
+        DEFVAL  { 100 }
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 7 }
+
+    zxAnOtdrP2pAbnormalReturnLoss    OBJECT-TYPE
+        SYNTAX          Integer32(-10000..10000)
+        UNITS           "0.01"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P link abnormal return loss threshold.
+             This threshold is used to locate link abnormal fault."
+        DEFVAL  { -5800 }
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 8 }
+
+    zxAnOtdrP2pAbnormalLoss    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR P2P link abnormal insertion loss threshold.
+             This threshold is used to locate link abnormal fault."
+        DEFVAL  { 300 }
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 9 }
+
+    zxAnOtdrP2pFaultLocPrfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnOtdrTestParamPrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrP2pFaultLocatePrfEntry 50 }
+
+-------------------------------------------------------------------------------
+--   2.10.4 OTDR Interface Fault Locating Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrFaultLocateIfConfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrFaultLocateIfConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface fault locating threshold profile table."
+        ::= {zxAnOtdrFaultLocateObjects 4}
+
+    zxAnOtdrFaultLocateIfConfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrFaultLocateIfConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface fault locating threshold profile entry."
+        INDEX   { ifIndex }
+        ::= { zxAnOtdrFaultLocateIfConfTable 1 }
+
+    ZxAnOtdrFaultLocateIfConfEntry  ::=  SEQUENCE {
+        zxAnOtdrFaultLocateIfP2mpPrf             DisplayString,
+        zxAnOtdrFaultLocateIfP2pPrf              DisplayString,
+        zxAnOtdrFaultLocateIfRowStatus           RowStatus
+        }
+
+    zxAnOtdrFaultLocateIfP2mpPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..32))
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR fault locating P2MP threshold profile name.
+             Empty string means unconfigured."
+        ::= { zxAnOtdrFaultLocateIfConfEntry 1 }
+
+    zxAnOtdrFaultLocateIfP2pPrf    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..32))
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "OTDR fault locating P2P threshold profile name.
+             Empty string means unconfigured."
+        ::= { zxAnOtdrFaultLocateIfConfEntry 2 }
+
+    zxAnOtdrFaultLocateIfRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnOtdrTestParamPrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= {zxAnOtdrFaultLocateIfConfEntry 50 }
+
+--  2.11 OTDR Event Objects ------------------------------------------
+-------------------------------------------------------------------------------
+--   2.11.1 OTDR Interface Event Batch Configuration Table
+-------------------------------------------------------------------------------
+    zxAnOtdrIfEventBatchConfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrIfEventBatchConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface event batch configuration table."
+        ::= { zxAnOtdrEventObjects 2 }
+
+    zxAnOtdrIfEventBatchConfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrIfEventBatchConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface event batch configuration entry."
+        INDEX   { ifIndex }
+        ::= { zxAnOtdrIfEventBatchConfTable 1 }
+
+    ZxAnOtdrIfEventBatchConfEntry  ::=  SEQUENCE {
+        zxAnOtdrIfEventBatchConfDevTypes      DisplayString
+        }
+
+    zxAnOtdrIfEventBatchConfDevTypes    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface event device type list. The format of the value is
+             as follows: '1:3-6,10;2:2,8'.
+             It means that the device type value of the event ID including
+             3,4,5,6,10 is 1 and the device type value of the event ID
+             including 2,8 is 2.
+             It will return the empty string when reading this object."
+        ::= { zxAnOtdrIfEventBatchConfEntry 1 }
+
+-------------------------------------------------------------------------------
+--   2.11.2 OTDR Interface Event Configuration Table
+-------------------------------------------------------------------------------
+    zxAnOtdrIfEventConfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrIfEventConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface event configuration table."
+        ::= { zxAnOtdrEventObjects 3 }
+
+    zxAnOtdrIfEventConfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrIfEventConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface event configuration entry."
+        INDEX   { ifIndex, zxAnOtdrIfEventConfEventId }
+        ::= { zxAnOtdrIfEventConfTable 1 }
+
+    ZxAnOtdrIfEventConfEntry ::= SEQUENCE {
+        zxAnOtdrIfEventConfEventId    Integer32,
+        zxAnOtdrIfEventConfDevType    Integer32,
+        zxAnOtdrIfEventConfDevDesc    DisplayString
+        }
+
+    zxAnOtdrIfEventConfEventId       OBJECT-TYPE
+        SYNTAX          Integer32(1..500)
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface event ID."
+        ::= { zxAnOtdrIfEventConfEntry 1 }
+
+    zxAnOtdrIfEventConfDevType  OBJECT-TYPE
+        SYNTAX          Integer32(0..100)
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface event device type.
+             Value 0 means the event device type is empty."
+        ::= { zxAnOtdrIfEventConfEntry 2 }
+
+    zxAnOtdrIfEventConfDevDesc  OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..256))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "OTDR interface event device description."
+        ::= { zxAnOtdrIfEventConfEntry 3 }
+
+--  2.12 OTDR Adaptive Test Objects ------------------------------------------
+-------------------------------------------------------------------------------
+--   2.12.1 OTDR Adaptive Test Link Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrAdaptiveTestLinkObjects       OBJECT IDENTIFIER
+        ::= { zxAnOtdrAdaptiveTestObjects 2 }
+
+-------------------------------------------------------------------------------
+--    2.12.1.1 OTDR Adaptive Test Link Global Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrAdaptTestLinkGlbObjects    OBJECT IDENTIFIER
+        ::= { zxAnOtdrAdaptiveTestLinkObjects 1 }
+
+    zxAnOtdrATLinkLossThresh        OBJECT-TYPE
+        SYNTAX          Integer32(1..100000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global link loss threshold of the OTDR adaptive test.
+             This global threshold is applied to the interface
+             when the zxAnOtdrATLinkIfParamType is global(1)."
+        DEFVAL { 28000 }
+        ::= { zxAnOtdrAdaptTestLinkGlbObjects 2 }
+
+    zxAnOtdrATLinkRtnLossThresh     OBJECT-TYPE
+        SYNTAX          Integer32(150..700)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global link return loss threshold of the OTDR adaptive test.
+             This global threshold is applied to the interface
+             when the zxAnOtdrATLinkIfParamType is global(1)."
+        DEFVAL { 150 }
+        ::= { zxAnOtdrAdaptTestLinkGlbObjects 3 }
+
+-------------------------------------------------------------------------------
+--    2.12.1.2 OTDR Adaptive Test Link Threshold Interface Configuration Table
+-------------------------------------------------------------------------------
+    zxAnOtdrAdaptTestLinkIfConfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrAdaptTestLinkIfConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR adaptive test link threshold interface configuration table."
+        ::= { zxAnOtdrAdaptiveTestLinkObjects 2 }
+
+    zxAnOtdrAdaptTestLinkIfConfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrAdaptTestLinkIfConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR adaptive test link threshold interface configuration entry."
+        INDEX   { ifIndex }
+        ::= { zxAnOtdrAdaptTestLinkIfConfTable 1 }
+
+    ZxAnOtdrAdaptTestLinkIfConfEntry ::= SEQUENCE {
+        zxAnOtdrATLinkIfParamType          INTEGER,
+        zxAnOtdrATLinkIfLossThresh         Integer32,
+        zxAnOtdrATLinkIfRtnLossThresh      Integer32
+        }
+
+    zxAnOtdrATLinkIfParamType     OBJECT-TYPE
+        SYNTAX          INTEGER {
+            global(1),
+            userDefined(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The link parameters type of the OTDR adaptive test."
+        DEFVAL  { "global" }
+        ::= { zxAnOtdrAdaptTestLinkIfConfEntry 1 }
+
+    zxAnOtdrATLinkIfLossThresh     OBJECT-TYPE
+        SYNTAX          Integer32(1..100000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The link loss threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATLinkIfParamType is userDefined(2)."
+        DEFVAL  { 28000 }
+        ::= { zxAnOtdrAdaptTestLinkIfConfEntry 2 }
+
+    zxAnOtdrATLinkIfRtnLossThresh  OBJECT-TYPE
+        SYNTAX          Integer32(150..700)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The link return loss threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATLinkIfParamType is userDefined(2)."
+        DEFVAL  { 150 }
+        ::= { zxAnOtdrAdaptTestLinkIfConfEntry 3 }
+
+-------------------------------------------------------------------------------
+--   2.12.2 OTDR Adaptive Test Device Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrAdaptiveTestDevObjects     OBJECT IDENTIFIER
+        ::= { zxAnOtdrAdaptiveTestObjects 3 }
+
+-------------------------------------------------------------------------------
+--    2.12.2.1 OTDR Adaptive Test Device Global Objects
+-------------------------------------------------------------------------------
+    zxAnOtdrAdaptTestDevGlbObjects     OBJECT IDENTIFIER
+        ::= { zxAnOtdrAdaptiveTestDevObjects 1 }
+
+    zxAnOtdrATDevFiberAttenThresh  OBJECT-TYPE
+        SYNTAX          Integer32(100..5000)
+        UNITS           "0.001dB/km"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device fiber attenuation threshold of the OTDR adaptive
+             test. This global threshold is applied to the interface when
+             the zxAnOtdrATDevIfParamType is global(1)."
+        DEFVAL { 400 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 2 }
+
+    zxAnOtdrATDevLossThresh        OBJECT-TYPE
+        SYNTAX          Integer32(-5000..5000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device loss threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is global(1)."
+        DEFVAL { 1500 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 3 }
+
+    zxAnOtdrATDevReflThresh        OBJECT-TYPE
+        SYNTAX          Integer32(-800..-1)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device reflectivity threshold of the OTDR adaptive
+             test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is global(1)."
+        DEFVAL { -400 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 4 }
+
+    zxAnOtdrATDevConnLossThresh     OBJECT-TYPE
+        SYNTAX          Integer32(-5000..5000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device connector loss threshold of the OTDR adaptive
+             test. This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is global(1)."
+        DEFVAL { 750 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 5 }
+
+    zxAnOtdrATDevConnReflThresh     OBJECT-TYPE
+        SYNTAX          Integer32(-800..-1)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device connector reflectivity threshold of the OTDR
+             adaptive test. This threshold is applied to the interface when
+             the zxAnOtdrATDevIfParamType is global(1)."
+        DEFVAL { -400 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 6 }
+
+    zxAnOtdrATDevSpliceLossThresh  OBJECT-TYPE
+        SYNTAX          Integer32(-5000..5000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splice loss threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is global(1)."
+        DEFVAL { 300 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 7 }
+
+    zxAnOtdrATDevSpReflThresh  OBJECT-TYPE
+        SYNTAX          Integer32(-800..-1)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splitter reflectivity threshold of the OTDR
+             adaptive test. This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is global(1)."
+        DEFVAL { -400 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 8 }
+
+    zxAnOtdrATDevSp2LossThresh     OBJECT-TYPE
+        SYNTAX          Integer32(2500..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splitter (the splitting ratio is 1:2 or 2:2)
+             loss threshold of the OTDR adaptive test. This threshold is
+             applied to the interface when the zxAnOtdrATDevIfParamType is
+             global(1)."
+        DEFVAL { 4500 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 9 }
+
+    zxAnOtdrATDevSp4LossThresh     OBJECT-TYPE
+        SYNTAX          Integer32(6000..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splitter (the splitting ratio is 1:4 or 2:4)
+             loss threshold of the the OTDR adaptive test. This threshold is
+             applied to the interface when the zxAnOtdrATDevIfParamType is
+             global(1)."
+        DEFVAL { 8500 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 10 }
+
+    zxAnOtdrATDevSp8LossThresh     OBJECT-TYPE
+        SYNTAX          Integer32(9000..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splitter (the splitting ratio is 1:8 or 2:8)
+             loss threshold of the OTDR adaptive test. This threshold is
+             applied to the interface when the zxAnOtdrATDevIfParamType is
+             global(1)."
+        DEFVAL { 12000 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 11 }
+
+    zxAnOtdrATDevSp16LossThresh    OBJECT-TYPE
+        SYNTAX          Integer32(12500..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splitter (the splitting ratio is 1:16 or 2:16)
+             loss threshold of the OTDR adaptive test. This threshold is
+             applied to the interface when the zxAnOtdrATDevIfParamType is
+             global(1)."
+        DEFVAL { 15000 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 12 }
+
+    zxAnOtdrATDevSp32LossThresh    OBJECT-TYPE
+        SYNTAX          Integer32(15500..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splitter (the splitting ratio is 1:32 or 2:32)
+             loss threshold of the OTDR adaptive test. This threshold is
+             applied to the interface when the zxAnOtdrATDevIfParamType is
+             global(1)."
+        DEFVAL { 18500 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 13 }
+
+    zxAnOtdrATDevSp64LossThresh    OBJECT-TYPE
+        SYNTAX          Integer32(19000..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splitter (the splitting ratio is 1:64 or 2:64)
+             loss threshold of the OTDR adaptive test. This threshold is
+             applied to the interface when the zxAnOtdrATDevIfParamType is
+             global(1)."
+        DEFVAL { 22000 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 14 }
+
+    zxAnOtdrATDevSp128LossThresh   OBJECT-TYPE
+        SYNTAX          Integer32(22500..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device splitter (the splitting ratio is 1:128 or 2:128)
+             loss threshold of the OTDR adaptive test. This threshold is
+             applied to the interface when the zxAnOtdrATDevIfParamType is
+             global(1)."
+        DEFVAL { 22500 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 15 }
+
+    zxAnOtdrATDevOnuReflThresh     OBJECT-TYPE
+        SYNTAX          Integer32(-800..-1)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The global device ONU reflectivity threshold of the OTDR adaptive
+             test. This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is global(1)."
+        DEFVAL { -400 }
+        ::= { zxAnOtdrAdaptTestDevGlbObjects 16 }
+
+--------------------------------------------------------------------------------
+--    2.12.2.2 OTDR Adaptive Test Device Threshold Interface Configuration Table
+--------------------------------------------------------------------------------
+    zxAnOtdrAdaptTestDevIfConfTable     OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrAdaptTestDevIfConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR adaptive test device threshold interface configuration table.
+            "
+        ::= { zxAnOtdrAdaptiveTestDevObjects 2 }
+
+    zxAnOtdrAdaptTestDevIfConfEntry     OBJECT-TYPE
+        SYNTAX          ZxAnOtdrAdaptTestDevIfConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "OTDR adaptive test device threshold interface configuration evntry.
+            "
+        INDEX   { ifIndex }
+        ::= { zxAnOtdrAdaptTestDevIfConfTable 1 }
+
+    ZxAnOtdrAdaptTestDevIfConfEntry ::= SEQUENCE {
+        zxAnOtdrATDevIfParamType           INTEGER,
+        zxAnOtdrATDevIfFiberAttenThresh    Integer32,
+        zxAnOtdrATDevIfLossThresh          Integer32,
+        zxAnOtdrATDevIfReflThresh          Integer32,
+        zxAnOtdrATDevIfConnLossThresh      Integer32,
+        zxAnOtdrATDevIfConnReflThresh      Integer32,
+        zxAnOtdrATDevIfSpliceLossThresh    Integer32,
+        zxAnOtdrATDevIfSpReflThresh        Integer32,
+        zxAnOtdrATDevIfSp2LossThresh       Integer32,
+        zxAnOtdrATDevIfSp4LossThresh       Integer32,
+        zxAnOtdrATDevIfSp8LossThresh       Integer32,
+        zxAnOtdrATDevIfSp16LossThresh      Integer32,
+        zxAnOtdrATDevIfSp32LossThresh      Integer32,
+        zxAnOtdrATDevIfSp64LossThresh      Integer32,
+        zxAnOtdrATDevIfSp128LossThresh     Integer32,
+        zxAnOtdrATDevIfOnuReflThresh       Integer32
+        }
+
+    zxAnOtdrATDevIfParamType          OBJECT-TYPE
+        SYNTAX          INTEGER {
+            global(1),
+            userDefined(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device parameters type of the OTDR adaptive test."
+        DEFVAL  { global }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 1 }
+
+    zxAnOtdrATDevIfFiberAttenThresh    OBJECT-TYPE
+        SYNTAX          Integer32(100..5000)
+        UNITS           "0.001dB/km"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device fiber attenuation threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 400 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 2 }
+
+    zxAnOtdrATDevIfLossThresh          OBJECT-TYPE
+        SYNTAX          Integer32(-5000..5000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device loss threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 1500 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 3 }
+
+    zxAnOtdrATDevIfReflThresh          OBJECT-TYPE
+        SYNTAX          Integer32(-800..-1)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device reflectivity threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { -400 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 4 }
+
+    zxAnOtdrATDevIfConnLossThresh       OBJECT-TYPE
+        SYNTAX          Integer32(-5000..5000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device connector loss threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 750 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 5 }
+
+    zxAnOtdrATDevIfConnReflThresh       OBJECT-TYPE
+        SYNTAX          Integer32(-800..-1)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device connector reflectivity threshold of the OTDR adaptive
+             test. This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { -400 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 6 }
+
+    zxAnOtdrATDevIfSpliceLossThresh    OBJECT-TYPE
+        SYNTAX          Integer32(-5000..5000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splice loss threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 300 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 7 }
+
+    zxAnOtdrATDevIfSpReflThresh    OBJECT-TYPE
+        SYNTAX          Integer32(-800..-1)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splitter reflectivity threshold of the OTDR adaptive
+             test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { -400 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 8 }
+
+    zxAnOtdrATDevIfSp2LossThresh       OBJECT-TYPE
+        SYNTAX          Integer32(2500..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splitter (the splitting ratio is 1:2 or 2:2) loss
+             threshold of the OTDR adaptive test. This threshold is applied to
+             the interface when the zxAnOtdrATDevIfParamType is
+             userDefined(2)."
+        DEFVAL  { 4500 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 9 }
+
+    zxAnOtdrATDevIfSp4LossThresh       OBJECT-TYPE
+        SYNTAX          Integer32(6000..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splitter (the splitting ratio is 1:4 or 2:4) loss
+             threshold of the OTDR adaptive test. This threshold is applied to
+             the interface when the zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 8500 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 10 }
+
+    zxAnOtdrATDevIfSp8LossThresh       OBJECT-TYPE
+        SYNTAX          Integer32(9000..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splitter (the splitting ratio is 1:8 or 2:8) loss
+             threshold of the OTDR adaptive test. This threshold is applied to
+             the interface when the zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 12000 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 11 }
+
+    zxAnOtdrATDevIfSp16LossThresh      OBJECT-TYPE
+        SYNTAX          Integer32(12500..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splitter (the splitting ratio is 1:16 or 2:16) loss
+             threshold of the OTDR adaptive test. This threshold is applied to
+             the interface when the zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 15000 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 12 }
+
+    zxAnOtdrATDevIfSp32LossThresh      OBJECT-TYPE
+        SYNTAX          Integer32(15500..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splitter (the splitting ratio is 1:32 or 2:32) loss
+             threshold of the OTDR adaptive test. This threshold is applied to
+             the interface when the zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 18500 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 13 }
+
+    zxAnOtdrATDevIfSp64LossThresh      OBJECT-TYPE
+        SYNTAX          Integer32(19000..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splitter (the splitting ratio is 1:64 or 2:64) loss
+             threshold of the OTDR adaptive test. This threshold is applied to
+             the interface when the zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 22000 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 14 }
+
+    zxAnOtdrATDevIfSp128LossThresh     OBJECT-TYPE
+        SYNTAX          Integer32(22500..26000)
+        UNITS           "0.001dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device splitter (the splitting ratio is 1:128 or 2:128) loss
+             threshold of the OTDR adaptive test. This threshold is applied to
+             the interface when the zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { 22500 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 15 }
+
+    zxAnOtdrATDevIfOnuReflThresh       OBJECT-TYPE
+        SYNTAX          Integer32(-800..-1)
+        UNITS           "0.1dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "The device ONU reflectivity threshold of the OTDR adaptive test.
+             This threshold is applied to the interface when the
+             zxAnOtdrATDevIfParamType is userDefined(2)."
+        DEFVAL  { -400 }
+        ::= { zxAnOtdrAdaptTestDevIfConfEntry 16 }
+
+--  2.13 OTDR Line Detection Objects ------------------------------------------
+-------------------------------------------------------------------------------
+--   2.13.1 OTDR Detection Line Configuration Table
+-------------------------------------------------------------------------------
+
+    zxAnOtdrDetectionLineConfTable    OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnOtdrDetectionLineConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR detection line configuration table."
+        ::= { zxAnOtdrDetectionLineObjects 2 }
+
+    zxAnOtdrDetectionLineConfEntry    OBJECT-TYPE
+        SYNTAX          ZxAnOtdrDetectionLineConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR detection line configuration entry."
+        INDEX   { ifIndex, zxAnOtdrDetectLineId }
+        ::= { zxAnOtdrDetectionLineConfTable 1 }
+
+    ZxAnOtdrDetectionLineConfEntry  ::=  SEQUENCE {
+        zxAnOtdrDetectLineId              Integer32,
+        zxAnOtdrDetectLineLength          Integer32,
+        zxAnOtdrDetectLineAlias           DisplayString,
+        zxAnOtdrDetectLinePositionDiff    Integer32,
+        zxAnOtdrDetectLineAbnPeakDiff     Integer32,
+        zxAnOtdrDetectLineStatus          INTEGER
+        }
+
+    zxAnOtdrDetectLineId   OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "OTDR detection line ID."
+        ::= { zxAnOtdrDetectionLineConfEntry 1 }
+
+    zxAnOtdrDetectLineLength   OBJECT-TYPE
+        SYNTAX          Integer32(0..3000000)
+        UNITS           "0.1Meters"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "OTDR detection line length."
+        ::= { zxAnOtdrDetectionLineConfEntry 2 }
+
+    zxAnOtdrDetectLineAlias    OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE (0..32))
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR detection line alias."
+        ::= { zxAnOtdrDetectionLineConfEntry 3 }
+
+    zxAnOtdrDetectLinePositionDiff    OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "Meters"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR detection line position difference threshold."
+        DEFVAL { 3 }
+        ::= { zxAnOtdrDetectionLineConfEntry 4 }
+
+    zxAnOtdrDetectLineAbnPeakDiff   OBJECT-TYPE
+        SYNTAX          Integer32(0..10000)
+        UNITS           "0.01dB"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "OTDR detection line abnormal reflective peak
+                         difference threshold."
+        DEFVAL { 50 }
+        ::= { zxAnOtdrDetectionLineConfEntry 5 }
+
+    zxAnOtdrDetectLineStatus    OBJECT-TYPE
+        SYNTAX          INTEGER
+            {
+                normal(1),
+                peakAbnormal(2),
+                fiberBroken(3),
+                unknown(255)
+            }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "OTDR detection line status.
+             A zxAnOtdrDetectionLineAbnAlm trap will be sent when
+             the zxAnOtdrDetectionLineStatus is peakAbnormal or fiberBroken.
+             A zxAnOtdrDetectionLineAbnClr trap will be sent when
+             the zxAnOtdrDetectionLineStatus is normal."
+        ::= { zxAnOtdrDetectionLineConfEntry 6 }
+
+-- 3. OTDR Notifications ------------------------------------------------------
+-------------------------------------------------------------------------------
+--  3.1 OTDR Routine Task Finished
+-------------------------------------------------------------------------------
+
+    zxAnOtdrRoutineTaskFinished  NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnOtdrRoutineTaskCurrStartTime,
+                zxAnOtdrRoutineTaskOperStatus,
+                zxAnOtdrRoutineTaskFailedReason,
+                zxAnOtdrRoutineTaskResultFile
+                }
+        STATUS  current
+        DESCRIPTION
+           "A zxAnOtdrRoutineTaskFinished is sent when the agent has detected
+            that the OTDR routine test task finished. "
+       ::= { zxAnOtdrNotifications 1 }
+
+-------------------------------------------------------------------------------
+--  3.2 OTDR Port Test Finished
+-------------------------------------------------------------------------------
+
+    zxAnOtdrPortTestFinished  NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnOtdrFastTestIfStatus,
+                zxAnOtdrFastTestIfFailedReason,
+                zxAnOtdrFastTestIfResultFile,
+                zxAnOtdrFastTestRequestSource,
+                zxAnOtdrTestType,
+                zxAnOtdrFastTestRequestSrcIpType,
+                zxAnOtdrFastTestRequestSrcIp
+                }
+        STATUS  current
+        DESCRIPTION
+           "A zxAnOtdrPortTestFinished is sent when the agent has detected
+            that the OTDR port test finished. "
+       ::= { zxAnOtdrNotifications 2 }
+
+
+--  3.50 OTDR Environment Traps 
+--
+--   3.50.1  OTDR Environment Control Card High Temperature Alarm
+--
+    zxAnOtdrEnvCtrlCardHighTempAlm NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrCtrlCardCurrentTemp,
+                  zxAnOtdrCtrlCardTempHighThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvCtrlCardHighTempAlm trap is sent when the current
+            control card temperature is higher than
+            zxAnOtdrCtrlCardTempHighThresh."
+       ::= { zxAnOtdrEnvTraps 1 }
+
+-------------------------------------------------------------------------------
+--   3.50.2  OTDR Environment Control Card High Temperature Alarm Cleared
+-------------------------------------------------------------------------------
+    zxAnOtdrEnvCtrlCardHighTempClr NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrCtrlCardCurrentTemp,
+                  zxAnOtdrCtrlCardTempHighThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvCtrlCardHighTempClr trap is sent when the current
+            control card temperature is lower than
+            zxAnOtdrCtrlCardTempHighThresh."
+       ::= { zxAnOtdrEnvTraps 2 }
+
+-------------------------------------------------------------------------------
+--   3.50.3  OTDR Environment Control Card Low Temperature Alarm
+-------------------------------------------------------------------------------
+
+    zxAnOtdrEnvCtrlCardLowTempAlm NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrCtrlCardCurrentTemp,
+                  zxAnOtdrCtrlCardTempLowThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvCtrlCardLowTempAlm trap is sent when the current
+            control card temperature is lower than
+            zxAnOtdrCtrlCardTempLowThresh."
+       ::= { zxAnOtdrEnvTraps 3 }
+
+-------------------------------------------------------------------------------
+--   3.50.4  OTDR Environment Control Card Low Temperature Alarm Cleared
+-------------------------------------------------------------------------------
+    zxAnOtdrEnvCtrlCardLowTempClr NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrCtrlCardCurrentTemp,
+                  zxAnOtdrCtrlCardTempLowThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvCtrlCardLowTempClr trap is sent when the current
+            control card temperature is higher than
+            zxAnOtdrCtrlCardTempLowThresh."
+       ::= { zxAnOtdrEnvTraps 4 }
+
+-------------------------------------------------------------------------------
+--   3.50.5  OTDR Environment Fan Failure Alarm
+-------------------------------------------------------------------------------
+   zxAnOtdrEnvFanFailureAlm NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrEnvFanStatus,
+                  zxAnOtdrEnvFanOperStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvFanFailureAlm trap is sent when the
+            zxAnOtdrEnvFanStatus is abnormal."
+        ::= { zxAnOtdrEnvTraps 5 }
+
+-------------------------------------------------------------------------------
+--   3.50.6  OTDR Environment Fan Failure Cleared
+-------------------------------------------------------------------------------
+   zxAnOtdrEnvFanFailureClr NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrEnvFanStatus,
+                  zxAnOtdrEnvFanOperStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvFanFailureClr trap is sent when the
+            zxAnOtdrEnvFanStatus is normal."
+        ::= { zxAnOtdrEnvTraps 6 }
+
+-------------------------------------------------------------------------------
+--   3.50.7  OTDR Environment APD High Temperature Alarm
+-------------------------------------------------------------------------------
+
+    zxAnOtdrEnvApdHighTempAlm NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrEnvApdCurrentTemp,
+                  zxAnOtdrEnvApdTempHighThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvApdHighTempAlm trap is sent when the APD current
+            temperature is higher than zxAnOtdrEnvApdTempHighThresh."
+       ::= { zxAnOtdrEnvTraps 7 }
+
+-------------------------------------------------------------------------------
+--   3.50.8  OTDR Environment APD High Temperature Alarm Cleared
+-------------------------------------------------------------------------------
+    zxAnOtdrEnvApdHighTempClr NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrEnvApdCurrentTemp,
+                  zxAnOtdrEnvApdTempHighThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvApdHighTempClr trap is sent when the APD current
+            temperature is lower than zxAnOtdrEnvApdTempHighThresh."
+       ::= { zxAnOtdrEnvTraps 8 }
+
+-------------------------------------------------------------------------------
+--   3.50.9  OTDR Environment APD Low Temperature Alarm
+-------------------------------------------------------------------------------
+
+    zxAnOtdrEnvApdLowTempAlm NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrEnvApdCurrentTemp,
+                  zxAnOtdrEnvApdTempLowThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvApdLowTempAlm trap is sent when the APD current
+            temperature is lower than zxAnOtdrEnvApdTempLowThresh."
+       ::= { zxAnOtdrEnvTraps 9 }
+
+-------------------------------------------------------------------------------
+--   3.50.10 OTDR Environment APD Low Temperature Alarm Cleared
+-------------------------------------------------------------------------------
+    zxAnOtdrEnvApdLowTempClr NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrApdCurrentTemperature,
+                  zxAnOtdrEnvApdCurrentTemp
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrEnvApdLowTempClr trap is sent when the APD current
+            temperature is higher than zxAnOtdrEnvApdTempLowThresh."
+       ::= { zxAnOtdrEnvTraps 10 }
+
+-------------------------------------------------------------------------------
+--   3.50.11 OTDR Port Utilization Threshold Exceed Alarm
+-------------------------------------------------------------------------------
+    zxAnOtdrPortUtilExceedAlm NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrPortUtilization,
+                  zxAnOtdrPortUtilizationThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrPortUtilExceedAlm trap is sent when the current
+            port utilization is higher than zxAnOtdrPortUtilizationThresh."
+       ::= { zxAnOtdrEnvTraps 11 }
+
+-------------------------------------------------------------------------------
+--   3.50.12 OTDR Port Utilization Threshold Exceed Clear
+-------------------------------------------------------------------------------
+    zxAnOtdrPortUtilExceedClr NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrPortUtilization,
+                  zxAnOtdrPortUtilizationThresh
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrPortUtilExceedClr trap is sent when the current
+            port utilization is lower than zxAnOtdrPortUtilizationThresh."
+       ::= { zxAnOtdrEnvTraps 12 }
+
+--  3.51 OTDR Monitoring Node Traps --------------------------------------
+-------------------------------------------------------------------------------
+--   3.51.1 OTDR Monitoring Node Opened Alarm
+-------------------------------------------------------------------------------
+    zxAnOtdrMonNodeOpenedAlm   NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrMonNodeStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrMonNodeOpenedAlm trap is sent when the
+            zxAnOtdrMonNodeStatus is opened."
+       ::= { zxAnOtdrMonNodeTraps 1 }
+
+-------------------------------------------------------------------------------
+--   3.51.2 OTDR Monitoring Node Opened Clear
+-------------------------------------------------------------------------------
+    zxAnOtdrMonNodeOpenedClr   NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrMonNodeStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrMonNodeOpenedClr trap is sent when the
+            zxAnOtdrMonNodeStatus is closed."
+       ::= { zxAnOtdrMonNodeTraps 2 }
+
+-------------------------------------------------------------------------------
+--   3.51.3 OTDR Monitoring Port Link Abnormal Alarm
+-------------------------------------------------------------------------------
+    zxAnOtdrMonPortLinkAbnormalAlm   NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrMonPortLinkStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrMonPortLinkAbnormalAlm trap is sent when the
+            zxAnOtdrMonPortLinkStatus is abnormal."
+       ::= { zxAnOtdrMonNodeTraps 3 }
+
+-------------------------------------------------------------------------------
+--   3.51.4 OTDR Monitoring Port Link Abnormal Clear
+-------------------------------------------------------------------------------
+    zxAnOtdrMonPortLinkAbnormalClr  NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrMonPortLinkStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "A zxAnOtdrMonPortLinkAbnormalClr trap is sent when the
+            zxAnOtdrMonPortLinkStatus is normal."
+       ::= { zxAnOtdrMonNodeTraps 4 }
+
+--  3.52 OTDR Optical Module Monitoring Traps ---------------------------------
+-------------------------------------------------------------------------------
+--   3.52.1 OTDR Optical Module Abnormal Alarm
+-------------------------------------------------------------------------------
+
+    zxAnOtdrOptModuleAbnormalAlm  NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrOptModuleStatus
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAnOtdrOptModuleAbnormalAlm is sent when the
+             zxAnOtdrOptModuleStatus is abnormal. "
+       ::= { zxAnOtdrOptModuleMonitorTraps 1 }
+
+-------------------------------------------------------------------------------
+--   3.52.2 OTDR Optical Module Abnormal Clear
+-------------------------------------------------------------------------------
+
+    zxAnOtdrOptModuleAbnormalClr  NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrOptModuleStatus
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAnOtdrOptModuleAbnormalClr is sent when the
+             zxAnOtdrOptModuleStatus is normal. "
+       ::= { zxAnOtdrOptModuleMonitorTraps 2 }
+
+-------------------------------------------------------------------------------
+--   3.52.3 OTDR Optical Power Variation Threshold Exceeded Alarm
+-------------------------------------------------------------------------------
+    zxAnOtdrOptPowerVaryExceedAlm   NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrOptModuleIfBasicPwr,
+                  zxAnOtdrOptModuleIfCurrentPwr,
+                  zxAnOtdrOptModuleIfPwrVaryThresh
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAnOtdrOptPowerVaryExceedAlm trap is sent when the
+             difference value of zxAnOtdrOptModuleIfBasicPwr and
+             zxAnOtdrOptModuleIfCurrentPwr is higher than
+             zxAnOtdrOptModuleIfPwrVaryThresh."
+       ::= { zxAnOtdrOptModuleMonitorTraps 3 }
+
+-------------------------------------------------------------------------------
+--   3.52.4 OTDR Optical Power Variation Threshold Exceeded Cleared
+-------------------------------------------------------------------------------
+    zxAnOtdrOptPowerVaryExceedClr   NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrOptModuleIfBasicPwr,
+                  zxAnOtdrOptModuleIfCurrentPwr,
+                  zxAnOtdrOptModuleIfPwrVaryThresh
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAnOtdrOptPowerVaryExceedClr trap is sent when the
+             difference value of zxAnOtdrOptModuleIfBasicPwr and
+             zxAnOtdrOptModuleIfCurrentPwr is lower than
+             zxAnOtdrOptModuleIfPwrVaryThresh."
+       ::= { zxAnOtdrOptModuleMonitorTraps 4 }
+
+--  3.53 OTDR Detection Line Monitoring Traps ---------------------------------
+-------------------------------------------------------------------------------
+--   3.53.1 OTDR Detection Line Abnormal Alarm
+-------------------------------------------------------------------------------
+
+    zxAnOtdrDetectionLineAbnAlm  NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrDetectionLineStatus
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAnOtdrDetectionLineAbnAlm is sent when the
+             zxAnOtdrDetectionLineStatus is peakAbnormal or brokenFiber. "
+       ::= { zxAnOtdrDetectionLineTraps 1 }
+
+-------------------------------------------------------------------------------
+--   3.53.2 OTDR Detection Line Abnormal Clear
+-------------------------------------------------------------------------------
+
+    zxAnOtdrDetectionLineAbnClr  NOTIFICATION-TYPE
+        OBJECTS {
+                  zxAnOtdrDetectionLineStatus
+                }
+        STATUS  current
+        DESCRIPTION
+            "A zxAnOtdrDetectionAbnClr is sent when the
+             zxAnOtdrDetectionLineStatus is normal. "
+       ::= { zxAnOtdrDetectionLineTraps 2 }
+
+
+END
+

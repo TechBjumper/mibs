@@ -1,0 +1,295 @@
+ZTE-AN-SECURITY-ANTIATTACK-MIB    DEFINITIONS ::= BEGIN
+    IMPORTS
+        OBJECT-TYPE, MODULE-IDENTITY,
+        Integer32, NOTIFICATION-TYPE                       FROM SNMPv2-SMI
+        RowStatus                                          FROM SNMPv2-TC
+        MacAddress                                         FROM SNMPv2-SMI
+        ifIndex                                            FROM IF-MIB
+        zxAnSubIfIndex                                     FROM ZTE-AN-IF-MIB
+        VlanId                                             FROM ZTE-AN-TC-MIB
+        InetAddress,
+        InetAddressType,
+        InetAddressPrefixLength                            FROM INET-ADDRESS-MIB
+        zxAnServiceSecurity                                FROM ZTE-AN-SMI;
+
+    zxAnSecurityAntiAttackMib    MODULE-IDENTITY
+        LAST-UPDATED   "201711101530Z"
+        ORGANIZATION   "ZTE Corporation"
+        CONTACT-INFO   "Zhou Guobin
+                        Mail : zhou.guobin@zte.com.cn
+                        Tel  : +86-21-68897227"
+        DESCRIPTION    "The MIB module for the management of anti-attack."
+
+        REVISION       "201711101530Z"
+        DESCRIPTION    "The initial revision of this MIB module."
+        ::=  {  zxAnServiceSecurity  28  }
+
+        zxAnSecAntiAttackGlobalObjects
+                         OBJECT IDENTIFIER ::= { zxAnSecurityAntiAttackMib 1 }
+        zxAnSecAntiAttackObjects
+                         OBJECT IDENTIFIER ::= { zxAnSecurityAntiAttackMib 2 }
+        zxAnSecAAWhiteListObjects
+                         OBJECT IDENTIFIER ::= { zxAnSecAntiAttackObjects 1 }
+        zxAnSecAAWhiteListGlobalObjects
+                         OBJECT IDENTIFIER ::= { zxAnSecAAWhiteListObjects 1 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. Anti-Attack Global Objects
+-- 2. Anti-Attack Objects
+-- 2.1 White List Objects
+-- 2.1.1 White List Global Objects
+-- 2.1.2 Source MAC White List Table
+-- 2.1.3 Source IP White List Table
+--------------------------------------------------------------------------------
+-- 1. Anti-Attack Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecAntiAttackEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable anti-attack."
+        DEFVAL  { disabled }
+        ::= { zxAnSecAntiAttackGlobalObjects 2 }
+
+    zxAnSecAntiAttackMode  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            vlanAndSrcMac(1),
+            srcIp(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Mode of anti-attack.
+             vlanAndSrcMac(1) - system will identify attack based on VLAN and 
+                                source MAC address.
+             srcIp(2)         - system will identify attack based on source IP
+                                address."
+        DEFVAL  { vlanAndSrcMac }
+        ::= { zxAnSecAntiAttackGlobalObjects 3 }
+
+    zxAnSecAntiAttackBlockDuration OBJECT-TYPE
+        SYNTAX      Integer32(10..86400)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Blocking duration for the source MAC or source IP address in the
+             black list."
+        DEFVAL  { 10 }
+        ::= { zxAnSecAntiAttackGlobalObjects 4 }
+
+    zxAnSecAntiAttackPktRateThresh OBJECT-TYPE
+        SYNTAX      Integer32(10..1000)
+        UNITS       "pps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Packet rate threshold.
+
+             If packet average rate during zxAnSecAntiAttackBlockDuration is
+             over zxAnSecAntiAttackPktRateThresh, system will put the source MAC
+             or source IP address of packet into black list and raise alarm.
+
+             If packet average rate during zxAnSecAntiAttackBlockDuration is
+             below zxAnSecAntiAttackPktRateThresh, system will remove the source
+             MAC or source IP address of packet from black list and restore
+             alarm."
+        DEFVAL  { 100 }
+        ::= { zxAnSecAntiAttackGlobalObjects 5 }
+
+    zxAnSecAntiAttackDiagnosisLogEn  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable anti-attack diagnosis log.
+             Only supports C6XX, not supports C3XX."
+        DEFVAL  { disabled }
+        ::= { zxAnSecAntiAttackGlobalObjects 6 }
+
+    zxAnSecAntiAttackRateLimitEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable anti-attack rate limit.
+             Only supports C6XX, not supports C3XX."
+        DEFVAL  { disabled }
+        ::= { zxAnSecAntiAttackGlobalObjects 7 }
+
+--------------------------------------------------------------------------------
+-- 2. Anti-Attack Objects
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- 2.1 White List Objects
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- 2.1.1 White List Global Objects
+-------------------------------------------------------------------------------- 
+
+    zxAnSecAntiAttackWhiteListAction  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            batchAddNextHops(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Batch adding all next hops with ARP to white list when it is set to
+             '1'. When get this variable, always return 1."
+        ::= { zxAnSecAAWhiteListGlobalObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2.1.2 Source MAC White List Table
+--------------------------------------------------------------------------------
+    zxAnSecAASrcMacWhiteListTable OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnSecAASrcMacWhiteListEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Source MAC white list table."
+        ::= { zxAnSecAAWhiteListObjects 2 }
+
+    zxAnSecAASrcMacWhiteListEntry    OBJECT-TYPE
+        SYNTAX      ZxAnSecAASrcMacWhiteListEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnSecAASrcMacWhiteListTable."
+        INDEX { zxAnSecAASrcMacWLVid,
+                zxAnSecAASrcMacWLMac
+        }
+        ::= { zxAnSecAASrcMacWhiteListTable 1 }
+
+    ZxAnSecAASrcMacWhiteListEntry  ::=
+        SEQUENCE {
+            zxAnSecAASrcMacWLVid          VlanId,
+            zxAnSecAASrcMacWLMac       MacAddress,
+            zxAnSecAASrcMacWLRowStatus    RowStatus
+    }
+
+    zxAnSecAASrcMacWLVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID that the attack packet comes from."
+        ::= { zxAnSecAASrcMacWhiteListEntry 1 }
+
+    zxAnSecAASrcMacWLMac OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Source MAC address of packet that will be put into white list or
+             removed from white list."
+        ::= { zxAnSecAASrcMacWhiteListEntry 2 }
+
+    zxAnSecAASrcMacWLRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnSecAASrcMacWhiteListEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnSecAASrcMacWhiteListEntry 50}                            
+
+--------------------------------------------------------------------------------
+-- 2.1.3 Source IP White List Table
+--------------------------------------------------------------------------------
+    zxAnSecAASrcIpWhiteListTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnSecAASrcIpWhiteListEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Source IP white list table."
+        ::= { zxAnSecAAWhiteListObjects 3 }
+
+    zxAnSecAASrcIpWhiteListEntry    OBJECT-TYPE
+        SYNTAX      ZxAnSecAASrcIpWhiteListEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnSecAASrcIpWhiteListTable."
+        INDEX { zxAnSecAASrcIpWLIpType,
+                zxAnSecAASrcIpWLIp,
+                zxAnSecAASrcIpWLIpPrefixLen
+        }
+        ::= { zxAnSecAASrcIpWhiteListTable 1 }
+
+    ZxAnSecAASrcIpWhiteListEntry  ::=
+        SEQUENCE {
+            zxAnSecAASrcIpWLIpType            InetAddressType,
+            zxAnSecAASrcIpWLIp                InetAddress,
+            zxAnSecAASrcIpWLIpPrefixLen       InetAddressPrefixLength,
+            zxAnSecAASrcIpWLRowStatus         RowStatus
+    }
+
+    zxAnSecAASrcIpWLIpType OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Source IP address type."
+        ::= { zxAnSecAASrcIpWhiteListEntry 1 }
+
+    zxAnSecAASrcIpWLIp OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Source IP address of packet that will be put into white list or
+             removed from white list."
+        ::= { zxAnSecAASrcIpWhiteListEntry 2 }
+
+    zxAnSecAASrcIpWLIpPrefixLen OBJECT-TYPE
+        SYNTAX      InetAddressPrefixLength
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+             "Source IP address prefix length."
+        ::= { zxAnSecAASrcIpWhiteListEntry 3 }
+
+    zxAnSecAASrcIpWLRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in ZxAnSecAASrcIpWhiteListEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnSecAASrcIpWhiteListEntry 50}
+
+END

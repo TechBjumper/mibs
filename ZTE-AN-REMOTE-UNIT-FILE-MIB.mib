@@ -1,0 +1,701 @@
+ZTE-AN-REMOTE-UNIT-FILE-MIB    DEFINITIONS ::= BEGIN 
+    IMPORTS 
+        MODULE-IDENTITY, OBJECT-TYPE, 
+        Integer32                                             FROM SNMPv2-SMI
+        RowStatus, DisplayString                              FROM SNMPv2-TC
+        zxAnSystem                                            FROM ZTE-AN-SMI
+        MODULE-COMPLIANCE, OBJECT-GROUP                       FROM SNMPv2-CONF;
+    
+    zxAnRemoteUnitFileMib MODULE-IDENTITY
+        LAST-UPDATED "201412180000Z"
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO 
+            "Zhang Yaqin     ZTE Corporation
+            Mail: zhang.yaqin07@zte.com.cn
+            Tel : +86-21-68897227"
+        DESCRIPTION  
+            "The MIB module for the file management of remote unit."
+        
+        REVISION        "201412180000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."        
+        ::= {zxAnSystem 42}
+
+-------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1.1 Remote Unit Configuration File Capabilities
+-- 2.1.1 Remote Unit Configuration File Manual Updating Objects
+-- 2.1.2 Remote Unit Configuration File Updating Table
+-- 2.1.3 Remote Unit Configuration File Updating Status Table
+-- 2.2.2 Remote Unit Configuration File Updating Table (v2)
+-- 2.2.3 Remote Unit Configuration File Updating Status Table (v2)
+
+-- Following conformance information are defined.
+-- 4. zxAnRuFileConformance
+-------------------------------------------------------------------------------
+    zxAnRuFileGlobalObjects    
+                      OBJECT IDENTIFIER   ::= { zxAnRemoteUnitFileMib 1 }
+    zxAnRuFileObjects
+                      OBJECT IDENTIFIER   ::= { zxAnRemoteUnitFileMib 2 }
+    zxAnRuConfigFileObjects
+                      OBJECT IDENTIFIER   ::= { zxAnRuFileObjects 1 }
+    zxAnRuConfigFile2Objects
+                      OBJECT IDENTIFIER   ::= { zxAnRuFileObjects 2 }
+    zxAnRuFileConformance
+                      OBJECT IDENTIFIER   ::= { zxAnRemoteUnitFileMib 4 }
+    zxAnRuFileCompliances
+                      OBJECT IDENTIFIER   ::= { zxAnRuFileConformance 1 }
+    zxAnRuFileGroups
+                      OBJECT IDENTIFIER   ::= { zxAnRuFileConformance 2 }
+
+------------------------------------------------------------------------------- 
+-- 1.1 Remote Unit Configuration File Capabilities
+-------------------------------------------------------------------------------           
+    zxAnRuConfigFileCapabilities  OBJECT-TYPE
+        SYNTAX  BITS {              
+            sdCardUpdating(0)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The management capabilities of remote unit configuration file
+             updating. The bit value 1 means the function represented by this
+             bit is supported by this equipment.
+             bit 0: value 1 means that the remote unit configuration file 
+                    updating supports SD card.
+             NOTE: No recommended to display it in NMS."  
+        ::=  {  zxAnRuFileGlobalObjects 1  }         
+
+------------------------------------------------------------------------------
+-- 2.1.1 Remote Unit Configuration File Manual Updating Objects
+------------------------------------------------------------------------------
+    zxAnRuCfManualUpdatingObjects OBJECT IDENTIFIER ::=
+                                                    {zxAnRuConfigFileObjects 1} 
+    
+    zxAnRuCfManualUpdatingList    OBJECT-TYPE
+        SYNTAX      OCTET STRING (SIZE (0..2048))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The list of remote units, each remote unit consists of 
+            'ifIndex'." 
+        ::= {zxAnRuCfManualUpdatingObjects 1 }                                      
+    
+    zxAnRuCfManualUpdatingOperAction    OBJECT-TYPE
+        SYNTAX  INTEGER {
+            update(1),          
+            delete(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current 
+        DESCRIPTION
+            "The configuration file operating action.
+             Actions are defined as follows:
+               1   update all configuration files of remote unit
+               2   delete a configuration file from remote unit
+               "      
+        ::= {zxAnRuCfManualUpdatingObjects 2 }
+
+    zxAnRuCfManualUpdatingFileTypeId    OBJECT-TYPE
+        SYNTAX      Integer32(2..255)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The configuration file type ID. 
+             The attribute is only valid when zxAnRuCfManualUpdatingOperAction
+             equals 'delete(2)'."         
+        ::= { zxAnRuCfManualUpdatingObjects 3 }
+    
+------------------------------------------------------------------------------
+-- 2.1.2 Remote Unit Configuration File Updating Table
+------------------------------------------------------------------------------
+
+    zxAnRuConfigFileUpdateTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnRuConfigFileUpdateEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "Remote unit configuration file updating table. "
+        ::= { zxAnRuConfigFileObjects 2 }
+
+    zxAnRuConfigFileUpdateEntry OBJECT-TYPE
+        SYNTAX     ZxAnRuConfigFileUpdateEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "Remote unit configuration file updating entry. "
+        INDEX  { zxAnRuFileRack, zxAnRuFileShelf,
+                 zxAnRuFileSlot, zxAnRuFilePort,
+                 zxAnRuConfigFileUpdateInstIndex }
+        ::= { zxAnRuConfigFileUpdateTable 1 }
+
+    ZxAnRuConfigFileUpdateEntry ::= SEQUENCE {
+        zxAnRuFileRack                            Integer32, 
+        zxAnRuFileShelf                           Integer32, 
+        zxAnRuFileSlot                            Integer32, 
+        zxAnRuFilePort                            Integer32, 
+        zxAnRuConfigFileUpdateInstIndex           INTEGER,
+        zxAnRuConfigFileUpdateOnuList             OCTET STRING,
+        zxAnRuConfigFileUpdateFileName            DisplayString, 
+        zxAnRuConfigFileUpdateFileTypeId          Integer32, 
+        zxAnRuConfigFileUpdateActiveMode          INTEGER,
+        zxAnRuConfigFileUpdateFLocation           INTEGER,
+        zxAnRuConfigFileUpdateStorageDId          Integer32, 
+        zxAnRuConfigFileUpdateRowStatus           RowStatus
+        }
+
+    zxAnRuFileRack    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The rack No. of OLT."        
+        ::= { zxAnRuConfigFileUpdateEntry 1 }
+        
+    zxAnRuFileShelf    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The shelf No. of OLT."        
+        ::= { zxAnRuConfigFileUpdateEntry 2 }        
+        
+    zxAnRuFileSlot    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The slot No. of OLT."        
+        ::= { zxAnRuConfigFileUpdateEntry 3 }     
+        
+    zxAnRuFilePort    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The PON port No. of OLT."        
+        ::= { zxAnRuConfigFileUpdateEntry 4 }     
+
+    zxAnRuConfigFileUpdateInstIndex OBJECT-TYPE  
+        SYNTAX      INTEGER (1..4)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The No. of each instance." 
+        ::= { zxAnRuConfigFileUpdateEntry 5 }  
+
+    zxAnRuConfigFileUpdateOnuList OBJECT-TYPE
+        SYNTAX      OCTET STRING (SIZE (32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+           "The remote unit list in a PON port. The use of 32-octet specifies 
+           256 ONUs. Each octet within this field specifies a set of eight 
+           ONUs, with the first octet specifying ONU 1 through 8, the second 
+           octet specifying ONU 9 through 16, etc. If a bit has a value of 1, 
+           it indicates the ONU is specified, and the default bit value is 0. 
+           The bit position values are:
+                bit0: ONU 1
+                bit1: ONU 2
+                ...
+                bit255: ONU 256."
+        ::= { zxAnRuConfigFileUpdateEntry 6 }
+
+    zxAnRuConfigFileUpdateFileName OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The configuration file name, and .XML file is supported. The file 
+            name of each instance cannot be duplicated."
+        ::= { zxAnRuConfigFileUpdateEntry 7 }
+    
+    zxAnRuConfigFileUpdateFileTypeId    OBJECT-TYPE
+        SYNTAX      Integer32(0 | 2..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The configuration file type ID. 
+             The attribute is only valid for GPON, different service 
+             requirements of user will use different file type ID.
+             The value '0' indicates the attribute is invalid." 
+        DEFVAL { 0 } 
+        ::= { zxAnRuConfigFileUpdateEntry 8 }
+        
+    zxAnRuConfigFileUpdateActiveMode   OBJECT-TYPE 
+        SYNTAX  INTEGER {
+            unconditional(1),
+            noCall(2),
+            noEmergencyCall(3)          
+        }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The configuration file activation mode.
+             The attribute is only valid for GPON VoIP service." 
+        DEFVAL  { unconditional }
+        ::= {zxAnRuConfigFileUpdateEntry 9 } 
+        
+    zxAnRuConfigFileUpdateFLocation   OBJECT-TYPE 
+        SYNTAX  INTEGER {
+            flash(1),
+            sdCard(3)          
+        }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The configuration file location. 
+             Location type is defined as following:
+               1: file comes from flash.
+               3: file comes from SD card."
+        DEFVAL  { flash }
+        ::= {zxAnRuConfigFileUpdateEntry 10 } 
+    
+    zxAnRuConfigFileUpdateStorageDId  OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     
+            "The ID of the storage device.
+             The numbering rule is:                          
+             When zxAnRuConfigFileUpdateFLocation is flash(1),
+                the value is 1 and it indicates flash 1.
+             When zxAnRuConfigFileUpdateFLocation is sdCard(3),
+                the value is 2 and it indicates SD card 1.   
+             ..."
+        DEFVAL  { 1 }                        
+        ::=  { zxAnRuConfigFileUpdateEntry  11 }  
+
+    zxAnRuConfigFileUpdateRowStatus OBJECT-TYPE 
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnRuConfigFileUpdateEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnRuConfigFileUpdateEntry 50 }   
+                       
+-------------------------------------------------------------------------------
+-- 2.1.3 Remote Unit Configuration File Updating Status Table
+-------------------------------------------------------------------------------
+    zxAnRuCfUpdatingStatusTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnRuCfUpdatingStatusEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "Remote unit configuration file updating status information table.
+             Each item in this table records the updating result of remote unit
+             configruation file last time."
+        ::= { zxAnRuConfigFileObjects  3}
+
+     zxAnRuCfUpdatingStatusEntry   OBJECT-TYPE
+        SYNTAX      ZxAnRuCfUpdatingStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Remote unit configuration file updating status information entry."                     
+        INDEX   { zxAnRuFileRack,zxAnRuFileShelf, 
+                  zxAnRuFileSlot,zxAnRuFilePort,
+                  zxAnRuCfOnu, zxAnRuCfUpdatingStatusFileTypeId }
+        ::= { zxAnRuCfUpdatingStatusTable 1 }
+        
+     ZxAnRuCfUpdatingStatusEntry ::= SEQUENCE {
+        zxAnRuCfOnu                                  Integer32,
+        zxAnRuCfUpdatingStatusFileTypeId             Integer32,
+        zxAnRuCfUpdatingStatusFileName               DisplayString,
+        zxAnRuCfUpdatingStatusActiveMode             INTEGER,
+        zxAnRuCfUpdatingStatusResult                 INTEGER, 
+        zxAnRuCfUpdatingStatusFailReason             INTEGER, 
+        zxAnRuCfUpdatingStatusProgress               INTEGER,
+        zxAnRuCfUpdatingStatusFLocation              INTEGER
+        }
+
+    zxAnRuCfOnu    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The ONU number."        
+        ::= {zxAnRuCfUpdatingStatusEntry 1 }     
+    
+    zxAnRuCfUpdatingStatusFileTypeId    OBJECT-TYPE
+        SYNTAX      Integer32(0 | 2..255)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The configuration file type ID. 
+             The attribute is only valid for GPON, different service 
+             requirements of user will use different file type ID.
+             The value '0' indicates the attribute is invalid."     
+        ::= { zxAnRuCfUpdatingStatusEntry 2 }
+        
+    zxAnRuCfUpdatingStatusFileName   OBJECT-TYPE         
+        SYNTAX      DisplayString (SIZE (0..64))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The configuration file name.
+             Null string indicates the attribute is invalid."
+        ::= { zxAnRuCfUpdatingStatusEntry 3 }  
+
+    zxAnRuCfUpdatingStatusActiveMode   OBJECT-TYPE 
+        SYNTAX  INTEGER {
+            unconditional(1),
+            noCall(2),
+            noEmergencyCall(3)          
+        }
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The configuration file activation mode.
+             The attribute is only valid for GPON VoIP service, and for    
+             other type configuration file, this attribute value is 
+             unconditional."
+        ::= {zxAnRuCfUpdatingStatusEntry 4 }      
+
+    zxAnRuCfUpdatingStatusResult   OBJECT-TYPE
+        SYNTAX  INTEGER {
+            notStarted(1),           
+            inProgress(2),
+            success(3), 
+            failure(4)                                      
+        }
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The result status of updating configruation file."      
+        ::= {zxAnRuCfUpdatingStatusEntry 5 }     
+        
+    zxAnRuCfUpdatingStatusFailReason   OBJECT-TYPE        
+        SYNTAX  INTEGER {
+            none(1),
+            downloadErr(2),
+            commitErr(3),
+            activateErr(4),
+            crcErr(5),
+            validErr(6),
+            useAbort(7),
+            offline(8),
+            rebootErr(9),
+            ruDeleted(10),
+            timeout(11),
+            notSupport(12),
+            sdOffine(22),
+            sdDisabled(23),
+            sdNoFile(24)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The failure reason of updating configruation file."              
+        ::= {zxAnRuCfUpdatingStatusEntry 6 }        
+            
+    zxAnRuCfUpdatingStatusProgress   OBJECT-TYPE
+        SYNTAX          INTEGER(0..100) 
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The percent of updating configruation file."            
+        ::= {zxAnRuCfUpdatingStatusEntry 7 }    
+        
+    zxAnRuCfUpdatingStatusFLocation   OBJECT-TYPE
+        SYNTAX  INTEGER {
+            flash(1),           
+            sdCard(3)   
+            }
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The configuration file location. 
+             Location type is defined as following:
+               1: file comes from flash.
+               3: file comes from SD card."
+        ::= {zxAnRuCfUpdatingStatusEntry 8 }   
+
+------------------------------------------------------------------------------
+-- 2.2.2 Remote Unit Configuration File Updating Table (v2)
+------------------------------------------------------------------------------
+
+    zxAnRuConfFile2UpdateTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnRuConfFile2UpdateEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "Remote unit configuration file updating table.
+             Update the ONU configuration file
+             with standard defined procedure or private defined procedure."
+        ::= { zxAnRuConfigFile2Objects 2 }
+
+    zxAnRuConfFile2UpdateEntry OBJECT-TYPE
+        SYNTAX     ZxAnRuConfFile2UpdateEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "Remote unit configuration file updating entry.
+             Update the ONU configuration file
+             with standard defined procedure or private defined procedure"
+        INDEX  { zxAnRuConfFile2UpdtRack, zxAnRuConfFile2UpdtShelf,
+                 zxAnRuConfFile2UpdtSlot, zxAnRuConfFile2UpdtPort,
+                 zxAnRuConfFile2UpdtOnu, zxAnRuConfFile2UpdtFileTypeId }
+        ::= { zxAnRuConfFile2UpdateTable 1 }
+
+    ZxAnRuConfFile2UpdateEntry ::= SEQUENCE {
+        zxAnRuConfFile2UpdtRack                  Integer32,
+        zxAnRuConfFile2UpdtShelf                 Integer32,
+        zxAnRuConfFile2UpdtSlot                  Integer32,
+        zxAnRuConfFile2UpdtPort                  Integer32,
+        zxAnRuConfFile2UpdtOnu                   Integer32,
+        zxAnRuConfFile2UpdtFileTypeId            Integer32,
+        zxAnRuConfFile2UpdtFileName              DisplayString,
+        zxAnRuConfFile2UpdtActMode               INTEGER,
+        zxAnRuConfFile2UpdtRowStatus             RowStatus
+        }
+
+    zxAnRuConfFile2UpdtRack    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The rack No. of OLT."
+        ::= { zxAnRuConfFile2UpdateEntry 1 }
+
+    zxAnRuConfFile2UpdtShelf    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The shelf No. of OLT."
+        ::= { zxAnRuConfFile2UpdateEntry 2 }
+
+    zxAnRuConfFile2UpdtSlot    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The slot No. of OLT."
+        ::= { zxAnRuConfFile2UpdateEntry 3 }
+
+    zxAnRuConfFile2UpdtPort    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The PON port No. of OLT."
+        ::= { zxAnRuConfFile2UpdateEntry 4 }
+
+    zxAnRuConfFile2UpdtOnu    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The ONU No."
+        ::= {zxAnRuConfFile2UpdateEntry 5 }
+
+    zxAnRuConfFile2UpdtFileTypeId    OBJECT-TYPE
+        SYNTAX      Integer32(0 | 2..65535)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The configuration file type ID.
+             The attribute is only valid for GPON, different service
+             requirements of user will use different file type ID.
+             The value '0' indicates that it is a private defined procedure."
+        DEFVAL { 0 }
+        ::= { zxAnRuConfFile2UpdateEntry 6 }
+
+    zxAnRuConfFile2UpdtFileName OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The configuration file name."
+        ::= { zxAnRuConfFile2UpdateEntry 7 }
+
+    zxAnRuConfFile2UpdtActMode   OBJECT-TYPE
+        SYNTAX  INTEGER {
+            unconditional(1),
+            noCall(2),
+            noEmergencyCall(3)
+        }
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The configuration file activation mode.
+             The value 1-3 is only valid for GPON VoIP service."
+        DEFVAL  { unconditional }
+        ::= {zxAnRuConfFile2UpdateEntry 8 }
+
+    zxAnRuConfFile2UpdtRowStatus OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnRuConfigFileUpdateEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnRuConfFile2UpdateEntry 50 }
+
+-------------------------------------------------------------------------------
+-- 2.2.3 Remote Unit Configuration File Updating Status Table (v2)
+-------------------------------------------------------------------------------
+
+    zxAnRuConfFile2UpdateStatusTable OBJECT-TYPE
+        SYNTAX     SEQUENCE OF ZxAnRuConfFile2UpdateStatusEntry
+        MAX-ACCESS not-accessible
+        STATUS     current
+        DESCRIPTION
+            "Remote unit configuration file updating status table.
+             Each item in this table records the updating result of remote unit
+             configruation file last time."
+        ::= { zxAnRuConfigFile2Objects  3}
+
+     zxAnRuConfFile2UpdateStatusEntry   OBJECT-TYPE
+        SYNTAX      ZxAnRuConfFile2UpdateStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Remote unit configuration file updating status entry."
+        INDEX   { zxAnRuConfFile2UpdtRack, zxAnRuConfFile2UpdtShelf,
+                 zxAnRuConfFile2UpdtSlot, zxAnRuConfFile2UpdtPort,
+                 zxAnRuConfFile2UpdtOnu, zxAnRuConfFile2UpdtFileTypeId }
+        ::= { zxAnRuConfFile2UpdateStatusTable 1 }
+
+     ZxAnRuConfFile2UpdateStatusEntry ::= SEQUENCE {
+        zxAnRuConfFile2UpdtStatFileName          DisplayString,
+        zxAnRuConfFile2UpdtStatActMode           INTEGER,
+        zxAnRuConfFile2UpdtStatStatus            INTEGER,
+        zxAnRuConfFile2UpdtStatFailRsn           INTEGER,
+        zxAnRuConfFile2UpdtStatProgress          INTEGER
+        }
+
+    zxAnRuConfFile2UpdtStatFileName   OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..64))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The configuration file name."
+        ::= { zxAnRuConfFile2UpdateStatusEntry 1 }
+
+    zxAnRuConfFile2UpdtStatActMode   OBJECT-TYPE
+        SYNTAX  INTEGER {
+            unconditional(1),
+            noCall(2),
+            noEmergencyCall(3)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The configuration file activation mode.
+             The value 1-3 is only valid for GPON VoIP service."
+        ::= {zxAnRuConfFile2UpdateStatusEntry 2 }
+
+    zxAnRuConfFile2UpdtStatStatus   OBJECT-TYPE
+        SYNTAX  INTEGER {
+            notStarted(1),
+            inProgress(2),
+            success(3),
+            failure(4)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The status of updating configuration file."
+        ::= {zxAnRuConfFile2UpdateStatusEntry 3 }
+
+    zxAnRuConfFile2UpdtStatFailRsn   OBJECT-TYPE
+        SYNTAX  INTEGER {
+            none(1),
+            downloadErr(2),
+            commitErr(3),
+            activateErr(4),
+            crcErr(5),
+            validErr(6),
+            useAbort(7),
+            offline(8),
+            rebootErr(9),
+            ruDeleted(10),
+            timeout(11),
+            notSupport(12),
+            sdOffine(22),
+            sdDisabled(23),
+            sdNoFile(24),
+			sameConfFile(25)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The failed reason of updating configuration file."
+        ::= {zxAnRuConfFile2UpdateStatusEntry 4 }
+
+    zxAnRuConfFile2UpdtStatProgress   OBJECT-TYPE
+        SYNTAX          INTEGER(0..100)
+        UNITS           "percent"
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The progress of updating configuration file."
+        ::= {zxAnRuConfFile2UpdateStatusEntry 5 }
+
+-------------------------------------------------------------------------------
+-- 4. zxAnRuFileConformance
+-------------------------------------------------------------------------------
+  zxAnRuFileCompliance MODULE-COMPLIANCE
+       STATUS current
+       DESCRIPTION 
+            "The compliance statement for SNMP entities which implement the
+            ZTE-AN-REMOTE-UNIT-FILE-MIB."
+        MODULE -- this module
+        
+            MANDATORY-GROUPS { 
+                       zxAnRuFileUpdateGroup
+               }
+        ::= { zxAnRuFileCompliances 1 }
+        
+        
+    zxAnRuFileUpdateGroup OBJECT-GROUP
+        OBJECTS { zxAnRuConfigFileUpdateOnuList, 
+                  zxAnRuConfigFileUpdateFileName,
+                  zxAnRuConfigFileUpdateFileTypeId,
+                  zxAnRuConfigFileUpdateActiveMode,
+                  zxAnRuConfigFileUpdateFLocation,
+                  zxAnRuConfigFileUpdateStorageDId,
+                  zxAnRuConfigFileUpdateRowStatus,
+                  zxAnRuCfManualUpdatingList,
+                  zxAnRuCfManualUpdatingOperAction,
+                  zxAnRuCfManualUpdatingFileTypeId,
+                  zxAnRuCfUpdatingStatusFileName,
+                  zxAnRuCfUpdatingStatusActiveMode,
+                  zxAnRuCfUpdatingStatusResult,
+                  zxAnRuCfUpdatingStatusFailReason,
+                  zxAnRuCfUpdatingStatusProgress,
+                  zxAnRuCfUpdatingStatusFLocation
+        }
+        STATUS current
+        DESCRIPTION 
+            "The collection of objects which are used to configure remote unit 
+            configuration file updating management. It will keep the remote 
+            unit always running with this configuration file."
+        ::= { zxAnRuFileGroups 1 }
+                
+END 

@@ -1,0 +1,1000 @@
+ZTE-AN-PORT-IDENTIFICATION-PROFILE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY       FROM SNMPv2-SMI
+    OBJECT-TYPE           FROM SNMPv2-SMI
+    NOTIFICATION-TYPE     FROM SNMPv2-SMI
+    Integer32             FROM SNMPv2-SMI
+    MODULE-COMPLIANCE     FROM SNMPv2-CONF
+    OBJECT-GROUP          FROM SNMPv2-CONF
+    NOTIFICATION-GROUP    FROM SNMPv2-CONF
+    RowStatus             FROM SNMPv2-TC
+    TruthValue            FROM SNMPv2-TC            
+    DisplayString         FROM SNMPv2-TC
+    TEXTUAL-CONVENTION    FROM SNMPv2-TC
+    ifIndex               FROM IF-MIB
+    zxAnServiceSecurity   FROM ZTE-AN-SMI
+    zxAnSubIfIndex        FROM ZTE-AN-IF-MIB;
+        
+zxAnPortIdentificationProfileMib MODULE-IDENTITY
+    LAST-UPDATED    "201203260000Z"
+    ORGANIZATION    "ZTE Corporation"
+    CONTACT-INFO    "Xu Xiangdong  ZTE Corporation
+                     Mail: xu.xiangdong@zte.com.cn
+                     Tel : +86-21-68897253"
+    DESCRIPTION     "The MIB module for the management of 
+                     port identification profile configuration." 
+    REVISION        "201203260000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { zxAnServiceSecurity 67 }
+ 
+--------------------------------------------------------------------------------
+-- TEXTUAL-CONVENTION
+--------------------------------------------------------------------------------
+    ZxAnAccessLoopTagType ::= TEXTUAL-CONVENTION
+        STATUS      current
+        DESCRIPTION
+            "A set of access loop characteristics defined in TR-101 about DSL 
+            line, each bit refers to a suboption:
+            Bit 00 : Suboption81, actual data rate upstream.
+            Bit 01 : Suboption82, actual data rate downstream.
+            Bit 02 : Suboption83, minimum data rate upstream.
+            Bit 03 : Suboption84, minimum data rate downstream.
+            Bit 04 : Suboption85, attainable data rate upstream.
+            Bit 05 : Suboption86, attainable data rate downstream.
+            Bit 06 : Suboption87, maximum data rate upstream.
+            Bit 07 : Suboption88, maximum data rate downstream.
+            Bit 08 : Suboption89, minimum data rate upstream in low power state.
+            Bit 09 : Suboption8A, minimum data rate downstream in low power 
+            state.
+            Bit 10 : Suboption8B, maximum interleaving delay upstream.
+            Bit 11 : Suboption8C, actual interleaving delay upstream.
+            Bit 12 : Suboption8D, maximum interleaving delay downstream.
+            Bit 13 : Suboption8E, actual interleaving delay downstream.
+            Bit 14 : Suboption90, data link type protocol."
+        SYNTAX      BITS {
+            suboption81(0),
+            suboption82(1),
+            suboption83(2),
+            suboption84(3),
+            suboption85(4),
+            suboption86(5),
+            suboption87(6),
+            suboption88(7),
+            suboption89(8),
+            suboption8A(9),
+            suboption8B(10),
+            suboption8C(11),
+            suboption8D(12),
+            suboption8E(13),
+            suboption90(14)
+        }
+         
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnPortIdPrfGlobalObjects
+-- 2. zxAnPortIdFormatPrfTable
+-- 3. zxAnPortIdCircuitIdSyntaxTable
+-- 4. zxAnPortIdOperatorPrfTable
+-- 5. zxAnPortIdVlanOperPrfConfTable
+-- 6. zxAnPortIdIfOperPrfConfTable
+
+-- Following conformance information is defined.
+-- 31. zxAnPortIdPrfConformance
+-------------------------------------------------------------------------------- 
+zxAnPortIdPrfGlobalObjects OBJECT IDENTIFIER  ::=  
+                                          { zxAnPortIdentificationProfileMib 1 }
+zxAnPortIdPrfObjects       OBJECT IDENTIFIER  ::=  
+                                          { zxAnPortIdentificationProfileMib 2 }
+
+--------------------------------------------------------------------------------
+-- 1. zxAnPortIdPrfGlobalObjects
+--------------------------------------------------------------------------------
+    zxAnPortIdSystemConfMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+            normal(1),
+            profile(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The port identification configuration mode of the system.
+                        
+             The following is the explanation of each value of variable 
+             zxAnPortIdSystemConfMode.
+             - normal(1):
+               the efficient configuration of port identification operation
+               is which configured under the interface mode, not by profile.
+             - profile(2):
+               the efficient configuration of port identification operation
+               is which configured by operator profile. The operator profile
+               is global applied, or applied in the interface, or applied in
+               the VLAN.
+               
+             The default value of variable zxAnPortIdSystemConfMode in each 
+             project maybe different.
+             C6XX only support profile(2)."
+        ::= { zxAnPortIdPrfGlobalObjects 1 }
+        
+    zxAnPortIdGlobalOperatorPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION  
+            "The operator profile name of port identification which is global
+             configured.
+                          
+             Size of the attribute is zero means not configured."
+        DEFVAL { "" }
+        ::={ zxAnPortIdPrfGlobalObjects 2 }
+        
+    zxAnPortIdCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            dhcpV6L2RAWorkMode(0),
+            portIdOperLanFormatPrf(1),
+            portIdOperDslDeprecated (2),
+            portIdOperRidConf(3),
+            portIdOperAlcTagConf(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The port identifacation capabilities of this equipment.
+            
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.            
+             - dhcpV6L2RAWorkMode(0): 
+               value 1 means supporting zxAnPortIdOperDhcpV6L2RAWorkMode.
+             - portIdOperLanFormatPrf(1):
+               value 1 means supporting zxAnPortIdOperLanFormatPrf.
+             - portIdOperDslDeprecated(2):
+               value 1 means unsupporting zxAnPortIdOperAtmFormatPrf,
+               zxAnPortIdOperPtmEtherFormatPrf, zxAnPortIdOperDhcpV4AlcTag,
+               zxAnPortIdOperPppoeAlcTag, zxAnPortIdOperRelaySessionId,
+               zxAnPortIdOperPppMaxPayLoad, zxAnPortIdOperDslfIwfPppoe,
+               zxAnPortIdIfConfAlcEnable.
+             - portIdOperRidConf(3):
+               value 1 means supporting zxAnPortIdOperDhcpV4RidEnable,
+               zxAnPortIdOperDhcpV4RidFormatPrf, zxAnPortIdOperDhcpV6RidEnable,
+               zxAnPortIdOperDhcpV6RidFormatPrf, zxAnPortIdOperPppoeRidEnable,
+               zxAnPortIdOperPppoeRidFormatPrf.
+             - portIdOperAlcTagConf(4):
+               value 1 means supporting zxAnPortIdOperDhcpV4AlcTag,
+               zxAnPortIdOperPppoeAlcTag, zxAnPortIdOperDhcpV6AlcTag, regardless 
+               of portIdOperDslDeprecated.
+            "
+        ::= { zxAnPortIdPrfGlobalObjects 3 }        
+        
+--------------------------------------------------------------------------------
+-- 2. zxAnPortIdFormatPrfTable
+-------------------------------------------------------------------------------- 
+    zxAnPortIdFormatPrfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPortIdFormatPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table contains information of the port identification format
+             profile configuration. One entry in this table reflects a format
+             profile defined by a manager."
+        ::= { zxAnPortIdPrfObjects 2 }
+        
+    zxAnPortIdFormatPrfEntry OBJECT-TYPE
+        SYNTAX      ZxAnPortIdFormatPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnPortIdFormatPrfTable, which is indexed by the
+             zxAnPortIdFormatPrfName.
+             
+             To create a format profile, variable zxAnPortIdFormatPrfRowStatus
+             must be included in one SNMP set operation."
+        INDEX       {zxAnPortIdFormatPrfName}
+        ::= { zxAnPortIdFormatPrfTable 1 }
+        
+    ZxAnPortIdFormatPrfEntry ::= SEQUENCE {
+        zxAnPortIdFormatPrfName         DisplayString,
+        zxAnPortIdFormatPrfRowStatus    RowStatus
+    }
+    
+    zxAnPortIdFormatPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION  
+           "A port identification format profile name."
+        ::= {zxAnPortIdFormatPrfEntry 1}
+        
+    zxAnPortIdFormatPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+                        
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'. 
+             
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the rule described in 
+             zxAnPortIdFormatPrfEntry.    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6).             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnPortIdFormatPrfEntry 50 }
+        
+--------------------------------------------------------------------------------
+-- 3. zxAnPortIdCircuitIdSyntaxTable
+--------------------------------------------------------------------------------
+    zxAnPortIdCircuitIdSyntaxTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnPortIdCircuitIdSyntaxEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "This table is to provide circuit ID syntax configuration. One entry
+             in this table reflects a syntax item define by a manager, which is
+             a component of a port identification format profile." 
+        ::= { zxAnPortIdPrfObjects 3 }
+    
+    zxAnPortIdCircuitIdSyntaxEntry OBJECT-TYPE 
+        SYNTAX      ZxAnPortIdCircuitIdSyntaxEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "An entry in zxAnPortIdCircuitIdSyntaxTable, which is index by the
+             zxAnPortIdFormatPrfName and zxAnPortIdCidComponentIndex.
+        
+            If zxAnPortIdCidComponentType is standardVar(1) or extendedVar(2),
+            zxAnPortIdCidComponentString can not be configured.
+            
+            If zxAnPortIdCidComponentType is separator(3),
+            zxAnPortIdCidComponentWidth and zxAnPortIdCidComponentString 
+            can not be configured.
+            
+            If zxAnPortIdCidComponentType is userDefinedString(4),
+            zxAnPortIdCidComponentId,zxAnPortIdCidComponentWidth 
+            can not be configured.
+             
+            After an entry is created, all variables can not be modified."
+        INDEX       { zxAnPortIdFormatPrfName, zxAnPortIdCidComponentIndex } 
+        ::= { zxAnPortIdCircuitIdSyntaxTable 1 }
+    
+    ZxAnPortIdCircuitIdSyntaxEntry ::= SEQUENCE {
+        zxAnPortIdCidComponentIndex         Integer32,
+        zxAnPortIdCidComponentType          INTEGER, 
+        zxAnPortIdCidComponentId            Integer32,
+        zxAnPortIdCidComponentWidth         Integer32,
+        zxAnPortIdCidComponentString        DisplayString,
+        zxAnPortIdCidComponentProfile       DisplayString,
+        zxAnPortIdCidComponentRowStatus     RowStatus
+    }
+        
+    zxAnPortIdCidComponentIndex OBJECT-TYPE
+        SYNTAX      Integer32(1..30)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A key that identifies a component in the circuit ID syntax of
+             a port identification format profile."
+        REFERENCE   "TR-141 Section 6.16"
+        ::= { zxAnPortIdCircuitIdSyntaxEntry 1 }        
+        
+    zxAnPortIdCidComponentType OBJECT-TYPE 
+        SYNTAX      INTEGER 
+        {   
+            standardVar(1),
+            extendedVar(2),
+            separator(3),
+            userDefinedString(4)
+        }
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "An attribute that identifies the type of this component.
+             The following types are possible:
+             standardVar - A TR-101 based variable(1: access node id,
+                           2: chassis, 3: rack, 4: frame, 5: slot,
+                           6: sub-slot, 7: port, 8: vpi, 9: vci, 10: q-vid,
+                           11: ethernet-priority)
+             extendedVar - A proprietary variable(1: onu id, 2: gemPort, 
+                           3: cvlan, 4: svlan, 5: sn, 6: loid, 7: loidpw,
+                           8: onu-number, 9: onu-info, 10: access-mode,
+                           11: access-node-type, 12: xpi, 13: xci, 14: vport,
+                           15: user-defined-cid, 16:src-mac, 17: onu-name, 
+                           18: user-defined-rid)
+             separator   - A delimiter (6: space)
+             userDefinedString - Information configured by the network operator.
+             "
+        REFERENCE   "TR-141 Section 6.16"
+        DEFVAL { standardVar }
+        ::= { zxAnPortIdCircuitIdSyntaxEntry 2 }
+        
+    zxAnPortIdCidComponentId OBJECT-TYPE 
+        SYNTAX      Integer32
+        MAX-ACCESS  read-create
+        STATUS      current 
+        DESCRIPTION 
+            "A unique and content sensitive identifier for the specific 
+             definition of this component. The following identifiers are
+             expected:
+             - A row number in table 2 of TR-101 (R-126).
+             - An index into a proprietary managed entity that specifies
+               possible proprietary variables.
+             - An index into a proprietary managed entity that specifies 
+               possible constant character strings."
+        REFERENCE   "TR-141 Section 6.16"
+        ::= { zxAnPortIdCircuitIdSyntaxEntry 3 }
+    
+    zxAnPortIdCidComponentWidth OBJECT-TYPE 
+        SYNTAX      Integer32(0..5)
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "The width of the port identification circuit ID syntax component. 
+            If the length of component is less than the width then fill zero in 
+            front of the component.
+            Value 0 means unconfigured."
+        DEFVAL { 0 }
+        ::= { zxAnPortIdCircuitIdSyntaxEntry 4 }
+
+    zxAnPortIdCidComponentString OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (0..50))
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Information configured by the network operator."
+        DEFVAL { "" }
+        ::= { zxAnPortIdCircuitIdSyntaxEntry 5 }
+        
+    zxAnPortIdCidComponentProfile OBJECT-TYPE 
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "At present, this object is the syntax profile of the ONU 
+            information. It is supported when the component is onu-info 
+            (when zxAnPortIdCidComponentType is extendedVar(2) and 
+            zxAnPortIdCidComponentType is onu-info(9)). 
+            The profile is also defined in zxAnPortIdFormatPrfTable. "
+        DEFVAL { "" }
+        ::= { zxAnPortIdCircuitIdSyntaxEntry 6 }
+
+    zxAnPortIdCidComponentRowStatus OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The status of this conceptual row.
+                        
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'. 
+             
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the rule described in 
+             zxAnPortIdCircuitIdSyntaxEntry.    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6).             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnPortIdCircuitIdSyntaxEntry 50 }
+        
+--------------------------------------------------------------------------------
+-- 4. zxAnPortIdOperatorPrfTable
+--------------------------------------------------------------------------------
+    zxAnPortIdOperatorPrfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPortIdOperatorPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table contains information of the port identification operator
+             profile configuration. One entry in this table reflects a operator
+             profile defined by a manager."
+        ::= { zxAnPortIdPrfObjects 4 }
+        
+    zxAnPortIdOperatorPrfEntry OBJECT-TYPE
+        SYNTAX      ZxAnPortIdOperatorPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnPortIdOperatorPrfTable, which is indexed by the
+             zxAnPortIdOperPrfName.
+             
+             To create an operator profile, variable zxAnPortIdOperPrfRowStatus
+             must be included in one SNMP set operation.
+             
+             After an entry is created, other variables in the table can be 
+             modified."
+        INDEX       {zxAnPortIdOperPrfName}
+        ::= { zxAnPortIdOperatorPrfTable 1 }
+        
+    ZxAnPortIdOperatorPrfEntry ::= SEQUENCE {
+        zxAnPortIdOperPrfName            DisplayString,
+        zxAnPortIdOperPonFormatPrf       DisplayString,
+        zxAnPortIdOperLanFormatPrf       DisplayString,         
+        zxAnPortIdOperDhcpV4L2RAEnable   INTEGER,
+        zxAnPortIdOperDhcpV4L2RATrust    TruthValue,
+        zxAnPortIdOperDhcpV4L2RAPolicy   INTEGER, 
+        zxAnPortIdOperDhcpV4AlcTag       ZxAnAccessLoopTagType,
+        zxAnPortIdOperDhcpV6L2RAEnable   INTEGER,
+        zxAnPortIdOperDhcpV6L2RATrust    TruthValue,
+        zxAnPortIdOperDhcpV6L2RAPolicy   INTEGER,
+        zxAnPortIdOperDhcpV6AlcTag       ZxAnAccessLoopTagType,        
+        zxAnPortIdOperPppoeIAEnable      INTEGER,
+        zxAnPortIdOperPppoeIATrust       TruthValue,
+        zxAnPortIdOperPppoeIAPolicy      INTEGER,
+        zxAnPortIdOperPppoeAlcTag        ZxAnAccessLoopTagType,
+        zxAnPortIdOperDhcpV6L2RAWorkMode INTEGER,
+        zxAnPortIdOperDhcpV4RidEnable    INTEGER,
+        zxAnPortIdOperDhcpV4RidFormatPrf DisplayString,
+        zxAnPortIdOperDhcpV6RidEnable    INTEGER,
+        zxAnPortIdOperDhcpV6RidFormatPrf DisplayString,
+        zxAnPortIdOperPppoeRidEnable     INTEGER,
+        zxAnPortIdOperPppoeRidFormatPrf  DisplayString,
+        zxAnPortIdOperPrfRowStatus       RowStatus
+    }
+    
+    zxAnPortIdOperPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION  
+           "A port identification operator profile name."
+        ::= {zxAnPortIdOperatorPrfEntry 1}
+    
+    zxAnPortIdOperPonFormatPrf OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..32))
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Format profile of port identification applied while the access
+             node type is pon."
+        DEFVAL { "CHINA-TELECOM-PON" }
+        ::= { zxAnPortIdOperatorPrfEntry 4 } 
+        
+    zxAnPortIdOperLanFormatPrf OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..32))
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Format profile of port identification applied while the access
+             node type is PTP."
+        DEFVAL { "CHINA-TELECOM-DSL" }
+        ::= { zxAnPortIdOperatorPrfEntry 5 } 
+    
+    zxAnPortIdOperDhcpV4L2RAEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),    
+            disabled(2)                                      
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+           "The operator profile switch used to activate or deactivate interface
+            DHCPv4 layer-2 relay agent.
+            
+            There are two states:
+            - enabled: the DHCPv4 layer-2 relay agent is activated.
+            - disabled: the DHCPv4 layer-2 relay agent is deactivated."
+        DEFVAL      { disabled }          
+        ::= { zxAnPortIdOperatorPrfEntry 11 }
+    
+    zxAnPortIdOperDhcpV4L2RATrust OBJECT-TYPE 
+        SYNTAX      TruthValue 
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "DHCPv4 layer-2 relay agent trust flag of the operator profile. 
+            
+             To set this variable, it must be in one SNMP set operation together
+             with variable zxAnPortIdOperDhcpV4L2RAPolicy."
+        DEFVAL      { false }
+        ::= { zxAnPortIdOperatorPrfEntry 12 }
+        
+    zxAnPortIdOperDhcpV4L2RAPolicy OBJECT-TYPE 
+        SYNTAX      INTEGER 
+        {
+            keep(1), 
+            replace(2), 
+            discard(3), 
+            add(4)
+        }
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "DHCPv4 layer-2 relay agent trust policy of the operator profile.
+             
+             To set this variable, it must be in one SNMP set operation together
+             with variable zxAnPortIdOperDhcpV4L2RATrust.
+             
+             In addition, a manager must comply with the following rules:
+             - when trust flag is true, policy can be set to keep or replace, 
+             - when trust flag is false, policy can be set to discard or add."
+        DEFVAL      { add }
+        ::= { zxAnPortIdOperatorPrfEntry 13 } 
+        
+    zxAnPortIdOperDhcpV4AlcTag OBJECT-TYPE 
+        SYNTAX      ZxAnAccessLoopTagType
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Access loop characteristics of DHCPv4 supported by this operator 
+             profile. The bit value 1 means the suboption represented by this
+             bit is supported. It used only by DHCPv4."
+        ::= { zxAnPortIdOperatorPrfEntry 14 }
+
+    zxAnPortIdOperDhcpV6L2RAEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),    
+            disabled(2)                                      
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+           "The operator profile switch used to activate or deactivate interface
+            DHCPv6 layer-2 relay agent.
+            
+            There are two states:
+            - enabled: the DHCPv6 layer-2 relay agent is activated.
+            - disabled: the DHCPv6 layer-2 relay agent is deactivated."
+        DEFVAL      { disabled }          
+        ::= { zxAnPortIdOperatorPrfEntry 21 }
+    
+    zxAnPortIdOperDhcpV6L2RATrust OBJECT-TYPE 
+        SYNTAX      TruthValue 
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "DHCPv6 layer-2 relay agent trust flag of the operator profile. 
+            
+             To set this variable, it must be in one SNMP set operation together
+             with variable zxAnPortIdOperDhcpV6L2RAPolicy."
+        DEFVAL      { false }
+        ::= { zxAnPortIdOperatorPrfEntry 22 }
+        
+    zxAnPortIdOperDhcpV6L2RAPolicy OBJECT-TYPE 
+        SYNTAX      INTEGER 
+        {
+            keep(1), 
+            replace(2), 
+            discard(3), 
+            add(4)
+        }
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "DHCPv6 layer-2 relay agent trust policy of the operator profile.
+             
+             To set this variable, it must be in one SNMP set operation together
+             with variable zxAnPortIdOperDhcpV6L2RATrust.
+             
+             In addition, a manager must comply with the following rules:
+             - when trust flag is true, policy can be set to keep or replace, 
+             - when trust flag is false, policy can be set to discard or add."
+        DEFVAL      { add }
+        ::= { zxAnPortIdOperatorPrfEntry 23 }
+        
+    zxAnPortIdOperDhcpV6AlcTag OBJECT-TYPE 
+        SYNTAX      ZxAnAccessLoopTagType
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Access loop characteristics of DHCPv6 supported by this operator 
+             profile. The bit value 1 means the suboption represented by this
+             bit is supported. It used by DHCPv6 at relay mode."
+        ::= { zxAnPortIdOperatorPrfEntry 24 }
+        
+    zxAnPortIdOperPppoeIAEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),    
+            disabled(2)                                      
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+           "The operator profile switch used to activate or deactivate interface
+            PPPoE intermediate agent.
+            
+            There are two states:
+            - enabled: the PPPoE intermediate agent is activated.
+            - disabled: the PPPoE intermediate agent is deactivated."
+        DEFVAL      { disabled }          
+        ::= { zxAnPortIdOperatorPrfEntry 31 }
+    
+    zxAnPortIdOperPppoeIATrust OBJECT-TYPE 
+        SYNTAX      TruthValue 
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "PPPoE intermediate agent trust flag of the operator profile. 
+            
+             To set this variable, it must be in one SNMP set operation together
+             with variable zxAnPortIdOperPppoeIAPolicy."
+        DEFVAL      { false }
+        ::= { zxAnPortIdOperatorPrfEntry 32 }
+        
+    zxAnPortIdOperPppoeIAPolicy OBJECT-TYPE 
+        SYNTAX      INTEGER 
+        {
+            keep(1), 
+            replace(2), 
+            discard(3), 
+            add(4)
+        }
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "PPPoE intermediate agent trust policy of the operator profile.
+             
+             To set this variable, it must be in one SNMP set operation together
+             with variable zxAnPortIdOperPppoeIATrust.
+             
+             In addition, a manager must comply with the following rules:
+             - when trust flag is true, policy can be set to keep or replace, 
+             - when trust flag is false, policy can be set to discard or add."
+        DEFVAL      { add }
+        ::= { zxAnPortIdOperatorPrfEntry 33 } 
+        
+    zxAnPortIdOperPppoeAlcTag OBJECT-TYPE 
+        SYNTAX      ZxAnAccessLoopTagType
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Access loop characteristics of PPPoE supported by this operator 
+             profile. The bit value 1 means the suboption represented by this
+             bit is supported.It used by PPPoE and PPPoA."
+        ::= { zxAnPortIdOperatorPrfEntry 34 }
+        
+    zxAnPortIdOperDhcpV6L2RAWorkMode OBJECT-TYPE 
+        SYNTAX      INTEGER {   
+            noLdra(1),
+            ldra(2),
+            invalid(255)
+            }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "DHCPv6 layer 2 relay agent work mode of the profile.
+             LDRA means the protocol RFC6221(Lightweight DHCPv6 Relay Agent).
+             noLdra:  The format of the relay messages do not meet 
+                      RFC6221 standards. 
+             ldra:    The format of the relay messages meet RFC6221 standards.
+             invalid: The format of the relay message is configured by 
+                      zxAnDhcpV6L2RAWorkMode."
+        DEFVAL { invalid }
+        ::= { zxAnPortIdOperatorPrfEntry 38} 
+        
+   zxAnPortIdOperDhcpV4RidEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),    
+            disabled(2)                                      
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+           "The operator profile switch used to enable or disable remote ID 
+            while the protocol type is DHCPv4."
+        DEFVAL      { disabled }          
+        ::= { zxAnPortIdOperatorPrfEntry 40 }
+        
+   zxAnPortIdOperDhcpV4RidFormatPrf OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..32))
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Format profile of remote ID applied while the protocol type is 
+             DHCPv4."             
+        ::= { zxAnPortIdOperatorPrfEntry 41 }
+        
+   zxAnPortIdOperDhcpV6RidEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),    
+            disabled(2)                                      
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+           "The operator profile switch used to enable or disable remote ID 
+            while the protocol type is DHCPv6."
+        DEFVAL      { disabled }          
+        ::= { zxAnPortIdOperatorPrfEntry 42 }
+        
+   zxAnPortIdOperDhcpV6RidFormatPrf OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..32))
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Format profile of remote ID applied while the protocol type is 
+             DHCPv6."             
+        ::= { zxAnPortIdOperatorPrfEntry 43 }
+        
+   zxAnPortIdOperPppoeRidEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),    
+            disabled(2)                                      
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+           "The operator profile switch used to enable or disable remote ID 
+            while the protocol type is PPPoE."
+        DEFVAL      { disabled }          
+        ::= { zxAnPortIdOperatorPrfEntry 44 }
+        
+   zxAnPortIdOperPppoeRidFormatPrf OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..32))
+        MAX-ACCESS  read-create 
+        STATUS      current 
+        DESCRIPTION 
+            "Format profile of remote ID applied while the protocol type is 
+             PPPoE."           
+        ::= { zxAnPortIdOperatorPrfEntry 45 }
+        
+    zxAnPortIdOperPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+                        
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'. 
+             
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the rule described in 
+             zxAnPortIdOperatorPrfEntry.    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6).             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnPortIdOperatorPrfEntry 100 }
+        
+--------------------------------------------------------------------------------
+-- 5. zxAnPortIdVlanOperPrfConfTable
+--------------------------------------------------------------------------------
+    zxAnPortIdVlanOperPrfConfTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnPortIdVlanOperPrfConfEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "This table is to provide the VLAN operator profile configuration. 
+             One entry in this table reflects an operator profile has been 
+             applied to one VLAN." 
+        ::= { zxAnPortIdPrfObjects 5 }
+    
+    zxAnPortIdVlanOperPrfConfEntry OBJECT-TYPE 
+        SYNTAX      ZxAnPortIdVlanOperPrfConfEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "An entry in zxAnPortIdVlanOperPrfConfTable, which is indexed by
+             the zxAnPortIdVid.
+             
+             To create an entry, variables zxAnPortIdVlanOperPrf and 
+             zxAnPortIdVlanOperPrfRowStatus must be included in one SNMP set 
+             operation.
+             
+             After an entry is created, variable zxAnPortIdVlanOperPrf can
+             be modified."
+        INDEX       { zxAnPortIdVid } 
+        ::= { zxAnPortIdVlanOperPrfConfTable 1 }
+    
+    ZxAnPortIdVlanOperPrfConfEntry ::= SEQUENCE {
+        zxAnPortIdVid                       Integer32,
+        zxAnPortIdVlanOperPrf               DisplayString,
+        zxAnPortIdVlanOperPrfRowStatus      RowStatus
+    }
+
+    zxAnPortIdVid OBJECT-TYPE
+        SYNTAX      Integer32(1..4094)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The VLAN to which an operator profile of port identification can be
+             applied."        
+        ::= { zxAnPortIdVlanOperPrfConfEntry 1 } 
+        
+    zxAnPortIdVlanOperPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+           "A port identification operator profile name."
+        ::= {zxAnPortIdVlanOperPrfConfEntry 2}
+           
+    zxAnPortIdVlanOperPrfRowStatus OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current        
+        DESCRIPTION 
+            "The status of this conceptual row.
+                        
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'. 
+             
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the rule described in 
+             zxAnPortIdVlanOperPrfConfEntry.    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6).             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnPortIdVlanOperPrfConfEntry 50 }
+        
+--------------------------------------------------------------------------------
+-- 6. zxAnPortIdIfOperPrfConfTable
+--------------------------------------------------------------------------------
+    zxAnPortIdIfOperPrfConfTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnPortIdIfOperPrfConfEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "This table is to provide the interface operator profile 
+            configuration. One entry in this table reflects an operator 
+            profile has been applied to an interface." 
+        ::= { zxAnPortIdPrfObjects 6 }
+    
+    zxAnPortIdIfOperPrfConfEntry OBJECT-TYPE 
+        SYNTAX      ZxAnPortIdIfOperPrfConfEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "An entry in zxAnPortIdIfOperPrfConfTable, which is indexed by the
+             ifindex and zxAnSubIfIndex.
+             
+             To create an entry, variables zxAnPortIdIfOperPrf and
+             zxAnPortIdIfOperPrfRowStatus must be included in one SNMP set 
+             operation.
+             
+             After an entry is created, variable zxAnPortIdIfOperPrf can be 
+             modified."
+        INDEX       { ifIndex, zxAnSubIfIndex } 
+        ::= { zxAnPortIdIfOperPrfConfTable 1 }
+    
+    ZxAnPortIdIfOperPrfConfEntry ::= SEQUENCE {
+        zxAnPortIdIfOperPrf               DisplayString,
+        zxAnPortIdIfOperPrfRowStatus      RowStatus
+    }
+        
+    zxAnPortIdIfOperPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+           "A port identification operator profile name."
+        ::= {zxAnPortIdIfOperPrfConfEntry 1}
+           
+    zxAnPortIdIfOperPrfRowStatus OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current        
+        DESCRIPTION 
+            "The status of this conceptual row.
+                        
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'. 
+             
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the rule described in 
+             zxAnPortIdIfOperPrfConfEntry.    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6).             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnPortIdIfOperPrfConfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 31. zxAnPortIdPrfConformance
+--------------------------------------------------------------------------------
+zxAnPortIdPrfConformance  OBJECT IDENTIFIER ::= 
+                                          {zxAnPortIdentificationProfileMib 4}   
+
+zxAnPortIdPrfCompliances  OBJECT IDENTIFIER ::= { zxAnPortIdPrfConformance 1 }
+zxAnPortIdPrfGroups       OBJECT IDENTIFIER ::= { zxAnPortIdPrfConformance 2 }
+
+    zxAnPortIdPrfCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-PORT-IDENTIFICATION-PROFILE-MIB."
+        MODULE -- this module        
+            MANDATORY-GROUPS {
+                zxAnPortIdSystemConfModeGroup,
+                zxAnPortIdGlobalOperatorPrfGroup,
+                zxAnPortIdFormatPrfGroup,
+                zxAnPortIdCircuitIdSyntaxGroup,
+                zxAnPortIdOperatorPrfGroup,
+                zxAnPortIdVlanOperPrfConfGroup,
+                zxAnPortIdIfOperPrfConfGroup
+            }
+        ::= { zxAnPortIdPrfCompliances 1 }
+
+    zxAnPortIdSystemConfModeGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdSystemConfMode
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing information of port 
+             identification configuration mode in the system."
+        ::= { zxAnPortIdPrfGroups 1 }
+        
+    zxAnPortIdGlobalOperatorPrfGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdGlobalOperatorPrf
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing information of the port 
+             identification operator profile which is global applied."
+        ::= { zxAnPortIdPrfGroups 2 }  
+       
+    zxAnPortIdFormatPrfGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdFormatPrfRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing information of the port
+             identifiction format profile."
+        ::= { zxAnPortIdPrfGroups 3 }
+       
+    zxAnPortIdCircuitIdSyntaxGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdCidComponentType, 
+            zxAnPortIdCidComponentId,
+            zxAnPortIdCidComponentWidth,
+            zxAnPortIdCidComponentString,
+            zxAnPortIdCidComponentRowStatus        
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing information of the circuit ID
+             syntax item of each format profile."
+        ::= { zxAnPortIdPrfGroups 4 }
+        
+    zxAnPortIdOperatorPrfGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdOperPonFormatPrf,                       
+            zxAnPortIdOperDhcpV4L2RAEnable,
+            zxAnPortIdOperDhcpV4L2RATrust,
+            zxAnPortIdOperDhcpV4L2RAPolicy,
+            zxAnPortIdOperDhcpV4AlcTag,
+            zxAnPortIdOperDhcpV6L2RAEnable,
+            zxAnPortIdOperDhcpV6L2RATrust,
+            zxAnPortIdOperDhcpV6L2RAPolicy,
+            zxAnPortIdOperPppoeIAEnable,
+            zxAnPortIdOperPppoeIATrust,
+            zxAnPortIdOperPppoeIAPolicy,
+            zxAnPortIdOperPppoeAlcTag,
+            zxAnPortIdOperPrfRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing information of the port
+             identifiction operator profile."
+        ::= { zxAnPortIdPrfGroups 5 }
+        
+    zxAnPortIdVlanOperPrfConfGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdVlanOperPrf,
+            zxAnPortIdVlanOperPrfRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing the operator profile information
+             of the VLAN."
+        ::= { zxAnPortIdPrfGroups 6 }
+
+    zxAnPortIdIfOperPrfConfGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnPortIdIfOperPrf,
+            zxAnPortIdIfOperPrfRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing the operator profile information
+             of the interface."
+        ::= { zxAnPortIdPrfGroups 7 }
+END

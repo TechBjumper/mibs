@@ -1,0 +1,91 @@
+ZTE-AN-DHCP-FILTER-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE     FROM SNMPv2-SMI
+    MODULE-COMPLIANCE,OBJECT-GROUP   FROM SNMPv2-CONF
+    RowStatus             FROM SNMPv2-TC     
+    zxAnServiceSecurity   FROM ZTE-AN-SMI
+    VlanId                FROM ZTE-AN-TC-MIB;   
+    
+    zxAnDhcpFilterMib MODULE-IDENTITY
+        LAST-UPDATED    "201709250000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Lu JunXiong
+                         Mail: 
+                         Tel : "
+        DESCRIPTION     "The MIB module for the management of 
+                         DHCP filter configuration." 
+        REVISION        "201709250000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= { zxAnServiceSecurity 42 }
+ 
+-------------------------------------------------------------------------------- 
+-- Following management objects are defined.
+
+-- 1. DHCP Filter Objects
+-- 1.1 IPv4 DHCP Filter VLAN Table
+--------------------------------------------------------------------------------
+ 
+    zxAnDhcpFilterObjects   OBJECT IDENTIFIER ::= { zxAnDhcpFilterMib 2 }
+    zxAnDhcpV4FilterObjects OBJECT IDENTIFIER ::= { zxAnDhcpFilterObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 1.1 IPv4 DHCP Filter VLAN Table
+--------------------------------------------------------------------------------
+
+    zxAnDsDhcpV4FilterVlanTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDsDhcpV4FilterVlanEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "IPv4 DHCP packets filter table based on VLAN.
+            
+             When a VLAN is created in a device supporting this
+             table, a corresponding entry of this table will be added.
+            
+             When a VLAN is destroyed in a device supporting this
+             table, a corresponding entry of this table will be deleted." 
+        ::= { zxAnDhcpV4FilterObjects 2 }
+    
+    zxAnDsDhcpV4FilterVlanEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDsDhcpV4FilterVlanEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "IPv4 DHCP packets filter entry"
+        INDEX { zxAnDsDhcpV4FilterVid } 
+        ::= { zxAnDsDhcpV4FilterVlanTable 1 }
+    
+    ZxAnDsDhcpV4FilterVlanEntry ::= SEQUENCE {
+        zxAnDsDhcpV4FilterVid            VlanId,
+        zxAnDsDhcpV4FilterVlanRowStatus  RowStatus
+        }
+ 
+    zxAnDsDhcpV4FilterVid    OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the VLAN number on which 
+             IPv4 DHCP packets filter feature is configured." 
+        ::= { zxAnDsDhcpV4FilterVlanEntry 1 }
+    
+    zxAnDsDhcpV4FilterVlanRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object is used to manage the creation and deletion
+             of rows in this table. It only supports 'active(1)'
+             ,'createAndGo(4)'and 'destroy(6)' value.
+                
+             If this object is set to 'createAndGo(4)', the VLAN 
+             number on which IPv4 DHCP packets filter is active(1).
+                
+             Setting this object value to destroy(6),
+             the VLAN number on which IPv4 DHCP packets filter is deleted."
+        ::= { zxAnDsDhcpV4FilterVlanEntry 50 }
+
+
+END

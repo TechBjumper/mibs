@@ -1,0 +1,81 @@
+ZTE-AN-PPPOE-INTERMEDIATE-AGENT-MIB DEFINITIONS ::= BEGIN 
+IMPORTS 
+    OBJECT-TYPE, MODULE-IDENTITY, Integer32     FROM SNMPv2-SMI 
+    OBJECT-GROUP, NOTIFICATION-GROUP,MODULE-COMPLIANCE
+                                                FROM SNMPv2-CONF
+    RowStatus, TruthValue                       FROM SNMPv2-TC                                            
+    ifIndex                                     FROM IF-MIB
+    zxAnServiceSecurity                         FROM ZTE-AN-SMI
+    zxAnSubIfIndex                              FROM ZTE-AN-IF-MIB;
+    
+    zxAnPppoeIAMib   MODULE-IDENTITY 
+        LAST-UPDATED    "201106161030Z"  -- June 16th, 2011
+        ORGANIZATION    "zte Telcom Co. Ltd."
+        CONTACT-INFO    "E-mail: chen.liang35@zte.com.cn"
+        DESCRIPTION     "This MIB defines PPPoE Intermediate Agent managed objects for Access Node."
+        ::= { zxAnServiceSecurity 55 }
+ 
+    zxAnPppoeIAObjects              OBJECT IDENTIFIER ::= {zxAnPppoeIAMib 2}
+
+--------------------------------------------------------------------------------
+-- 1. Global Objects
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--2. Pppoe Intermediate Agent Vlan Table 
+--------------------------------------------------------------------------------
+        
+     zxAnPppoeIAVlanTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnPppoeIAVlanEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+        "Pppoe vlan switch table. When PPPoE Intermediate Agent function on the vlan is enabled, 
+         the pppoe packets with this vlan will be processed." 
+        ::= { zxAnPppoeIAObjects 1 }
+    
+    zxAnPppoeIAVlanEntry OBJECT-TYPE 
+        SYNTAX      ZxAnPppoeIAVlanEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+        ""
+        INDEX { zxAnPppoeIAVid} 
+        ::= { zxAnPppoeIAVlanTable 1 }
+    
+    ZxAnPppoeIAVlanEntry ::= SEQUENCE {
+        zxAnPppoeIAVid                Integer32,
+        zxAnPppoeIAVlanRowStatus      RowStatus
+        }
+
+    zxAnPppoeIAVid     OBJECT-TYPE
+        SYNTAX         Integer32
+        MAX-ACCESS     not-accessible
+        STATUS      current
+        DESCRIPTION
+        "The vlan on which the PPPoE Intermediate Agent function is enabled or disabled."        
+        ::= { zxAnPppoeIAVlanEntry 1 }
+           
+    zxAnPppoeIAVlanRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current        
+        DESCRIPTION 
+        "The row status of this entry."
+        ::= { zxAnPppoeIAVlanEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 31. zxAnPppoeIAConformance
+--------------------------------------------------------------------------------
+
+zxAnPppoeIAConformance          OBJECT IDENTIFIER ::= {zxAnPppoeIAMib 4}
+
+zxAnPppoeIACompliances      OBJECT IDENTIFIER ::= {zxAnPppoeIAConformance 1}
+zxAnPppoeIAGroups           OBJECT IDENTIFIER ::= {zxAnPppoeIAConformance 2}
+
+
+-- Note: the global variables and table variables in group, which have to be implemented by access node.
+        
+        
+-- Note: the following trap groups have to be implemented by access node.
+   
+END

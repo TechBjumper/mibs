@@ -1,0 +1,469 @@
+ZTE-AN-MAC-ANTI-SPOOFING-MIB    DEFINITIONS ::= BEGIN
+    IMPORTS     
+        MODULE-IDENTITY, OBJECT-TYPE,
+        NOTIFICATION-TYPE, Integer32                   FROM SNMPv2-SMI
+        MacAddress                                     FROM SNMPv2-TC
+        zxAnServiceSecurity                            FROM ZTE-AN-SMI
+        ZxAnSubIfIndex                                 FROM ZTE-AN-TC-MIB  
+        ifIndex                                        FROM IF-MIB
+        zxAnSubIfIndex                                 FROM ZTE-AN-IF-MIB
+        OBJECT-GROUP, NOTIFICATION-GROUP,MODULE-COMPLIANCE
+                                                       FROM SNMPv2-CONF;
+
+
+    zxAnMasMib    MODULE-IDENTITY
+        LAST-UPDATED    "201403070000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Huang XuRui  ZTE Corporation
+                         Mail: huang.xurui@zte.com.cn
+                         Tel : +86-21-68897477
+                  
+                         Yu XiaoXing ZTE Corporation
+                         Mail: yu.xiaoxing@zte.com.cn
+                         Tel : +86-21-68897477"        
+        DESCRIPTION
+            "This MIB defines mac-anti-spoofing objects of zte Access Node,
+             Mas means mac-anti-spoofing."
+
+        REVISION        "201403070000Z"
+        DESCRIPTION
+            "The modification of this mib file is following:
+               - add the object named zxAnMasUserSideMacMoveEnable."
+
+        REVISION        "201108270000Z"
+        DESCRIPTION
+            "The modification of this mib file is following:
+               - modify the description of some variables."
+
+        REVISION        "201108190000Z"
+        DESCRIPTION
+            "The modification of this mib file is following:
+               - modify the default value as enable of zxAnMasEnable."
+        ::=  {  zxAnServiceSecurity  20  }
+------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1. zxAnMasGlobalObjects
+-- 2. zxAnMasObjects
+-- 2.1 zxAnMasMacMoveObjects
+-- 2.1.1 zxAnMasMacMoveGlbObjects
+-- 2.1.2 zxAnMasMacMoveLogTable
+-- 2.2 zxAnMasIfConfTable
+-- 3. zxAnMasNotifications
+-- 3.1. zxAnMasMacMoveTraps
+-- 4. zxAnMasConformance
+------------------------------------------------------------------------------
+                          
+        zxAnMasGlobalObjects    OBJECT IDENTIFIER ::= {zxAnMasMib 1}
+        zxAnMasObjects          OBJECT IDENTIFIER ::= {zxAnMasMib 2}
+        zxAnMasNotifications    OBJECT IDENTIFIER ::= {zxAnMasMib 3}
+
+        zxAnMasMacMoveObjects   OBJECT IDENTIFIER ::= {zxAnMasObjects 1}
+        zxAnMasIfObjects     OBJECT IDENTIFIER ::= {zxAnMasObjects 2}
+        zxAnMasMacMoveTraps     OBJECT IDENTIFIER ::= {zxAnMasNotifications 1}
+   
+                         
+------------------------------------------------------------------------------
+-- 1. zxAnMasGlobalObjects
+------------------------------------------------------------------------------   
+    
+    zxAnMasEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+             "Enable or disable MAC-anti-spoofing(Mas)."
+        DEFVAL  { disabled }                   
+        ::= { zxAnMasGlobalObjects 1 }
+        
+    zxAnMasUplinkProtectEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable global uplink-protect status.When zxAnMasEnable
+             is enable, this value is valid.
+             As follows are the combination of zxAnMasEnable and 
+             zxAnMasUplinkProtectEnable:
+             1) zxAnMasEnable is disabled, then MAC move can happen and won't be 
+                forbidden by the system.
+             2) zxAnMasEnable is enable and zxAnMasUplinkProtectEnable is
+                enabled, then MAC move between user-port is forbidden, MAC can
+                move from user-port to uplink-port and MAC can move between 
+                two uplink-port, can't move from uplink-port to user-port.
+                This combination is the recommended configure.
+             3) zxAnMasEnable is enable and zxAnMasUplinkProtectEnable is
+                disabled, then any MAC move will be forbidden by the system.
+             4)Only supports C3XX, not supports C6XX."
+        DEFVAL { enabled }                   
+        ::= { zxAnMasGlobalObjects 2 }
+
+    zxAnMasUserSideMacMoveEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable user-side MAC address moving function. When 
+             zxAnMasEnable and zxAnMasUplinkProtectEnable are all enabled, 
+             zxAnMasUserSideMacMoveEnable is activated. 
+             enabled(1)  - MAC address can move between user ports, but can't 
+                           move from uplink port to user port.
+             disabled(2) - MAC address can't move between user ports.
+             Only supports C3XX, not supports C6XX."
+        DEFVAL  { disabled }
+        ::= { zxAnMasGlobalObjects 3 }
+        
+    zxAnMasMacMovePermitVlanList OBJECT-TYPE
+        SYNTAX      OCTET STRING (SIZE(512))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "MAC-anti-spoofing(Mas) VLAN ID list for permitting MAC address
+             moving.
+
+             |  Byte 0   |  Byte 1   |  Byte 2   |  Byte 3   ...   Byte 512   |
+             +-----------+-----------+-----------+-----------...--------------+
+             |  BitMap   |  BitMap   |  BitMap   |  BitMap   ...   BitMap     |
+             | VLAN 0-7  | VLAN8-15  | VLAN16-23 | VLAN24-31 ...VLAN4088-4095 |
+             +-----------+-----------+-----------+-----------...--------------+
+
+             If one bit is set to '1', the corresponding VLAN ID is configured
+             to permit MAC address moving.
+             VLAN 0 and VLAN 4095 are invalid, so bit 0 and bit 4095 must be
+             always '0'.
+             
+             This object is effective only when zxAnMasEnable is enabled."
+        ::= { zxAnMasGlobalObjects 4 }
+        
+--------------------------------------------------------------------------------
+-- 2. zxAnMasObjects
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- 2.1 zxAnMasMacMoveObjects
+--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+-- 2.1.1 zxAnMasMacMoveGlbObjects
+------------------------------------------------------------------------------  
+
+    zxAnMasMacMoveGlbObjects   OBJECT IDENTIFIER 
+                                               ::= {zxAnMasMacMoveObjects 1} 
+    
+    zxAnMasMacMoveReportEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+             "Enable or disable MAC move notification report control.
+              The related notification group is zxAnMasMacMoving and
+              zxAnMasMacMoveForbidden.
+              When zxAnMasMacMoveReportEnable is disabled, the system
+              can't detect any MAC move.
+              When zxAnMasMacMoveReportEnable is enabled, the system
+              can detect MAC move.A MAC move can be detected by main-card
+              or user-card and will be recorded as a MAC move log.
+              Based on the MAC move log, a MAC move notification will be
+              reported to NMS."
+        DEFVAL { enabled }                   
+        ::= { zxAnMasMacMoveGlbObjects 1 }
+        
+    zxAnMasMacMoveReportInterval OBJECT-TYPE
+        SYNTAX      Integer32(1..300)
+        UNITS       "minute"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The report interval of the same MAC move notification.When 
+             zxAnMasMacMoveReportEnable is enable and a MAC move is
+             detected by system, the system will record a MAC move log.
+             The first time this MAC move log will be reported to NMS in 5
+             seconds,later this same MAC move log will be reported to NMS
+             after the defined zxAnMasMacMoveReportInterval."
+        DEFVAL {  30  }
+        ::= { zxAnMasMacMoveGlbObjects 2 }
+        
+------------------------------------------------------------------------------
+-- 2.1.2. zxAnMasMacMoveLogTable
+------------------------------------------------------------------------------
+  
+    zxAnMasMacMoveLogTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF ZxAnMasMacMoveLogEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "A table that contains the MAC move information."
+        ::= { zxAnMasMacMoveObjects  2 }
+    
+    zxAnMasMacMoveLogEntry OBJECT-TYPE
+        SYNTAX  ZxAnMasMacMoveLogEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "This table contains information about a specific MAC move log.
+             When a MAC move is detected by the system, it will be recorded
+             as a MAC move log."
+        INDEX   {zxAnMasMacMoveLogIndex}
+        ::= { zxAnMasMacMoveLogTable 1 }
+    
+    ZxAnMasMacMoveLogEntry ::= SEQUENCE {
+        zxAnMasMacMoveLogIndex            Integer32,
+        zxAnMasMacMoveLogMacAddr          MacAddress,
+        zxAnMasMacMoveLogVid              Integer32,
+        zxAnMasMacMoveLogFromIfIndex      Integer32,
+        zxAnMasMacMoveLogFromSubIfIndex   ZxAnSubIfIndex,
+        zxAnMasMacMoveLogToIfIndex        Integer32,
+        zxAnMasMacMoveLogToSubIfIndex     ZxAnSubIfIndex
+        }
+
+    zxAnMasMacMoveLogIndex OBJECT-TYPE
+        SYNTAX  Integer32 (1..2147483647)
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "The index of a specific MAC move log.The system will store
+             at most 256 different MAC move logs in current."
+        ::= { zxAnMasMacMoveLogEntry 1 }
+
+    zxAnMasMacMoveLogMacAddr OBJECT-TYPE
+        SYNTAX  MacAddress
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "This value indicates the MAC address that move between
+              zxAnMasMacMoveLogFromIfIndex and zxAnMasMacMoveLogToIfIndex on 
+              zxAnMasMacMoveLogVid. This object is instantiated only when 
+              zxAnMasMacMoveReportEnable value is set to enable(1) and a MAC 
+              move is detected by the MAC move notification feature."
+        ::= { zxAnMasMacMoveLogEntry 2 }        
+                    
+    zxAnMasMacMoveLogVid OBJECT-TYPE
+        SYNTAX  Integer32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "This value indicates the VLAN on which the
+              zxAnMasMacMoveLogMacAddr is moving.This object is instantiated
+              only when zxAnMasMacMoveReportEnable value is set to enable(1)
+              and a MAC move is detected by the MAC move notification feature."
+        ::= { zxAnMasMacMoveLogEntry 3 }  
+                  
+    zxAnMasMacMoveLogFromIfIndex OBJECT-TYPE
+        SYNTAX  Integer32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "The value of the port from which the zxAnMasMacMoveLogMacAddr
+              is moving on zxAnMasMacMoveLogVid. 
+              This object is instantiated only when zxAnMasEnable and 
+              zxAnMasMacMoveReportEnable value is set to enable(1) and a MAC
+              move is detected by the MAC move notification feature."
+        ::= { zxAnMasMacMoveLogEntry 4 }  
+        
+    zxAnMasMacMoveLogFromSubIfIndex OBJECT-TYPE
+        SYNTAX  ZxAnSubIfIndex
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "The value of the sub-port from which the zxAnMasMacMoveLogMacAddr 
+              is moving on zxAnMasMacMoveLogVid.This object is instantiated
+              only when zxAnMasMacMoveReportEnable value is set to enable(1)
+              and a MAC move is detected by the MAC move notification feature."
+        ::= { zxAnMasMacMoveLogEntry 5 }  
+        
+    zxAnMasMacMoveLogToIfIndex OBJECT-TYPE
+        SYNTAX  Integer32
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "The value of the port to which the zxAnMasMacMoveLogMacAddr
+              is moving on zxAnMasMacMoveLogVid.This object is instantiated
+              only when zxAnMasMacMoveReportEnable value is set to enable(1)
+              and a MAC move is detected by the MAC move notification feature."
+        ::= { zxAnMasMacMoveLogEntry 6 }  
+        
+    zxAnMasMacMoveLogToSubIfIndex  OBJECT-TYPE 
+        SYNTAX  ZxAnSubIfIndex
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+             "The value of the sub-port to which the zxAnMasMacMoveLogMacAddr
+              is moving on zxAnMasMacMoveLogVid. This object is instantiated
+              only when zxAnMasMacMoveReportEnable value is set to enable(1)
+              and a MAC move is detected by the MAC move notification feature."
+        ::=  {  zxAnMasMacMoveLogEntry 7 }   
+          
+
+                                   
+-------------------------------------------------------------------------------
+-- 2.2 zxAnMasIfConfTable
+-------------------------------------------------------------------------------
+
+    zxAnMasIfConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMasIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MAC-anti-spoofing(Mas) trust configuration for permitting MAC
+             address moving based on interface table."
+        ::= { zxAnMasIfObjects 2 }
+
+    zxAnMasIfConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMasIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnMasIfConfTable."
+        INDEX { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnMasIfConfTable 1 }
+
+    ZxAnMasIfConfEntry ::=
+        SEQUENCE {
+            zxAnMasIfTrustEnable        INTEGER
+        }
+
+    zxAnMasIfTrustEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable MAC-anti-spoofing(Mas) trust enabling on uplink
+             interface."
+        DEFVAL { enabled }
+        ::= { zxAnMasIfConfEntry 1 }
+------------------------------------------------------------------------------
+-- 3.1 zxAnMasMacMoveTraps
+------------------------------------------------------------------------------  
+        
+    zxAnMasMacMoving NOTIFICATION-TYPE
+        OBJECTS 
+            {
+                zxAnMasMacMoveLogMacAddr, 
+                zxAnMasMacMoveLogVid, 
+                zxAnMasMacMoveLogFromIfIndex, 
+                zxAnMasMacMoveLogFromSubIfIndex,
+                zxAnMasMacMoveLogToIfIndex,
+                zxAnMasMacMoveLogToSubIfIndex
+            }
+        STATUS  current
+        DESCRIPTION
+            "zxAnMasMacMoving means the mac move is generated and successful.
+             If zxAnMasMacMoveReportEnable is enable, zxAnMasMacMoving may be
+             generated when a MAC entry is moving between two interfaces."
+        ::= { zxAnMasMacMoveTraps 1 } 
+        
+    zxAnMasMacMoveForbidden NOTIFICATION-TYPE
+        OBJECTS 
+            {
+                zxAnMasMacMoveLogMacAddr, 
+                zxAnMasMacMoveLogVid, 
+                zxAnMasMacMoveLogFromIfIndex, 
+                zxAnMasMacMoveLogFromSubIfIndex,
+                zxAnMasMacMoveLogToIfIndex,
+                zxAnMasMacMoveLogToSubIfIndex
+            }
+        STATUS  current
+        DESCRIPTION
+            "zxAnMasMacMoveForbidden means the mac move is forbbiden by
+             system.If both zxAnMasEnable and zxAnMasMacMoveReportEnable
+             is enable,zxAnMasMacMoveForbidden may be generated when a MAC
+             entry attempts to move between two interfaces."
+        ::= { zxAnMasMacMoveTraps 2 } 
+        
+
+-------------------------------------------------------------------------------
+-- 4 zxAnMasConformance
+-------------------------------------------------------------------------------
+
+zxAnMasConformance      OBJECT IDENTIFIER ::= {zxAnMasMib 4}
+
+zxAnMasCompliances
+               OBJECT IDENTIFIER ::= { zxAnMasConformance 1 }
+zxAnMasGroups  OBJECT IDENTIFIER ::= { zxAnMasConformance 2 }
+
+    zxAnMasCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-MAC-ANTI-SPOOFING-MIB.OnlyC3XX support,C6XX not support anymore"
+        MODULE      
+            MANDATORY-GROUPS {
+                zxAnMasGlobalGroup,
+                zxAnMasMacMoveGlbGroup,
+                zxAnMasMacMoveLogGroup,
+                zxAnMasMacMoveTrapsGroup,
+                zxAnMasIfConfGroup
+            }
+        ::= { zxAnMasCompliances 1 }
+
+    zxAnMasGlobalGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMasEnable,
+            zxAnMasUplinkProtectEnable,
+            zxAnMasUserSideMacMoveEnable,
+            zxAnMasMacMovePermitVlanList
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing MAC-anti-spoofing global 
+             information."
+        ::= { zxAnMasGroups 1 } 
+        
+    zxAnMasMacMoveGlbGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMasMacMoveReportEnable,
+            zxAnMasMacMoveReportInterval
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing MAC move notification 
+             report-control information."
+        ::= { zxAnMasGroups 2 }
+
+    zxAnMasMacMoveLogGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMasMacMoveLogMacAddr,
+            zxAnMasMacMoveLogVid,
+            zxAnMasMacMoveLogFromIfIndex,
+            zxAnMasMacMoveLogFromSubIfIndex,
+            zxAnMasMacMoveLogToIfIndex,
+            zxAnMasMacMoveLogToSubIfIndex
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing MAC move log information."
+        ::= { zxAnMasGroups 3 }
+        
+    zxAnMasIfConfGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMasIfTrustEnable
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing MAC port configuration."
+        ::= { zxAnMasGroups 4 }
+        
+    zxAnMasMacMoveTrapsGroup NOTIFICATION-GROUP
+        NOTIFICATIONS {
+            zxAnMasMacMoving,
+            zxAnMasMacMoveForbidden
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing MAC move notification information."
+        ::= { zxAnMasGroups 50 }
+        
+END

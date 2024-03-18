@@ -1,0 +1,56 @@
+
+ZTE-AN-ERPS-MIB  DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY     FROM SNMPv2-SMI
+    OBJECT-TYPE         FROM SNMPv2-SMI
+    Integer32           FROM SNMPv2-SMI
+    RowStatus           FROM SNMPv2-TC
+    NOTIFICATION-TYPE   FROM SNMPv2-SMI
+    VlanId              FROM ZTE-AN-TC-MIB
+    zxAnBridge          FROM ZTE-AN-SMI;
+
+    zxAnErpsMib  MODULE-IDENTITY
+        LAST-UPDATED  "201206261530Z"
+        ORGANIZATION  "ZTE Corporation"
+        CONTACT-INFO  "liuxing
+                      Mail: liu.xing10@zte.com.cn
+                      Tel : 021-68895679"
+        DESCRIPTION   "This MIB defines ERPS(Ethernet Ring Protection Switching)
+                      function modules' management objects."
+        REVISION      "201206261530Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= { zxAnBridge 90 }
+
+    zxAnErpsGlobalObjects       OBJECT IDENTIFIER ::= { zxAnErpsMib 1 }
+    zxAnErpsObjects             OBJECT IDENTIFIER ::= { zxAnErpsMib 2 }
+    zxAnErpsNotifications       OBJECT IDENTIFIER ::= { zxAnErpsMib 3 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1.ERPS Global Objects
+-- 2.ERPS Objects
+-- 2.1 ERPS Instance Objects
+-- 2.2 ERPS Port Objects
+---3.ERPS Notification Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1.ERPS Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnErpsGlobalEnable   OBJECT-TYPE
+        SYNTAX     INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS read-write
+        STATUS     current
+        DESCRIPTION
+            "Enable/disable ERPS."
+        DEFVAL { disabled }
+        ::=  { zxAnErpsGlobalObjects  1 }
+
+
+END

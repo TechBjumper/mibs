@@ -1,0 +1,764 @@
+ZTE-AN-SECURITY-CPUDEFEND-MIB    DEFINITIONS ::= BEGIN
+    IMPORTS
+        TEXTUAL-CONVENTION, RowStatus, DateAndTime      FROM SNMPv2-TC
+        MODULE-IDENTITY,  OBJECT-TYPE, Integer32,
+        Counter32, Gauge32, NOTIFICATION-TYPE,
+        MacAddress                                      FROM SNMPv2-SMI
+        InetAddress, InetAddressType                    FROM INET-ADDRESS-MIB
+        ifIndex                                         FROM IF-MIB
+        VlanId                                          FROM ZTE-AN-TC-MIB
+        zxAnServiceSecurity                             FROM ZTE-AN-SMI
+        zxAnSubIfIndex                                  FROM ZTE-AN-IF-MIB;
+
+    zxAnSecurityCpuDefendMib    MODULE-IDENTITY
+        LAST-UPDATED   "201903050000Z"
+        ORGANIZATION   "ZTE Corporation"
+        CONTACT-INFO   "Zhang WeiPing
+                        Mail: zhang.weiping@zte.com.cn
+                        Tel : 021-68896470"
+        DESCRIPTION     "New oid assignments for ACL Objects."
+        REVISION        "201903050000Z"
+        DESCRIPTION    "This MIB defines ZTE Access Node security CPU defense
+                        managed objects."
+        REVISION       "201306200900Z"
+        DESCRIPTION    "The initial revision of this MIB module."
+        ::=  {  zxAnServiceSecurity  25  }
+
+    zxAnSecCpuDefendGlobalObjects
+                            OBJECT IDENTIFIER ::= { zxAnSecurityCpuDefendMib 1 }
+    zxAnSecCpuDefendObjects
+                            OBJECT IDENTIFIER ::= { zxAnSecurityCpuDefendMib 2 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnSecCpuDefendGlobalObjects
+-- 1.100 zxAnSecCpuCapabilities
+-- 2. zxAnSecCpuDefendObjects
+-- 2.2 CPU Packet Limit Objects
+-- 2.2.1 CPU Packet Limit Global Objects
+-- 2.2.2 CPU Packet Limit Configuration Table
+-- 2.2.3 CPU Packet Limit Statistic Table
+-- 2.3 CPU Queue Packet Limit Objects
+-- 2.3.1 CPU Queue Packet Limit Global Objects
+-- 2.3.2 CPU Queue Packet Limit Configuration Table
+-- 2.3.3 CPU Queue Packet Limit Statistic Table
+-- 2.4. ACL Objects
+-- 2.4.1 ACL Global Objects
+-- 2.4.2 ACL Configuration Table
+-- 2.4.3 TCP Packets Statistic Table
+-- 2.4.4 TCP Connection Status Table
+
+--------------------------------------------------------------------------------
+-- 1. CPU Defend Global Objects
+--------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+-- 1.100 zxAnSecCpuCapabilities
+------------------------------------------------------------------------------
+
+    zxAnSecCpuCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            supportQueuePktMaxRateUnlimit(0)
+         }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The management capabilities of CPU defend.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             bit 0: value 1 means zxAnSecCpuQueuePktLmtMaxRate supports no
+                    limit.
+             
+             NOTE: No recommended to display it in NMS."
+        ::=  { zxAnSecCpuDefendGlobalObjects  100 }
+
+
+--------------------------------------------------------------------------------
+-- 2.2 CPU Packet Limit Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuPktLimitObjects
+                             OBJECT IDENTIFIER ::= { zxAnSecCpuDefendObjects 2 }
+
+    ZxAnPacketLimitProtoType ::= TEXTUAL-CONVENTION
+        STATUS      current
+        DESCRIPTION
+            "Packet limit protocol Type.
+             The type all(1) is invalid in zxAnSecCpuPktLimitConfTable."
+        SYNTAX      INTEGER
+        {
+            all(1),
+            arp(2),
+            icmp(3),
+            ssh(4),
+            other(5),
+            igmp(6),
+            dhcp(7),
+            pppoe(8),
+            snmp(9),
+            telnet(10),
+            bfd(11),
+            zesr(12),
+            stp(13),
+            lacp(14),
+            lldp(15),
+            otherBpdu(16),
+            rip(17),
+            bgp(18),
+            ospf(19),
+            isis(20),
+            ldp(21),
+            cfm(22),
+            rs(23),
+            ra(24),
+            ns(25),
+            na(26),
+            icmpv6(27),
+            dhcpv6(28),
+            raps(29),
+            mld(30),
+            erps(31),
+            ieee1588(32),
+            pim(33),
+            ntp(34),
+            dhcpDiscover(35),
+            padi(36),
+            ftp(37),
+            arpNetworkSide(51),
+            arpUserSide(52),
+            rsNetworkSide(53),
+            rsUserSide(54),
+            raNetworkSide(55),
+            raUserSide(56),
+            nsNetworkSide(57),
+            nsUserSide(58),
+            naNetworkSide(59),
+            naUserSide(60),
+            loopback(61)
+        }
+
+--------------------------------------------------------------------------------
+-- 2.2.1 CPU Packet Limit Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuPktLimitGlobalObjects
+                           OBJECT IDENTIFIER ::= { zxAnSecCpuPktLimitObjects 1 }
+
+    zxAnSecCpuPktRateLimitAll  OBJECT-TYPE
+        SYNTAX      Integer32(0|100..65535)
+        UNITS       "pps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The rate limit of all packets that can be sent to CPU.
+             Value 0 means unlimit. 
+             only C3XX support,C6XX not support anymore."
+        DEFVAL  { 2000 }
+        ::= { zxAnSecCpuPktLimitGlobalObjects 1 }
+
+    zxAnSecCpuPktLimitStatsResetAll  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            reset(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Reset all CPU packet limit statistics manually when it is set to
+             '1'.
+             When get this variable, always return 1."
+        ::= { zxAnSecCpuPktLimitGlobalObjects 2 }
+
+--------------------------------------------------------------------------------
+-- 2.2.2 CPU Packet Limit Configuration Table
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuPktLimitConfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnSecCpuPktLimitConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CPU packet limit configuration table."
+        ::= { zxAnSecCpuPktLimitObjects 2 }
+
+    zxAnSecCpuPktLimitConfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnSecCpuPktLimitConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnSecCpuPktLimitConfTable."
+        INDEX
+        {
+            zxAnSecCpuPktLimitConfProtoType
+        }
+        ::= { zxAnSecCpuPktLimitConfTable 1 }
+
+    ZxAnSecCpuPktLimitConfEntry  ::= SEQUENCE {
+        zxAnSecCpuPktLimitConfProtoType   ZxAnPacketLimitProtoType,
+        zxAnSecCpuPktLimitConfPktLmtEn    INTEGER,
+        zxAnSecCpuPktLimitConfRateLimit   Integer32
+        }
+
+    zxAnSecCpuPktLimitConfProtoType  OBJECT-TYPE
+        SYNTAX      ZxAnPacketLimitProtoType
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Protocol type."
+        ::= { zxAnSecCpuPktLimitConfEntry 1 }
+
+    zxAnSecCpuPktLimitConfPktLmtEn  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the packet rate limit.
+             only C3XX support,C6XX not support anymore."
+        DEFVAL  { enabled }
+        ::= { zxAnSecCpuPktLimitConfEntry 2 }
+
+    zxAnSecCpuPktLimitConfRateLimit  OBJECT-TYPE
+        SYNTAX      Integer32(1..4000)
+        UNITS       "pps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The packet rate limit."
+        DEFVAL  { 256 }
+        ::= { zxAnSecCpuPktLimitConfEntry 3 }
+
+
+--------------------------------------------------------------------------------
+-- 2.2.3 CPU Packet Limit Statistic Table
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuPktLimitStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecCpuPktLimitStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CPU packet limit statistic table."
+        ::= { zxAnSecCpuPktLimitObjects 3 }
+
+    zxAnSecCpuPktLimitStatsEntry  OBJECT-TYPE
+        SYNTAX      ZxAnSecCpuPktLimitStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnSecCpuPktLimitStatsTable."
+        INDEX
+        {
+            zxAnSecCpuPktLimitType,
+            zxAnSecCpuPktLimitRack,
+            zxAnSecCpuPktLimitShelf,
+            zxAnSecCpuPktLimitSlot,
+            zxAnSecCpuPktLimitProtoType
+        }
+        ::= { zxAnSecCpuPktLimitStatsTable 1 }
+
+    ZxAnSecCpuPktLimitStatsEntry  ::= SEQUENCE {
+        zxAnSecCpuPktLimitType              INTEGER,
+        zxAnSecCpuPktLimitRack              Integer32,
+        zxAnSecCpuPktLimitShelf             Integer32,
+        zxAnSecCpuPktLimitSlot              Integer32,
+        zxAnSecCpuPktLimitProtoType         ZxAnPacketLimitProtoType,
+        zxAnSecCpuPktLimitTotalPkts         Counter32,
+        zxAnSecCpuPktLimitDiscards          Counter32,
+        zxAnSecCpuPktLimitPktRate           Gauge32,
+        zxAnSecCpuPktLimitPeakRate          Gauge32,
+        zxAnSecCpuPktLimitPeakTime          DateAndTime,
+        zxAnSecCpuPktLimitDiscardSeconds    Counter32
+        }
+
+    zxAnSecCpuPktLimitType  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            inband(1),
+            outband(2),
+            slot(3)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CPU packet limit view type."
+        ::= { zxAnSecCpuPktLimitStatsEntry 1 }
+
+    zxAnSecCpuPktLimitRack  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Rack No..
+             When zxAnSecCpuPktLimitType is inband(1) or outband(2), this object
+             should be 0.
+             When zxAnSecCpuPktLimitType is slot(3), this object indicates the
+             rack No.."
+        ::= { zxAnSecCpuPktLimitStatsEntry 2 }
+
+    zxAnSecCpuPktLimitShelf  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Shelf No..
+             When zxAnSecCpuPktLimitType is inband(1) or outband(2), this object
+             should be 0.
+             When zxAnSecCpuPktLimitType is slot(3), this object indicates the
+             shelf No.."
+        ::= { zxAnSecCpuPktLimitStatsEntry 3 }
+
+    zxAnSecCpuPktLimitSlot  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Slot No..
+             When zxAnSecCpuPktLimitType is inband(1) or outband(2), this object
+             should be 0.
+             When zxAnSecCpuPktLimitType is slot(3), this object indicates the
+             slot No.."
+        ::= { zxAnSecCpuPktLimitStatsEntry 4 }
+
+    zxAnSecCpuPktLimitProtoType  OBJECT-TYPE
+        SYNTAX      ZxAnPacketLimitProtoType
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Protocol type."
+        ::= { zxAnSecCpuPktLimitStatsEntry 5 }
+
+    zxAnSecCpuPktLimitTotalPkts  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Total packets."
+        ::= { zxAnSecCpuPktLimitStatsEntry 6 }
+
+    zxAnSecCpuPktLimitDiscards  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Discarded packets."
+        ::= { zxAnSecCpuPktLimitStatsEntry 7 }
+
+    zxAnSecCpuPktLimitPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Packet rate."
+        ::= { zxAnSecCpuPktLimitStatsEntry 8 }
+
+    zxAnSecCpuPktLimitPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Packet peak rate."
+        ::= { zxAnSecCpuPktLimitStatsEntry 9 }
+
+    zxAnSecCpuPktLimitPeakTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The time of zxAnSecCpuPktLimitPeakRate happened."
+        ::= { zxAnSecCpuPktLimitStatsEntry 10 }
+
+    zxAnSecCpuPktLimitDiscardSeconds  OBJECT-TYPE
+        SYNTAX      Counter32
+        UNITS       "Seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Discarding packet seconds."
+        ::= { zxAnSecCpuPktLimitStatsEntry 11 }
+
+--------------------------------------------------------------------------------
+-- 2.3 CPU Queue Packet Limit Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuQueuePktLimitObjects
+                             OBJECT IDENTIFIER ::= { zxAnSecCpuDefendObjects 3 }
+
+--------------------------------------------------------------------------------
+-- 2.3.1 CPU Queue Packet Limit Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuQueuePktLmtGlbObjects
+                      OBJECT IDENTIFIER ::= { zxAnSecCpuQueuePktLimitObjects 1 }
+
+    zxAnSecCpuQueuePktStatsResetAll  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            reset(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Reset all CPU queue packet statistics manually when it is set to
+             '1'.
+
+             When get this variable, always return 1."
+        ::= { zxAnSecCpuQueuePktLmtGlbObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2.3.2 CPU Queue Packet Limit Configuration Table
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuQueuePktLmtConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecCpuQueuePktLmtConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CPU queue packet limit configuration table."
+        ::= { zxAnSecCpuQueuePktLimitObjects 2 }
+
+    zxAnSecCpuQueuePktLmtConfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnSecCpuQueuePktLmtConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnSecCpuQueuePktLmtConfTable."
+        INDEX   { zxAnSecCpuQueuePktLmtQueueId }
+        ::= { zxAnSecCpuQueuePktLmtConfTable 1 }
+
+    ZxAnSecCpuQueuePktLmtConfEntry  ::=  SEQUENCE {
+        zxAnSecCpuQueuePktLmtQueueId     Integer32,
+        zxAnSecCpuQueuePktLmtMaxRate     Integer32
+        }
+
+    zxAnSecCpuQueuePktLmtQueueId  OBJECT-TYPE
+        SYNTAX      Integer32(0..31)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CPU queue ID."
+        ::= { zxAnSecCpuQueuePktLmtConfEntry 1 }
+
+    zxAnSecCpuQueuePktLmtMaxRate  OBJECT-TYPE
+        SYNTAX      Integer32(16..8192|2147483647)
+        UNITS       "pps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Maximum packet rate.
+             The value 2147483647(0x7FFFFFFF) means no limit.
+             Only queue 0 and queue 7 can be configured no limit."
+        DEFVAL  { 256 }
+        ::= { zxAnSecCpuQueuePktLmtConfEntry 2 }
+
+--------------------------------------------------------------------------------
+-- 2.3.3 CPU Queue Packet Limit Statistic Table
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuQueuePktLmtStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecCpuQueuePktLmtStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CPU queue packet limit configuration table."
+        ::= { zxAnSecCpuQueuePktLimitObjects 3 }
+
+    zxAnSecCpuQueuePktLmtStatsEntry    OBJECT-TYPE
+        SYNTAX      ZxAnSecCpuQueuePktLmtStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnSecCpuQueuePktLmtStatsTable."
+        INDEX   { zxAnSecCpuQueuePktLmtQueueId }
+        ::= { zxAnSecCpuQueuePktLmtStatsTable 1 }
+
+    ZxAnSecCpuQueuePktLmtStatsEntry  ::=  SEQUENCE {
+        zxAnSecCpuQueuePktLmtCurrRate    Integer32,
+        zxAnSecCpuQueuePktLmtPeakRate    Integer32,
+        zxAnSecCpuQueuePktLmtPeakTime    DateAndTime
+        }
+
+    zxAnSecCpuQueuePktLmtCurrRate  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The current packet rate."
+        ::= { zxAnSecCpuQueuePktLmtStatsEntry 1 }
+
+    zxAnSecCpuQueuePktLmtPeakRate  OBJECT-TYPE
+        SYNTAX      Integer32(16..8192)
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The peak packet rate."
+        ::= { zxAnSecCpuQueuePktLmtStatsEntry 2 }
+
+    zxAnSecCpuQueuePktLmtPeakTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The time when the peak packet rate happened."
+        ::= { zxAnSecCpuQueuePktLmtStatsEntry 3 }
+     
+--------------------------------------------------------------------------------    
+-- 2.4 ACL Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuAclObjects OBJECT IDENTIFIER ::= { zxAnSecCpuDefendObjects 4 }
+    
+--------------------------------------------------------------------------------
+-- 2.4.1 ACL Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnSecCpuAclGlobalObjects
+                           OBJECT IDENTIFIER ::= { zxAnSecCpuAclObjects 1 }
+
+    zxAnSecCpuAclTcpPkts  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Total number of TCP packets."
+        ::= { zxAnSecCpuAclGlobalObjects 1 }
+
+    zxAnSecCpuAclUnmatchRuleTcpPkts  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of TCP packets with unmactching ACL rules."
+        ::= { zxAnSecCpuAclGlobalObjects 2 }
+
+------------------------------------------------------------------------------
+-- 2.4.2 ACL Configuration Table
+------------------------------------------------------------------------------
+    zxAnSecCpuAclConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecCpuAclConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A table used to create or remove ACL.
+             Filtering TCP packets based on matching relationship
+             between ACL numbers and ACL rules.
+             It is only supported by C600 serial."
+        ::= { zxAnSecCpuAclObjects 2 }
+
+    zxAnSecCpuAclConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnSecCpuAclConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnSecCpuAclConfTable."
+        INDEX { zxAnSecCpuAclNumber }
+        ::= { zxAnSecCpuAclConfTable 1 }
+
+    ZxAnSecCpuAclConfEntry ::=
+        SEQUENCE {
+            zxAnSecCpuAclNumber      Integer32,
+            zxAnSecCpuAclRowStatus   RowStatus
+        }
+
+    zxAnSecCpuAclNumber OBJECT-TYPE
+        SYNTAX      Integer32(1..699)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ACL number."
+        ::= { zxAnSecCpuAclConfEntry 1 }
+
+    zxAnSecCpuAclRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the multi-variables binding 
+             rule described in zxAnExampleFunc1Xxx1Entry.
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnSecCpuAclConfEntry 50 }
+        
+------------------------------------------------------------------------------
+-- 2.4.3 TCP Packets Statistic Table
+------------------------------------------------------------------------------
+    zxAnSecCpuAclTcpPktStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecCpuAclTcpPktStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "TCP packet statistic table."
+        ::= { zxAnSecCpuAclObjects 3 }
+    
+    zxAnSecCpuAclTcpPktStatsEntry  OBJECT-TYPE
+        SYNTAX      ZxAnSecCpuAclTcpPktStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnSecCpuAclTcpPktStatsTable."
+        INDEX { zxAnSecCpuAclNumber, zxAnSecCpuAclRuleId }
+        ::= { zxAnSecCpuAclTcpPktStatsTable 1 } 
+     
+    ZxAnSecCpuAclTcpPktStatsEntry  ::= SEQUENCE {
+        zxAnSecCpuAclRuleId                   Integer32,
+        zxAnSecCpuAclPermitTcpPkts            Counter32,
+        zxAnSecCpuAclDenyTcpPkts              Counter32,
+        zxAnSecCpuAclIsnErrorDropTcpPkts      Counter32,
+        zxAnSecCpuAclUnmatchDropTcpPkts       Counter32
+        }
+
+    zxAnSecCpuAclRuleId  OBJECT-TYPE 
+        SYNTAX      Integer32 (1..255)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ACL rule id."
+        ::= { zxAnSecCpuAclTcpPktStatsEntry 1 }
+
+    zxAnSecCpuAclPermitTcpPkts  OBJECT-TYPE 
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of permitted TCP packets."
+        ::= { zxAnSecCpuAclTcpPktStatsEntry 2 }
+
+    zxAnSecCpuAclDenyTcpPkts  OBJECT-TYPE 
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of denied TCP packets."
+        ::= { zxAnSecCpuAclTcpPktStatsEntry 3 }
+
+    zxAnSecCpuAclIsnErrorDropTcpPkts  OBJECT-TYPE 
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of dropped TCP packets with ISN error."
+        ::= { zxAnSecCpuAclTcpPktStatsEntry 4 }
+
+    zxAnSecCpuAclUnmatchDropTcpPkts  OBJECT-TYPE 
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of dropped TCP packets with unmatching any ACL rules."
+        ::= { zxAnSecCpuAclTcpPktStatsEntry 5 }
+
+--------------------------------------------------------------------------------
+-- 2.4.4 TCP Connection Status Table
+--------------------------------------------------------------------------------
+    zxAnSecCpuAclTcpConnStatusTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnSecCpuAclTcpConnStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "TCP connection status table."
+        ::= { zxAnSecCpuAclObjects 4 }
+    
+    zxAnSecCpuAclTcpConnStatusEntry    OBJECT-TYPE
+        SYNTAX      ZxAnSecCpuAclTcpConnStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A list of entries of zxAnSecCpuAclTcpConnStatusTable."
+        INDEX { zxAnSecCpuAclTcpConnSessionId }
+        ::= { zxAnSecCpuAclTcpConnStatusTable 1 }
+
+    ZxAnSecCpuAclTcpConnStatusEntry  ::= SEQUENCE {
+        zxAnSecCpuAclTcpConnSessionId   Integer32,
+        zxAnSecCpuAclTcpConnSrcIpType   InetAddressType,
+        zxAnSecCpuAclTcpConnSrcIp       InetAddress,
+        zxAnSecCpuAclTcpConnSrcPort     Integer32,
+        zxAnSecCpuAclTcpConnDestIpType  InetAddressType,
+        zxAnSecCpuAclTcpConnDestIp      InetAddress,
+        zxAnSecCpuAclTcpConnDestPort    Integer32,
+        zxAnSecCpuAclTcpConnStatus      INTEGER
+        }
+
+    zxAnSecCpuAclTcpConnSessionId OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The session ID of of the TCP connection."
+        ::= { zxAnSecCpuAclTcpConnStatusEntry 1 }
+        
+    zxAnSecCpuAclTcpConnSrcIpType OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Source IP address type of the TCP connection."
+        ::= { zxAnSecCpuAclTcpConnStatusEntry 2 }
+        
+    zxAnSecCpuAclTcpConnSrcIp OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Source IP address of the TCP connection."
+        ::= { zxAnSecCpuAclTcpConnStatusEntry 3 }
+        
+    zxAnSecCpuAclTcpConnSrcPort OBJECT-TYPE
+        SYNTAX      Integer32 (0..65535)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Source port number of the TCP connection."
+        ::= { zxAnSecCpuAclTcpConnStatusEntry 4 }
+
+    zxAnSecCpuAclTcpConnDestIpType OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Destination IP address type of the TCP connection."
+        ::= { zxAnSecCpuAclTcpConnStatusEntry 5 }
+    
+    zxAnSecCpuAclTcpConnDestIp OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Destination IP address of the TCP connection."
+        ::= { zxAnSecCpuAclTcpConnStatusEntry 6 }
+
+    zxAnSecCpuAclTcpConnDestPort OBJECT-TYPE
+        SYNTAX      Integer32 (0..65535)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Destination port number of the TCP connection."
+        ::= { zxAnSecCpuAclTcpConnStatusEntry 7 }
+
+    zxAnSecCpuAclTcpConnStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+            established(1),
+            notEstablished(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Status of the TCP connection."
+        ::= { zxAnSecCpuAclTcpConnStatusEntry 8 }
+        
+END

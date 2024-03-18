@@ -1,0 +1,313 @@
+ZTE-AN-DHCP-TEST-MIB DEFINITIONS ::= BEGIN
+IMPORTS
+    OBJECT-TYPE, MODULE-IDENTITY, IpAddress,
+    Integer32                                    FROM SNMPv2-SMI
+    MODULE-COMPLIANCE, OBJECT-GROUP              FROM SNMPv2-CONF
+    MacAddress, RowStatus, DisplayString         FROM SNMPv2-TC
+    ifIndex                                      FROM IF-MIB
+    zxAnSubIfIndex                               FROM ZTE-AN-IF-MIB
+    zxAnServiceSecurity                          FROM ZTE-AN-SMI;
+
+    zxAnDhcpTestMib   MODULE-IDENTITY
+        LAST-UPDATED    "201502160000Z"
+        ORGANIZATION    "ZTE Corporation."
+        CONTACT-INFO
+               "Zhang Jianjun  ZTE Corporation
+                Mail: zhang.jianjun@zte.com.cn
+                Tel : +86-21-68897225"
+        DESCRIPTION
+               "The MIB module for the management of DHCP test."
+
+        ::= { zxAnServiceSecurity 41 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnDhcpTestGlobalObjects
+-- 2. zxAnDhcpTestObjects
+-- 2.2. zxAnDhcpV4TestObjects
+-- 2.2.1. zxAnDhcpV4TestIfConfTable
+-- 2.2.2. zxAnDhcpV4TestIfStatusTable
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1. zxAnDhcpTestGlobalObjects
+--------------------------------------------------------------------------------
+    zxAnDhcpTestGlobalObjects     OBJECT IDENTIFIER ::= {zxAnDhcpTestMib 1}
+--------------------------------------------------------------------------------
+    zxAnDhcpTestCapabilities OBJECT-TYPE
+        SYNTAX     BITS {
+            notSupportDhcpV4TestIfUserVid(0),
+            supportDhcpV4TestIfDstIpAddr(1)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The DHCP test compatibility.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             bit 0: value 1 means not supporting zxAnDhcpV4TestIfUserVid in
+             zxAnDhcpV4TestIfConfTable.
+             bit 1: value 1 means supporting zxAnDhcpV4TestIfDstIpAddr in
+             zxAnDhcpV4TestIfConfTable.
+             NOTE: No recommended to display it in NMS."
+        ::= { zxAnDhcpTestGlobalObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2. zxAnDhcpTestObjects
+--------------------------------------------------------------------------------
+    zxAnDhcpTestObjects    OBJECT IDENTIFIER ::= { zxAnDhcpTestMib 2 }
+--------------------------------------------------------------------------------
+-- 2.2 zxAnDhcpV4TestObjects
+--------------------------------------------------------------------------------
+    zxAnDhcpV4TestObjects        OBJECT IDENTIFIER ::= {zxAnDhcpTestObjects 2}
+--------------------------------------------------------------------------------
+-- 2.2.1. zxAnDhcpV4TestIfConfTable
+--------------------------------------------------------------------------------
+
+    zxAnDhcpV4TestIfConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnDhcpV4TestIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "DHCPv4 test interface configuration table."
+        ::= { zxAnDhcpV4TestObjects 2 }
+
+    zxAnDhcpV4TestIfConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnDhcpV4TestIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnDhcpV4TestIfConfTable entry."
+        INDEX       { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnDhcpV4TestIfConfTable 1 }
+
+    ZxAnDhcpV4TestIfConfEntry ::= SEQUENCE {
+        zxAnDhcpV4TestIfClientMac            MacAddress,
+        zxAnDhcpV4TestIfUserVid              Integer32,
+        zxAnDhcpV4TestIfOption60String       DisplayString,
+        zxAnDhcpV4TestIfTimeout              Integer32,
+        zxAnDhcpV4TestIfDstIpAddr            IpAddress,
+        zxAnDhcpV4TestIfRowStatus            RowStatus
+    }
+
+    zxAnDhcpV4TestIfClientMac  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "MAC address of DHCPv4 client host.
+             Default value is 00:00:00:XX:YY:00, XX means slot, YY means port."
+        ::= { zxAnDhcpV4TestIfConfEntry 1 }
+
+    zxAnDhcpV4TestIfUserVid OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+             "The user VLAN of the interface which will be used in the testing 
+             datagram.
+
+             0 means that test will use the PVID of interface.
+             Non-zero value must be within the tagged VLAN list of interface. If
+             the VLAN cannot be found in the tagged VLAN list of interface, test
+             should fail."
+        DEFVAL { 0 }
+        ::= { zxAnDhcpV4TestIfConfEntry 2 }
+
+    zxAnDhcpV4TestIfOption60String OBJECT-TYPE
+        SYNTAX      DisplayString( SIZE(0..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "DHCPv4 Option 60.
+             Empty String means not configured."
+        ::= { zxAnDhcpV4TestIfConfEntry 3 }
+
+    zxAnDhcpV4TestIfTimeout OBJECT-TYPE
+        SYNTAX      Integer32(5..60)
+        UNITS       "seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "DHCPv4 test timeout value."
+        DEFVAL { 30 }
+        ::= { zxAnDhcpV4TestIfConfEntry 4 }
+
+    zxAnDhcpV4TestIfDstIpAddr OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "DHCPv4 test destination IP address."
+        ::= { zxAnDhcpV4TestIfConfEntry 5 }
+
+    zxAnDhcpV4TestIfRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnExampleFunc1Xxx1Entry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnDhcpV4TestIfConfEntry 50}
+
+--------------------------------------------------------------------------------
+-- 2.2.2 zxAnDhcpV4TestIfStatusTable
+--------------------------------------------------------------------------------
+
+    zxAnDhcpV4TestIfStatusTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnDhcpV4TestIfStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+               "DHCPv4 test interface status table."
+        ::= { zxAnDhcpV4TestObjects 3 }
+
+    zxAnDhcpV4TestIfStatusEntry OBJECT-TYPE
+        SYNTAX      ZxAnDhcpV4TestIfStatusEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnDhcpV4TestIfStatusTable entry."
+        INDEX       { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnDhcpV4TestIfStatusTable 1 }
+
+    ZxAnDhcpV4TestIfStatusEntry ::= SEQUENCE {
+        zxAnDhcpV4TestIfStatus               INTEGER,
+        zxAnDhcpV4TestIfFailReason           INTEGER,
+        zxAnDhcpV4TestIfClientIpAddr         IpAddress,
+        zxAnDhcpV4TestIfSvrIpAddr            IpAddress,
+        zxAnDhcpV4TestIfGatewayIpAddr        IpAddress,
+        zxAnDhcpV4TestIfPingMaxDelay         Integer32,
+        zxAnDhcpV4TestIfPingMinDelay         Integer32,
+        zxAnDhcpV4TestIfPingAvgDelay         Integer32,
+        zxAnDhcpV4TestIfSuccPings            Integer32
+        }
+
+    zxAnDhcpV4TestIfStatus    OBJECT-TYPE
+        SYNTAX   INTEGER {
+            notStarted(1),
+            inProgress(2),
+            success(3),
+            failed(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "DHCPv4 test status.
+             Agent need keep this parameter updated so that
+             manager can get the latest status of test by polling.
+
+             Possible values are:
+             notStarted(1) - DHCPv4 test is not started.
+             inProgress(2) - DHCPv4 test is in progress.
+             success(3)    - DHCPv4 test is completed successfully.
+             failed(4)     - DHCPv4 test failed."
+        ::= { zxAnDhcpV4TestIfStatusEntry 1 }
+
+    zxAnDhcpV4TestIfFailReason OBJECT-TYPE
+        SYNTAX   INTEGER {
+               none(1),
+               sysResourceAllocationFail(2),
+               packetSendFail(3),
+               vlanNotFound(4),
+               loopbackEnabled(5),
+               portDisabled(6),
+               dhcpDiscoverTimeout(8),
+               dhcpRequestTimeout(9),
+               dhcpResponseNak(10),
+               xidNotMatch(11),
+               icmpPingTimeout(12),
+               testTimeout(13),
+               other(255)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Failed reason for DHCPv4 test.
+
+             Possible values are:
+             none(1)                      - No Error
+             sysResourceAllocationFail(2) - System Resource Allocation Failed
+             packetSendFail(3)            - Sending Packet Failed
+             vlanNotFound(4)              - VLAN Not Found
+             loopbackEnabled(5)           - Loopback Enabled
+             portDisabled(6)              - Port Disabled
+             dhcpDiscoverTimeout(7)       - DHCP Discover Timeout
+             dhcpRequestTimeout(8)        - DHCP Request Timeout
+             dhcpResponseNak(9)           - NAK Responded from DHCP Server
+             xidNotMatch(10)              - XID Not Match
+             icmpPingTimeout(11)          - ICMP Ping Timeout
+             testTimeout(12)              - DHCP Test Timeout
+             other(255)                   - Other"
+        ::= { zxAnDhcpV4TestIfStatusEntry 2 }
+
+     zxAnDhcpV4TestIfClientIpAddr OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "DHCPv4 Client host IP address."
+        ::= { zxAnDhcpV4TestIfStatusEntry 3 }
+
+    zxAnDhcpV4TestIfSvrIpAddr  OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "DHCPv4 server IP address."
+        ::= { zxAnDhcpV4TestIfStatusEntry 4 }
+
+    zxAnDhcpV4TestIfGatewayIpAddr OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Gateway IP address."
+        ::= { zxAnDhcpV4TestIfStatusEntry 5 }
+
+    zxAnDhcpV4TestIfPingMaxDelay OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "milliseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum delay of client pinging DHCPv4 server."
+        ::= { zxAnDhcpV4TestIfStatusEntry 6 }
+
+    zxAnDhcpV4TestIfPingMinDelay OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "milliseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimal delay of client pinging DHCPv4 server."
+        ::= { zxAnDhcpV4TestIfStatusEntry 7 }
+
+    zxAnDhcpV4TestIfPingAvgDelay OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "milliseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average delay of client pinging DHCPv4 server."
+        ::= { zxAnDhcpV4TestIfStatusEntry 8 }
+
+    zxAnDhcpV4TestIfSuccPings OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The successful times of client pinging DHCPv4 server."
+        ::= { zxAnDhcpV4TestIfStatusEntry 9 }
+END

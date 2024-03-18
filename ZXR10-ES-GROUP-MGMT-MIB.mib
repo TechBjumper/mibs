@@ -1,0 +1,560 @@
+
+-- File Name : ZXR10-GM.mib
+-- Date      : 2005-3-1 9:33
+-- Author    :   
+-- Modifier  : LiXuwen  2009-3-1 21:30
+
+
+ZXR10-ES-GROUP-MGMT-MIB	DEFINITIONS ::= BEGIN
+	IMPORTS
+		RowStatus, TEXTUAL-CONVENTION
+			FROM SNMPv2-TC
+		OBJECT-TYPE, Integer32, IpAddress, Unsigned32, enterprises
+			FROM SNMPv2-SMI;
+
+-- TEXTUAL-CONVENTIONS --
+	MacAddress ::= TEXTUAL-CONVENTION 
+		DISPLAY-HINT	""
+		STATUS			current
+		DESCRIPTION
+			"Represents an 802 MAC address represented in the
+             `canonical' order defined by IEEE 802.1a, i.e., as if it
+             were transmitted least significant bit first, even though
+             802.5 (in contrast to other 802.x protocols) requires MAC
+             addresses to be transmitted most significant bit first."
+		SYNTAX 			OCTET STRING
+
+    zte	OBJECT IDENTIFIER
+		::=  {  enterprises  3902  }
+		
+	ethernetSwitch	OBJECT IDENTIFIER
+		::=  {  zte  15  }
+
+	groupManagement	OBJECT IDENTIFIER
+		::=  {  ethernetSwitch  4  }
+
+	groupParam	OBJECT IDENTIFIER
+		::=  {  groupManagement  1  }
+
+	neighborDiscovery	OBJECT IDENTIFIER
+		::=  {  groupManagement  2  }
+
+	topologyCollect	OBJECT IDENTIFIER
+		::=  {  groupManagement  3  }
+
+	memberManage	OBJECT IDENTIFIER
+		::=  {  groupManagement  4  }
+
+	gmEnterpriseTrap	OBJECT IDENTIFIER
+		::=  {  groupManagement  5  }
+
+	gmHandtime	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 1 .. 300  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Handshake packet interval.
+					Only command switch support this item."
+		::=  {  groupParam  1  }
+
+	gmHoldtime	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 1 .. 300  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Group member hold time.
+					Only command switch support this item."
+		::=  {  groupParam  2  }
+
+	gmName	OBJECT-TYPE	
+		SYNTAX			OCTET STRING
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Group name.
+					Only command switch support this item."
+		::=  {  groupParam  3  }
+
+	gmSwitchRole	OBJECT-TYPE	
+		SYNTAX			INTEGER  { commandSwitch ( 1 ) , memberSwitch ( 2 ) , candidateSwitch ( 3 ) , independentSwitch ( 4 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Switch role."
+		::=  {  groupParam  4  }
+
+	gmIpPool	OBJECT-TYPE	
+		SYNTAX			OCTET STRING
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"The format of this item is xx/xx.
+					The first segment represents vlan id, the second segment represents ippool name."
+		::=  {  groupParam  5  }
+
+	tftpServerIpAddr	OBJECT-TYPE	
+		SYNTAX			IpAddress
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"TFTP server IP address.
+					Only command switch support this item."
+		::=  {  groupParam  6  }
+
+	belongedCmdMac	OBJECT-TYPE	
+		SYNTAX			MacAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Command switch MAC address of the group."
+		::=  {  groupParam  7  }
+
+	dpAdminStatus	OBJECT-TYPE	
+		SYNTAX			INTEGER  { enable ( 1 ) , disable ( 2 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Global neighbor discovery protocol status."
+		::=  {  neighborDiscovery  1  }
+
+	dpTimer	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 5 .. 254  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Neighbor discovery protocol send packets interval."
+		::=  {  neighborDiscovery  2  }
+
+	dpHoldtime	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 10 .. 255  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Neighbor discovery protocol hold time."
+		::=  {  neighborDiscovery  3  }
+
+	dpPortTable	OBJECT-TYPE
+		SYNTAX		SEQUENCE  OF  DpPortEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Port neighbor discovery protocol table."
+		::=  { neighborDiscovery  4 }
+
+	dpPortEntry	OBJECT-TYPE
+		SYNTAX		DpPortEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Port neighbor discovery protocol configuration."
+		INDEX		{  dpPortId  }
+		::=  { dpPortTable 1 }
+
+	DpPortEntry  ::=  SEQUENCE {
+		dpPortId  Integer32,
+		dpPortAdminStatus  INTEGER
+		}
+
+
+	dpPortId	OBJECT-TYPE	
+		SYNTAX			Integer32
+		MAX-ACCESS		not-accessible
+		STATUS			current
+		DESCRIPTION		"Port index."
+		::=  {  dpPortEntry  1  }
+
+
+	dpPortAdminStatus	OBJECT-TYPE	
+		SYNTAX			INTEGER  { enable ( 1 ) , disable ( 2 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Port neighbor discovery protocol status."
+		::=  {  dpPortEntry  2  }
+
+	dpTrunkTable	OBJECT-TYPE
+		SYNTAX		SEQUENCE  OF  DpTrunkEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Smartgroup port neighbor discovery protocol table."
+		::=  { neighborDiscovery  5 }
+
+	dpTrunkEntry	OBJECT-TYPE
+		SYNTAX		DpTrunkEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Smartgroup port neighbor discovery protocol configuration."
+		INDEX		{  dpTrunkId  }
+		::=  { dpTrunkTable 1 }
+
+	DpTrunkEntry  ::=  SEQUENCE {
+		dpTrunkId  Integer32,
+		dpTrunkAdminStatus  INTEGER
+		}
+
+
+	dpTrunkId	OBJECT-TYPE	
+		SYNTAX			Integer32
+		MAX-ACCESS		not-accessible
+		STATUS			current
+		DESCRIPTION		"Smartgroup port index."
+		::=  {  dpTrunkEntry  1  }
+
+
+	dpTrunkAdminStatus	OBJECT-TYPE	
+		SYNTAX			INTEGER  { enable ( 1 ) , disable ( 2 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Smartgroup port neighbor discovery protocol status."
+		::=  {  dpTrunkEntry  2  }
+
+	tpAdminStatus	OBJECT-TYPE	
+		SYNTAX			INTEGER  { enable ( 1 ) , disable ( 2 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Global topology collect protocol status."
+		::=  {  topologyCollect  1  }
+
+	tpVlan	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 1 .. 4094  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Vlan id."
+		::=  {  topologyCollect  2  }
+
+	tpHop	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 1 .. 128  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Topology collect protocol hop."
+		::=  {  topologyCollect  3  }
+
+	tpTimer	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 0 .. 60  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Topology collect protocol time interval."
+		::=  {  topologyCollect  4  }
+
+	tpHopDelay	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 1 .. 1000  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Delay time for device forwarding packets."
+		::=  {  topologyCollect  5  }
+
+	tpPortDelay	OBJECT-TYPE	
+		SYNTAX			Integer32  ( 1 .. 100  ) 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Delay time for port forwarding packets."
+		::=  {  topologyCollect  6  }
+
+	tpStart	OBJECT-TYPE	
+		SYNTAX			INTEGER  { start ( 1 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"The value get from this item is insignificant. 
+					Setting this item will start a topology collection process."
+		::=  {  topologyCollect  7  }
+
+	tpPortTable	OBJECT-TYPE
+		SYNTAX		SEQUENCE  OF  TpPortEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Port topology collect protocol table."
+		::=  { topologyCollect  8 }
+
+	tpPortEntry	OBJECT-TYPE
+		SYNTAX		TpPortEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Port topology collect protocol configuration."
+		INDEX		{  tpPortId  }
+		::=  { tpPortTable 1 }
+
+	TpPortEntry  ::=  SEQUENCE {
+		tpPortId  Integer32,
+		tpPortAdminStatus  INTEGER
+		}
+
+
+	tpPortId	OBJECT-TYPE	
+		SYNTAX			Integer32
+		MAX-ACCESS		not-accessible
+		STATUS			current
+		DESCRIPTION		"Port index."
+		::=  {  tpPortEntry  1  }
+
+
+	tpPortAdminStatus	OBJECT-TYPE	
+		SYNTAX			INTEGER  { enable ( 1 ) , disable ( 2 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Port topology collect protocol status."
+		::=  {  tpPortEntry  2  }
+
+	tpTrunkTable	OBJECT-TYPE
+		SYNTAX		SEQUENCE  OF  TpTrunkEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Smartgroup port topology collect protocol table."
+		::=  { topologyCollect  9 }
+
+	tpTrunkEntry	OBJECT-TYPE
+		SYNTAX		TpTrunkEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Smartgroup port topology collect protocol configuration."
+		INDEX		{  tpTrunkId  }
+		::=  { tpTrunkTable 1 }
+
+	TpTrunkEntry  ::=  SEQUENCE {
+		tpTrunkId  Integer32,
+		tpTrunkAdminStatus  INTEGER
+		}
+
+
+	tpTrunkId	OBJECT-TYPE	
+		SYNTAX			Integer32
+		MAX-ACCESS		not-accessible
+		STATUS			current
+		DESCRIPTION		"Smartgroup port index."
+		::=  {  tpTrunkEntry  1  }
+
+
+	tpTrunkAdminStatus	OBJECT-TYPE	
+		SYNTAX			INTEGER  { enable ( 1 ) , disable ( 2 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Smartgroup port topology collect protocol status."
+		::=  {  tpTrunkEntry  2  }
+
+	tpDeviceTable	OBJECT-TYPE
+		SYNTAX		SEQUENCE  OF  TpDeviceEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Device topology collect protocol table."
+		::=  { topologyCollect  10 }
+
+	tpDeviceEntry	OBJECT-TYPE
+		SYNTAX		TpDeviceEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Device topology collect protocol configuration."
+		INDEX		{  deviceMac  }
+		::=  { tpDeviceTable 1 }
+
+	TpDeviceEntry  ::=  SEQUENCE {
+		deviceMac  MacAddress,
+		deviceId  Integer32,
+		deviceIpAddr  IpAddress,
+		deviceHop  Integer32,
+		devicePlatform  OCTET STRING,
+		deviceRole  INTEGER,
+		devicePeerPort  OCTET STRING,
+		deviceBelongedMac  MacAddress,
+		deviceBelongedIpAddr  IpAddress
+		}
+
+	deviceMac	OBJECT-TYPE	
+		SYNTAX			MacAddress 
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Device MAC address."
+		::=  {  tpDeviceEntry  1  }
+
+
+	deviceId	OBJECT-TYPE	
+		SYNTAX			Integer32  ( -2147483648 .. 2147483647  ) 
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Device id."
+		::=  {  tpDeviceEntry  2  }
+
+
+	deviceIpAddr	OBJECT-TYPE	
+		SYNTAX			IpAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Device vlan IP address."
+		::=  {  tpDeviceEntry  3  }
+		
+	deviceHop	OBJECT-TYPE	
+		SYNTAX			Integer32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Device hop."
+		::=  {  tpDeviceEntry  4  }
+
+
+	devicePlatform	OBJECT-TYPE	
+		SYNTAX			OCTET STRING
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Device description."
+		::=  {  tpDeviceEntry  5  }
+
+
+	deviceRole	OBJECT-TYPE	
+		SYNTAX			INTEGER  { commandSwitch ( 1 ) , memberSwitch ( 2 ) , candidateSwitch ( 3 ) , independentSwitch ( 4 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Device switch role."
+		::=  {  tpDeviceEntry  6  }
+
+
+	devicePeerPort	OBJECT-TYPE	
+		SYNTAX			OCTET STRING
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"The format of this item is xx-xx.
+					The first segment represents local port name, the second segment represents peer port name."
+		::=  {  tpDeviceEntry  7  }
+
+
+	deviceBelongedMac	OBJECT-TYPE	
+		SYNTAX			MacAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"If the device switch role is not memberSwitch, 
+					this value is the device system MAC address, 
+					otherwise this value is the command switch MAC address of the group."
+		::=  {  tpDeviceEntry  8  }
+
+	deviceBelongedIpAddr	OBJECT-TYPE	
+		SYNTAX			IpAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"If the device switch role is commandSwitch or memberSwitch, 
+					this value is the command switch IP address of the group, 
+					otherwise this value is 0."
+		::=  {  tpDeviceEntry  9  }
+		
+		
+	memberTable	OBJECT-TYPE
+		SYNTAX		SEQUENCE  OF  MemberEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Group member table.
+				Only command switch support this item."
+		::=  { memberManage  1 }
+
+	memberEntry	OBJECT-TYPE
+		SYNTAX		MemberEntry
+		MAX-ACCESS	not-accessible
+		STATUS		current
+		DESCRIPTION	"Group member configuration.
+				Only command switch support this item."
+		INDEX		{  memMac  }
+		::=  { memberTable 1 }
+
+	MemberEntry  ::=  SEQUENCE {
+		memMac  MacAddress,
+		memId  Integer32,
+		memIpAddr  IpAddress,
+		memMask  IpAddress,
+		memStatus  INTEGER,
+		memRole  INTEGER,
+		snmpPortMap  Unsigned32,
+		httpPortMap  Integer32,
+		ftpPortMap  Integer32,
+		tftpPortMap  Integer32,
+		telnetPortMap  Integer32,
+		sshPortMap  Integer32
+		}
+
+	memMac	OBJECT-TYPE	
+		SYNTAX			MacAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Group member MAC address."
+		::=  {  memberEntry  1  }
+
+
+	memId	OBJECT-TYPE	
+		SYNTAX			Integer32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Group member id."
+		::=  {  memberEntry  2  }
+
+
+	memIpAddr	OBJECT-TYPE	
+		SYNTAX			IpAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Group member IP address."
+		::=  {  memberEntry  3  }
+
+
+	memMask	OBJECT-TYPE	
+		SYNTAX			IpAddress
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Group member mask."
+		::=  {  memberEntry  4  }
+
+
+	memStatus	OBJECT-TYPE	
+		SYNTAX			INTEGER  { up ( 1 ) , down ( 2 ) } 
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"Group member status."
+		::=  {  memberEntry  5  }
+
+
+	memRole	OBJECT-TYPE	
+		SYNTAX			INTEGER  { memberSwitch ( 1 ) , candidateSwitch ( 2 ) } 
+		MAX-ACCESS		read-write
+		STATUS			current
+		DESCRIPTION		"Group member switch role."
+		::=  {  memberEntry  6  }
+
+
+	snmpPortMap	OBJECT-TYPE	
+		SYNTAX			Unsigned32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"SNMP port map."
+		::=  {  memberEntry  7  }
+
+
+	httpPortMap	OBJECT-TYPE	
+		SYNTAX			Integer32  ( -2147483648 .. 2147483647  ) 
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"HTTP port map."
+		::=  {  memberEntry  8  }
+
+
+	ftpPortMap	OBJECT-TYPE	
+		SYNTAX			Integer32  ( -2147483648 .. 2147483647  ) 
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"FTP port map."
+		::=  {  memberEntry  9  }
+
+
+	tftpPortMap	OBJECT-TYPE	
+		SYNTAX			Integer32  ( -2147483648 .. 2147483647  ) 
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"TFTP port map."
+		::=  {  memberEntry  10  }
+
+
+	telnetPortMap	OBJECT-TYPE	
+		SYNTAX			Integer32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"TELNET port map."
+		::=  {  memberEntry  11  }
+
+
+	sshPortMap	OBJECT-TYPE	
+		SYNTAX			Integer32
+		MAX-ACCESS		read-only
+		STATUS			current
+		DESCRIPTION		"SSH port map."
+		::=  {  memberEntry  12  }
+
+	gmTopologyChange	NOTIFICATION-TYPE
+		STATUS			current
+		DESCRIPTION		"This trap sended by command switch to notify topology change."
+		::=  {  gmEnterpriseTrap  1  }
+
+	gmMemberUpDown	NOTIFICATION-TYPE
+		OBJECTS			{ memMac, memId, memIpAddr, memStatus }
+		STATUS			current
+		DESCRIPTION		"The trap indicates nms that member switch transfer between connect or disconnect with command switch."
+		::=  {  gmEnterpriseTrap  2  }
+
+END

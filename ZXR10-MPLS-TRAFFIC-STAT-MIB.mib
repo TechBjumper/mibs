@@ -1,0 +1,108 @@
+--  ******************************************************
+--  $Id: mpls-traffic-stat.mib 2009-11$
+--
+--  mpls-traffic-stat.mib: ZXR10 Access List MIB file
+--  
+--  Jan. 2009, Jiao Lin
+--  Nov. 2009, Jiang Yan
+--   
+--  Copyright(c) 2009 by ZTE Corporaton
+--  All rights reservered
+--  ******************************************************
+
+ZXR10-MPLS-TRAFFIC-STAT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+   OBJECT-TYPE,  
+   Unsigned32,
+   Counter64,
+   IpAddress   
+        FROM SNMPv2-SMI 
+   DisplayString,   
+   RowStatus  
+   	      	FROM SNMPv2-TC 
+   zxr10
+        FROM ZXR10-SMI;   
+        
+   mpls-traffic-stat                   OBJECT IDENTIFIER ::= { zxr10 325}
+   mpls-te-stat                        OBJECT IDENTIFIER ::= { mpls-traffic-stat 2}   
+
+    --------------------------------------------------------------------------------
+	-- 1.The table of MPLS TE out-label statistic information     
+	-------------------------------------------------------------------------------  
+	zxr10MplsTeStatisticsOutTable        OBJECT-TYPE
+        SYNTAX         SEQUENCE OF Zxr10MplsTeStatisticsOutEntry 
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "A table that contains MPLS TE out-traffic statistics."
+    ::= { mpls-te-stat 1 }  
+         
+    zxr10MplsTeStatisticsOutEntry         OBJECT-TYPE
+        SYNTAX          Zxr10MplsTeStatisticsOutEntry 
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "A list of entries of MPLS TE out-traffic statistics."
+        INDEX  { zxr10MplsTeOutTunnelId }
+    ::= { zxr10MplsTeStatisticsOutTable 1 }
+
+    Zxr10MplsTeStatisticsOutEntry ::= SEQUENCE {
+        zxr10MplsTeOutTunnelId        Unsigned32,
+        zxr10MplsTeOutTotalSend       Counter64,
+        zxr10MplsTeOutTotalDrop       Counter64, 
+        zxr10MplsTeOutTotalByte       Counter64,
+        zxr10MplsTeOutTotalDropByte   Counter64,
+        zxr10MplsTeOutSendByteRate    Unsigned32       
+    }
+     
+    zxr10MplsTeOutTunnelId        OBJECT-TYPE
+        SYNTAX         Unsigned32
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The MPLS TE tunnel which the out label belongs to."
+    ::= { zxr10MplsTeStatisticsOutEntry 1}  
+       
+    
+    zxr10MplsTeOutTotalSend          OBJECT-TYPE
+        SYNTAX         Counter64            
+        MAX-ACCESS     read-only        
+        STATUS         current
+        DESCRIPTION
+            "Total number of sent packets of out-traffic."
+    ::= { zxr10MplsTeStatisticsOutEntry 2} 
+    
+    zxr10MplsTeOutTotalDrop         OBJECT-TYPE
+        SYNTAX         Counter64     
+        MAX-ACCESS     read-only        
+        STATUS         current
+        DESCRIPTION
+            "Total number of dropped packets of out-traffic."
+    ::= { zxr10MplsTeStatisticsOutEntry 3} 
+    
+    zxr10MplsTeOutTotalByte         OBJECT-TYPE
+        SYNTAX         Counter64  
+        MAX-ACCESS     read-only        
+        STATUS         current
+        DESCRIPTION
+            "Total number of sent bytes of out-traffic."
+    ::= { zxr10MplsTeStatisticsOutEntry 4}  
+    
+    zxr10MplsTeOutTotalDropByte         OBJECT-TYPE
+        SYNTAX         Counter64    
+        MAX-ACCESS     read-only        
+        STATUS         current
+        DESCRIPTION
+            "Total number of dropped bytes of out-traffic."
+    ::= { zxr10MplsTeStatisticsOutEntry 5} 
+    
+    zxr10MplsTeOutSendByteRate         OBJECT-TYPE
+        SYNTAX         Unsigned32         
+        MAX-ACCESS     read-only        
+        STATUS         current
+        DESCRIPTION
+            "The bandwith of sent out-traffic,its unit is Bps."
+    ::= { zxr10MplsTeStatisticsOutEntry 6}     
+       
+    END

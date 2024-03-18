@@ -1,0 +1,158 @@
+ZTE-AN-INTERFACE-LOOPBACK-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE,
+        Integer32                                           FROM SNMPv2-SMI
+        MODULE-COMPLIANCE, OBJECT-GROUP  FROM SNMPv2-CONF
+        ifIndex                                             FROM IF-MIB
+        zxAnInterface                                       FROM ZTE-AN-SMI
+        zxAnSubIfIndex                                      FROM ZTE-AN-IF-MIB;
+
+
+    zxAnInterfaceLoopbackMib MODULE-IDENTITY
+        LAST-UPDATED    "201712260000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Tong Tao 
+                         Mail: tong.tao@zte.com.cn
+                         Tel : +86-021-68897257"
+        DESCRIPTION     "This MIB defines management objects of 
+                         interface loopback configuration."
+                         
+        REVISION        "201712260000Z"
+        DESCRIPTION     "Initial version of this MIB module."
+        ::= {zxAnInterface 38}
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 2.1.1 Uplink Interface Loopback Configuration Table
+
+-- Following conformance information is defined.
+-- 4. zxAnIfLoopbackConformance
+--------------------------------------------------------------------------------
+
+    zxAnIfLoopbackObjects
+                        OBJECT IDENTIFIER ::= {zxAnInterfaceLoopbackMib 2}
+
+    zxAnIfLoopbackUplinkObjects
+                        OBJECT IDENTIFIER ::= {zxAnIfLoopbackObjects 1}
+                        
+
+--------------------------------------------------------------------------------
+-- 2.1.1 Uplink Interface Loopback Configuration Table
+--------------------------------------------------------------------------------
+
+    zxAnIfLoopbackUplinkConfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnIfLoopbackUplinkConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table includes the uplink interface loopback configuration 
+             information."
+        ::= { zxAnIfLoopbackUplinkObjects 2 }
+        
+    zxAnIfLoopbackUplinkConfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnIfLoopbackUplinkConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+           "An entry in zxAnIfLoopbackUplinkConfTable."
+        INDEX { ifIndex }
+        ::= { zxAnIfLoopbackUplinkConfTable 1 }
+
+    ZxAnIfLoopbackUplinkConfEntry  ::= SEQUENCE {
+        zxAnIfLoopbackUplinkEnable   INTEGER,
+        zxAnIfLoopbackUplinkMode     INTEGER,
+        zxAnIfLoopbackUplinkSVid     Integer32,
+        zxAnIfLoopbackUplinkCVid     Integer32
+        }
+       
+    zxAnIfLoopbackUplinkEnable   OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+             "Enables and disables uplink interface loopback."
+        DEFVAL      { disabled }  
+        ::= { zxAnIfLoopbackUplinkConfEntry 1 }
+
+    zxAnIfLoopbackUplinkMode   OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            external(1),
+            internal(2),
+            invalid(255)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+             "The uplink interface loopback mode.
+              when zxAnIfLoopbackUplinkEnable is disabled,
+              zxAnIfLoopbackUplinkMode is invalid."
+        DEFVAL      { 255 }  
+        ::= { zxAnIfLoopbackUplinkConfEntry 2 }
+
+    zxAnIfLoopbackUplinkSVid  OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The SVLAN ID.
+             when zxAnIfLoopbackUplinkEnable is disabled,
+             zxAnIfLoopbackUplinkSVid is 0."
+        DEFVAL      { 0 }
+        ::= { zxAnIfLoopbackUplinkConfEntry 3 }
+        
+    zxAnIfLoopbackUplinkCVid  OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The CVLAN ID.
+             when zxAnIfLoopbackUplinkEnable is disabled,
+             zxAnIfLoopbackUplinkCVid is 0."
+        DEFVAL      { 0 }
+        ::= { zxAnIfLoopbackUplinkConfEntry 4 }
+
+--------------------------------------------------------------------------------
+-- 4. zxAnIfLoopbackConformance
+--------------------------------------------------------------------------------
+    zxAnIfLoopbackConformance 
+                   OBJECT IDENTIFIER ::= {zxAnInterfaceLoopbackMib 4}
+
+    zxAnIfLoopbackCompliances   
+                    OBJECT IDENTIFIER ::= {zxAnIfLoopbackConformance 1}
+    zxAnIfLoopbackGroups        
+                    OBJECT IDENTIFIER ::= {zxAnIfLoopbackConformance 2}
+
+    zxAnIfLoopbackCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+            ZTE-AN-INTERFACE-LOOPBACK-MIB."
+             
+        MODULE  -- this module        
+            MANDATORY-GROUPS {
+                zxAnIfLoopbackUplinkConfGroup                
+            }
+        ::= { zxAnIfLoopbackCompliances 1 }
+
+
+    zxAnIfLoopbackUplinkConfGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnIfLoopbackUplinkEnable,
+            zxAnIfLoopbackUplinkMode,
+            zxAnIfLoopbackUplinkSVid,
+            zxAnIfLoopbackUplinkCVid
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects which provides uplink interface 
+             loopback configuration function."
+        ::= { zxAnIfLoopbackGroups 1 }
+        
+        
+END

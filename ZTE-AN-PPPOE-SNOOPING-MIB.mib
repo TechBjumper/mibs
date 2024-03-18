@@ -1,0 +1,279 @@
+ZTE-AN-PPPOE-SNOOPING-MIB DEFINITIONS ::= BEGIN
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32         FROM SNMPv2-SMI
+    MODULE-COMPLIANCE, OBJECT-GROUP                 FROM SNMPv2-CONF              
+    RowStatus, MacAddress, DisplayString            FROM SNMPv2-TC
+    zxAnServiceSecurity                             FROM ZTE-AN-SMI
+    VlanId                                          FROM ZTE-AN-TC-MIB
+    DateAndTime                                     FROM SNMPv2-TC
+    zxAnSubIfIndex                                  FROM ZTE-AN-IF-MIB
+    InetAddressType, InetAddress                    FROM INET-ADDRESS-MIB
+    ifIndex                                         FROM IF-MIB;
+
+    zxAnPppoeSnoopingMib MODULE-IDENTITY
+        LAST-UPDATED    "201901231000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Yang Xi ZTE Corporation
+                         Mail: yang.xi8@zte.com.cn
+                         Tel : +86-21-68897487"
+
+        DESCRIPTION     
+          "The MIB module for the management of PPPoE snooping."
+
+        REVISION        "201901231000Z"
+        DESCRIPTION
+          "Initial version of this MIB module."
+        ::= { zxAnServiceSecurity 80}
+
+    zxAnPppoeSnoopingObjects     OBJECT IDENTIFIER ::= {zxAnPppoeSnoopingMib 2}
+    zxAnPsPppoeFilterObjects     OBJECT IDENTIFIER ::= {zxAnPppoeSnoopingMib 3}
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 2.2 zxAnPppoeSnoopingVlanTable
+-- 2.3 zxAnPppoeSnoopingInfoTable
+-- 3.1 zxAnPsPppoeFilterGlobalObjects
+-- 3.2 zxAnPsPppoeFilterVlanTable
+-- 3.3 zxAnPsPppoeFilterIfTable
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+-- 2.2 zxAnPppoeSnoopingVlanTable
+--------------------------------------------------------------------------------
+    zxAnPppoeSnoopingVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPppoeSnoopingVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PPPoE snooping VLAN table."
+        ::= { zxAnPppoeSnoopingObjects 2 }
+    
+    zxAnPppoeSnoopingVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnPppoeSnoopingVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PPPoE snooping VLAN entry."
+        INDEX  { zxAnPppoeSnoopingVid }
+        ::= { zxAnPppoeSnoopingVlanTable 1 }
+    
+    ZxAnPppoeSnoopingVlanEntry ::= SEQUENCE {
+        zxAnPppoeSnoopingVid                VlanId,
+        zxAnPppoeSnoopingEchoTimeout        Integer32,
+        zxAnPppoeSnoopingVlanRowStatus      RowStatus
+        }
+    
+    zxAnPppoeSnoopingVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnPppoeSnoopingVlanEntry 1 }
+
+    zxAnPppoeSnoopingEchoTimeout OBJECT-TYPE
+        SYNTAX      Integer32(30..1800|65535)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The timeout for echo packet of PPP to wait from user.
+             65535 means infinity."
+        DEFVAL { 360 } 
+        ::= { zxAnPppoeSnoopingVlanEntry 2 }  
+
+    zxAnPppoeSnoopingVlanRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4).
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnPppoeSnoopingVlanEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.3 zxAnPppoeSnoopingInfoTable
+--------------------------------------------------------------------------------
+    zxAnPppoeSnoopingInfoTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPppoeSnoopingInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "PPPoE snooping information table."
+        ::= { zxAnPppoeSnoopingObjects 3 }
+        
+    zxAnPppoeSnoopingInfoEntry OBJECT-TYPE
+        SYNTAX      ZxAnPppoeSnoopingInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "PPPoE snooping information entry."
+        INDEX    { ifIndex, zxAnSubIfIndex, zxAnPppoeSnoopingInfoVid, 
+                   zxAnPppoeSnoopingInfoClntMac }
+        ::= { zxAnPppoeSnoopingInfoTable 1 }
+        
+    ZxAnPppoeSnoopingInfoEntry ::= SEQUENCE {
+        zxAnPppoeSnoopingInfoVid        VlanId,
+        zxAnPppoeSnoopingInfoClntMac    MacAddress,
+        zxAnPppoeSnoopingInfoClntIpType InetAddressType,
+        zxAnPppoeSnoopingInfoClntIp     InetAddress,
+        zxAnPppoeSnoopingInfoServerMac  MacAddress,
+        zxAnPppoeSnoopingInfoSessionId  Integer32,
+        zxAnPppoeSnoopingInfoCreateTime DateAndTime
+    } 
+
+    zxAnPppoeSnoopingInfoVid  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The VLAN ID of PPPoE packet which is allowed through."
+        ::= { zxAnPppoeSnoopingInfoEntry 1 }   
+         
+    zxAnPppoeSnoopingInfoClntMac   OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The client MAC of PPPoE packet which is allowed through."
+        ::= { zxAnPppoeSnoopingInfoEntry 2 }   
+
+    zxAnPppoeSnoopingInfoClntIpType  OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The type of client IP address of PPPoE packet which is allowed 
+             through."
+        ::= { zxAnPppoeSnoopingInfoEntry 3 }   
+
+    zxAnPppoeSnoopingInfoClntIp  OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The client IP address of PPPoE packet which is allowed through."
+        ::= { zxAnPppoeSnoopingInfoEntry 4 }   
+
+    zxAnPppoeSnoopingInfoServerMac   OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The server MAC of PPPoE packet which is allowed through."
+        ::= { zxAnPppoeSnoopingInfoEntry 5 }   
+
+    zxAnPppoeSnoopingInfoSessionId  OBJECT-TYPE
+        SYNTAX      Integer32(0..65535)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The session ID of PPPoE packet which is allowed through."
+        ::= { zxAnPppoeSnoopingInfoEntry 6 }    
+        
+    zxAnPppoeSnoopingInfoCreateTime OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The time of this entry created."
+        ::= { zxAnPppoeSnoopingInfoEntry 7 }
+
+--------------------------------------------------------------------------------
+-- 3.1 zxAnPsPppoeFilterGlobalObjects
+--------------------------------------------------------------------------------
+    zxAnPsPppoeFilterGlobalObjects
+                             OBJECT IDENTIFIER ::= {zxAnPsPppoeFilterObjects 1}
+                             
+    zxAnPsPppoeFilterIfEnable OBJECT-TYPE
+        SYNTAX      INTEGER {   
+                enabled(1),
+                disabled(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enables or disables the interface session limit of PPPoE access.
+            "
+        DEFVAL { disabled }
+        ::= { zxAnPsPppoeFilterGlobalObjects 1 }  
+
+--------------------------------------------------------------------------------
+-- 3.2 zxAnPsPppoeFilterVlanTable
+--------------------------------------------------------------------------------
+    zxAnPsPppoeFilterVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPsPppoeFilterVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PPPoE filter VLAN table."
+        ::= { zxAnPsPppoeFilterObjects 2 }
+    
+    zxAnPsPppoeFilterVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnPsPppoeFilterVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Pppoe filter VLAN entry."
+        INDEX  { zxAnPppoeSnoopingVid }
+        ::= { zxAnPsPppoeFilterVlanTable 1 }
+    
+    ZxAnPsPppoeFilterVlanEntry ::= SEQUENCE {
+        zxAnPsPppoeFilterEnable               INTEGER
+        }  
+
+    zxAnPsPppoeFilterEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),    
+            disabled(2)                                      
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION  
+           "Enables or disables PPPoE filter."
+        DEFVAL      { disabled }          
+        ::= { zxAnPsPppoeFilterVlanEntry 1 }
+
+--------------------------------------------------------------------------------
+-- 3.3 zxPsAnPppoeFilterIfTable
+--------------------------------------------------------------------------------
+    zxAnPsPppoeFilterIfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnPsPppoeFilterIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "PPPoE filter interface table."
+        ::= { zxAnPsPppoeFilterObjects 3 }
+    
+    zxAnPsPppoeFilterIfEntry OBJECT-TYPE
+        SYNTAX      ZxAnPsPppoeFilterIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Pppoe filter interface entry."
+        INDEX  { ifIndex, zxAnSubIfIndex } 
+        ::= { zxAnPsPppoeFilterIfTable 1 }
+    
+    ZxAnPsPppoeFilterIfEntry ::= SEQUENCE {
+        zxAnPsPppoeFilterIfMaxSessions       Integer32
+        }
+
+    zxAnPsPppoeFilterIfMaxSessions  OBJECT-TYPE
+        SYNTAX      Integer32(0..128)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Maximum session number of PPPoE access.
+             The default value for VPort or service port user access is 4, 
+             range is 0-8. For PTP user access is 64, range is 0-128."
+        ::= { zxAnPsPppoeFilterIfEntry 1 } 
+END

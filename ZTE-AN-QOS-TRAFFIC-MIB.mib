@@ -1,0 +1,907 @@
+ZTE-AN-QOS-TRAFFIC-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    RowStatus,DisplayString,Counter64           FROM SNMPv2-TC
+    MODULE-IDENTITY,OBJECT-TYPE,Integer32       FROM SNMPv2-SMI
+    OBJECT-GROUP,MODULE-COMPLIANCE              FROM SNMPv2-CONF
+    zxAnQos                                     FROM ZTE-AN-SMI
+    ifIndex                                     FROM IF-MIB
+    zxAnSubIfIndex                              FROM ZTE-AN-IF-MIB;
+
+zxAnQosTrafficMib  MODULE-IDENTITY
+    LAST-UPDATED   "201109221111Z"
+    ORGANIZATION   "ZTE Corporation"
+    CONTACT-INFO   "Luo Feima     ZTE Corporation
+                    Mail : luo.feima@zte.com.cn
+                    Tel  : +86-21-68896470."
+    DESCRIPTION    "This MIB defines ZTE Access Node QoS Traffic managed objects."
+
+    REVISION       "201109221111Z"
+    DESCRIPTION
+        "Modification of some spelling error for this MIB module."
+
+    REVISION       "201108251525Z"
+    DESCRIPTION
+        "Modification of the descriptions for this MIB module."
+
+    REVISION       "201108191435Z"
+    DESCRIPTION
+        "Modification of the comments for this MIB module."
+
+    REVISION       "201107051446Z"
+    DESCRIPTION
+        "Conformance supplement for this MIB module."
+
+    REVISION        "201010281326Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { zxAnQos 2 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1 zxAnQosTrafficGlobalObjects
+-- 2 zxAnQosTrafficObjects
+-- 2.1 zxAnQosTrafficPrfTable
+-- 2.2 zxAnQosTrafficIfConfTable
+-- 2.3 zxAnQosTrafficIfStatsTable
+-- 2.4 zxAnQosTrafficIfQueueConfTable
+-- 2.5 zxAnQosTrafficIfShapingConfTable
+-- 2.6 zxAnQosTrafficIfShape2ConfTable
+-- 2.20 zxAnQosTrafficFlowObjects
+-- 2.20.1 zxAnQosTrafficFlowPrfTable
+-- 2.20.2 zxAnQosTrafficFlowRulePrfTable
+-- 2.20.3 zxAnQosTrafficFlowIfGrpConfTable
+-- 4 zxAnQosTrafficConformance
+--------------------------------------------------------------------------------
+
+    zxAnQosTrafficGlobalObjects OBJECT IDENTIFIER  ::= { zxAnQosTrafficMib 1 }
+    zxAnQosTrafficObjects       OBJECT IDENTIFIER  ::= { zxAnQosTrafficMib 2 }
+
+--------------------------------------------------------------------------------
+-- 1 zxAnQosTrafficGlobalObjects
+--------------------------------------------------------------------------------
+    zxAnQosTrafficCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            notSupportDiscardAndColorMode(0),
+            supportTrafficIfShapingConfTable(1),
+            supportColorMode(2),
+            supportPolicerTypeAndCouplingEn(3),
+            supportTrafficIfShape2ConfTable(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION   
+            "The QoS traffic compatibility.
+             The bit value 1 means the function represented by this bit is 
+             supported by this equipment.
+             bit 0: value 1 means not supporting zxAnQosTrafficPrfDiscardMode 
+             and zxAnQosTrafficPrfColorMode in zxAnQosTrafficPrfTable.
+             bit 1: value 1 means supporting zxAnQosTrafficIfShapingConfTable.
+             bit 2: value 1 means supporting zxAnQosTrafficPrfColorMode in
+                    zxAnQosTrafficPrfTable, regardless of
+                    notSupportDiscardAndColorMode.
+             bit 3: value 1 means supporting zxAnQosTrafficPrfPolicerType and
+                    zxAnQosTrafficPrfCouplingEn in zxAnQosTrafficPrfTable.
+             bit 4: value 1 means supporting zxAnQosTrafficIfShape2ConfTable.
+
+             NOTE: No recommended to display it in NMS." 
+      ::=  { zxAnQosTrafficGlobalObjects  1 }
+
+--------------------------------------------------------------------------------
+-- 2.1 zxAnQosTrafficPrfTable
+--------------------------------------------------------------------------------
+    zxAnQosTrafficPrfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosTrafficPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains information about traffic controlling.
+             An entry in this table reflects a profile defined which can be
+             used to configure an interface."
+        ::= { zxAnQosTrafficObjects 1 }
+
+    zxAnQosTrafficPrfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosTrafficPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "zxAnQosTrafficPrfTable entry.
+
+            The multi-variables binding rule should be complied with when a
+            manager creates an entry. According to this rule, all the related
+            mib variables must be included in one SNMP set operation.
+
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP set 
+            operation. Optional variables may be included in one SNMP set 
+            operation with the mandatory variables, but must not be used alone.
+
+            To create an entry, the mandatory and optional variables are as
+            follows:
+            mandatory: zxAnQosTrafficPrfCir, zxAnQosTrafficPrfCbs, 
+                       zxAnQosTrafficPrfPir, zxAnQosTrafficPrfPbs,
+                       zxAnQosTrafficPrfDiscardMode, zxAnQosTrafficPrfColorMode,
+                       zxAnQosTrafficPrfPolicerType,
+                       zxAnQosTrafficPrfCouplingEn,
+                       zxAnQosTrafficPrfRowStatus.
+            optional : none.
+
+            To delete an entry, only zxAnQosTrafficPrfRowStatus is needed in
+            one SNMP setOperation.
+
+            After an entry is created, variables zxAnQosTrafficPrfCir, 
+            zxAnQosTrafficPrfCbs, zxAnQosTrafficPrfPir, zxAnQosTrafficPrfPbs, 
+            zxAnQosTrafficPrfDiscardMode, zxAnQosTrafficPrfColorMode,
+            zxAnQosTrafficPrfPolicerType and zxAnQosTrafficPrfCouplingEn
+            can be modified alone.
+            
+            Make sure that zxAnQosTrafficPrfPir is not less than 
+            zxAnQosTrafficPrfCir, and zxAnQosTrafficPrfPbs is not less than
+            zxAnQosTrafficPrfCbs when to create or modify an entry. "
+        INDEX { zxAnQosTrafficPrfName }
+        ::= { zxAnQosTrafficPrfTable 1 }
+
+    ZxAnQosTrafficPrfEntry ::= SEQUENCE {
+        zxAnQosTrafficPrfName          DisplayString,
+        zxAnQosTrafficPrfCir           INTEGER,
+        zxAnQosTrafficPrfCbs           INTEGER,
+        zxAnQosTrafficPrfPir           INTEGER,
+        zxAnQosTrafficPrfPbs           INTEGER,
+        zxAnQosTrafficPrfDiscardMode   INTEGER,
+        zxAnQosTrafficPrfColorMode     INTEGER,
+        zxAnQosTrafficPrfPolicerType   INTEGER,
+        zxAnQosTrafficPrfCouplingEn    INTEGER,
+        zxAnQosTrafficPrfRowStatus     RowStatus
+    }
+
+    zxAnQosTrafficPrfName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic profile name which can be applied to an interface."
+        ::= { zxAnQosTrafficPrfEntry 1 }
+
+    zxAnQosTrafficPrfCir OBJECT-TYPE
+        SYNTAX      INTEGER(0..10000000)
+        UNITS       "kbps"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Committed Information Rate(CIR) in kbps."
+        ::= { zxAnQosTrafficPrfEntry 2 }
+
+    zxAnQosTrafficPrfCbs OBJECT-TYPE
+        SYNTAX      INTEGER(0..131072)
+        UNITS       "kbytes"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Committed Burst Size(CBS) in kbytes."
+        ::= { zxAnQosTrafficPrfEntry 3 }
+
+    zxAnQosTrafficPrfPir OBJECT-TYPE
+        SYNTAX      INTEGER(0..10000000)
+        UNITS       "kbps"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Peak Information Rate(PIR) in kbps."
+        ::= { zxAnQosTrafficPrfEntry 4 }
+
+    zxAnQosTrafficPrfPbs OBJECT-TYPE
+        SYNTAX      INTEGER(0..131072)
+        UNITS       "kbytes"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Peak Burst Size(PBS) in kbyte."
+        ::= { zxAnQosTrafficPrfEntry 5 }
+
+    zxAnQosTrafficPrfDiscardMode OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            noDistinction(1),
+            lowPriorityFirst(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The discard mode is used when the traffic exceeds the limit.
+             noDistinction(1)    -- discard extra flow equally.
+             lowPriorityFirst(2) -- discard low priority flow firstly."
+        ::= { zxAnQosTrafficPrfEntry 6 }
+
+    zxAnQosTrafficPrfColorMode OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            aware(1),
+            blind(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Color mode.
+             aware(1)  -- color aware mode.
+             blind(2)  -- color blind mode.
+            "
+        DEFVAL   {  blind  }
+        ::= { zxAnQosTrafficPrfEntry 7 }
+
+    zxAnQosTrafficPrfPolicerType OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enhancedMef(1),
+            mef(2),
+            rfc(3),
+            multipleThresholds(4)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Policer type."
+        DEFVAL  { enhancedMef }
+        ::= { zxAnQosTrafficPrfEntry 8 }
+
+    zxAnQosTrafficPrfCouplingEn OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enables or disables the coupling enabling."
+        DEFVAL  { enabled }
+        ::= { zxAnQosTrafficPrfEntry 9 }
+
+    zxAnQosTrafficPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnQosTrafficPrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosTrafficPrfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.2 zxAnQosTrafficIfConfTable
+--------------------------------------------------------------------------------
+
+    zxAnQosTrafficIfConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnQosTrafficIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains interface's traffic configuration."
+        ::=  { zxAnQosTrafficObjects 2 }
+
+    zxAnQosTrafficIfConfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosTrafficIfConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table contains QoS traffic configuration parameters
+             for gpon olt interface and gpon onu interface.
+
+             There are two types of variables: mandatory and optional.
+             All of the mandatory variables must be included in one SNMP set 
+             operation. Optional variables may be included in one SNMP set 
+             operation with the mandatory variables, but must not be used alone.
+
+             To create an entry, the mandatory and optional variables are 
+             different for certain interface.
+             For gpon olt interface, the mandatory and optional variables are
+             as follows:
+             mandatory: zxAnQosTrafficIfConfPrf, zxAnQosTrafficIfRowStatus
+             optional : none.
+             For gpon onu interface, the mandatory and optional variables are
+             as follows:
+             mandatory: zxAnQosTrafficIfConfPrf, zxAnQosTrafficIfRowStatus
+
+             To delete an entry, only zxAnQosTrafficPrfRowStatus is needed in
+             one SNMP setOperation.
+
+             After an entry is created, certain variable can be modified.
+             For gpon olt interface, only variable zxAnQosTrafficIfConfPrf can
+             be modified. 
+             
+             If a manager tries to modify any other variables in this entry, 
+             agent will return error with SNMP error code inconsistentValue."
+        INDEX { ifIndex,
+                zxAnSubIfIndex,
+                zxAnQosTrafficIfDirection
+        }
+        ::= { zxAnQosTrafficIfConfTable 1 }
+
+    ZxAnQosTrafficIfConfEntry  ::=
+        SEQUENCE {
+            zxAnQosTrafficIfDirection         INTEGER,
+            zxAnQosTrafficIfConfPrf           DisplayString,
+            zxAnQosTrafficIfRowStatus         RowStatus
+        }
+
+    zxAnQosTrafficIfDirection OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            ingress(1),
+            egress(2)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Egress direction or ingress direction on an interface."
+        ::= { zxAnQosTrafficIfConfEntry 1 }
+
+    zxAnQosTrafficIfConfPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object configures traffic profile of ingress or egress
+             direction. The value of this object is the name of the referenced
+             profile in the zxAnQosTrafficPrfTable."
+        ::= { zxAnQosTrafficIfConfEntry 2 }
+
+    zxAnQosTrafficIfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnQosTrafficIfConfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnQosTrafficIfConfEntry 50 }
+
+
+-------------------------------------------------------------------------------
+-- 2.4 zxAnQosTrafficIfQueueConfTable
+-------------------------------------------------------------------------------
+
+    zxAnQosTrafficIfQueueConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnQosTrafficIfQueueConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic configuration based on the queue of the interface table."
+        ::=  { zxAnQosTrafficObjects 4 }
+
+    zxAnQosTrafficIfQueueConfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosTrafficIfQueueConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic configuration based on the queue of the interface entry."
+        INDEX { ifIndex,
+                zxAnSubIfIndex,
+                zxAnQosTrafficIfQueueId,
+                zxAnQosTrafficIfQueueDirection
+        }
+        ::= { zxAnQosTrafficIfQueueConfTable 1 }
+
+    ZxAnQosTrafficIfQueueConfEntry  ::=
+        SEQUENCE {
+            zxAnQosTrafficIfQueueId         Integer32,
+            zxAnQosTrafficIfQueueDirection  INTEGER,
+            zxAnQosTrafficIfQueueConfPrf    DisplayString,
+            zxAnQosTrafficIfQueueRowStatus  RowStatus
+        }
+
+    zxAnQosTrafficIfQueueId OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Queue ID. The number of queues is fixed to zxAnQosGlobalMaxQueues 
+             in ZTE-AN-QOS-MIB.mib."
+        ::= { zxAnQosTrafficIfQueueConfEntry 1 }
+
+    zxAnQosTrafficIfQueueDirection OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            egress(1),
+            ingress(2)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The direction of the queue."
+        ::= { zxAnQosTrafficIfQueueConfEntry 2 }
+        
+    zxAnQosTrafficIfQueueConfPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic configuration profile. The value of this object is the name
+             of the referenced profile in the zxAnQosTrafficPrfTable."
+        ::= { zxAnQosTrafficIfQueueConfEntry 3 }
+        
+    zxAnQosTrafficIfQueueRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the multi-variables binding 
+             rule described in zxAnQosTrafficIfQueueConfEntry.
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosTrafficIfQueueConfEntry 50 }
+
+
+-------------------------------------------------------------------------------
+-- 2.6 zxAnQosTrafficIfShape2ConfTable
+-------------------------------------------------------------------------------
+
+    zxAnQosTrafficIfShape2ConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnQosTrafficIfShape2ConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Egress or ingress traffic shaping configuration based on the
+             interface table."
+        ::=  { zxAnQosTrafficObjects 6 }
+
+    zxAnQosTrafficIfShape2ConfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosTrafficIfShape2ConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Egress or ingress traffic shaping configuration based on the
+             interface entry.
+             This table contains QoS traffic configuration parameters
+             for physical interfaces (including ethernet interfaces and GPON OLT
+             interfaces) and GPON ONU interfaces."
+        INDEX { ifIndex,
+                zxAnSubIfIndex,
+                zxAnQosTrafficIfShape2Direction
+        }
+        ::= { zxAnQosTrafficIfShape2ConfTable 1 }
+
+    ZxAnQosTrafficIfShape2ConfEntry  ::=
+        SEQUENCE {
+            zxAnQosTrafficIfShape2Direction  INTEGER,
+            zxAnQosTrafficIfShape2ConfPrf    DisplayString,
+            zxAnQosTrafficIfShape2RowStatus  RowStatus
+        }
+
+    zxAnQosTrafficIfShape2Direction OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            egress(1),
+            ingress(2)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The direction of the interface."
+        ::= { zxAnQosTrafficIfShape2ConfEntry 1 }
+
+    zxAnQosTrafficIfShape2ConfPrf OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic configuration profile. The value of this object is the name
+             of the referenced profile in the zxAnQosTrafficPrfTable."
+        ::= { zxAnQosTrafficIfShape2ConfEntry 2 }
+
+    zxAnQosTrafficIfShape2RowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the multi-variables binding 
+             rule described in zxAnQosTrafficIfShapingConfEntry.
+
+             To delete a row in this table, a manager must set this object to 
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosTrafficIfShape2ConfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.20 zxAnQosTrafficFlowObjects
+--------------------------------------------------------------------------------
+
+    zxAnQosTrafficFlowObjects OBJECT IDENTIFIER ::= { zxAnQosTrafficObjects 20 }
+
+--------------------------------------------------------------------------------
+-- 2.20.1 zxAnQosTrafficFlowPrfTable
+--------------------------------------------------------------------------------
+
+    zxAnQosTrafficFlowPrfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosTrafficFlowPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow profile table."
+        ::= { zxAnQosTrafficFlowObjects 2 }
+
+    zxAnQosTrafficFlowPrfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnQosTrafficFlowPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow profile entry."
+        INDEX { zxAnQosTrafficFlowPrfName }
+        ::= { zxAnQosTrafficFlowPrfTable 1 }
+
+    ZxAnQosTrafficFlowPrfEntry ::= SEQUENCE {
+        zxAnQosTrafficFlowPrfName        DisplayString,
+        zxAnQosTrafficFlowPrfMode        INTEGER,
+        zxAnQosTrafficFlowPrfRowStatus   RowStatus
+    }
+
+    zxAnQosTrafficFlowPrfName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow profile name."
+        ::= { zxAnQosTrafficFlowPrfEntry 1 }
+
+    zxAnQosTrafficFlowPrfMode  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            cos(1),
+            any(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow profile mode.
+             cos(1): Rate is limited with CoS.
+             any(2): Rate is limited without CoS."
+        DEFVAL  { cos }
+        ::= { zxAnQosTrafficFlowPrfEntry 2 }
+
+    zxAnQosTrafficFlowPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnQosTrafficFlowPrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosTrafficFlowPrfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.20.2 zxAnQosTrafficFlowRulePrfTable
+--------------------------------------------------------------------------------
+
+    zxAnQosTrafficFlowRulePrfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosTrafficFlowRulePrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow rule of the profile table."
+        ::= { zxAnQosTrafficFlowObjects 3 }
+
+    zxAnQosTrafficFlowRulePrfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnQosTrafficFlowRulePrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow rule of the profile entry."
+        INDEX   { zxAnQosTrafficFlowPrfName, zxAnQosTrafficFlowRuleId }
+        ::= { zxAnQosTrafficFlowRulePrfTable 1 }
+
+    ZxAnQosTrafficFlowRulePrfEntry ::= SEQUENCE {
+        zxAnQosTrafficFlowRuleId           Integer32,
+        zxAnQosTrafficFlowRuleCosList      OCTET STRING,
+        zxAnQosTrafficFlowRuleTrafficPrf   DisplayString,
+        zxAnQosTrafficFlowRuleCarThresh    INTEGER,
+        zxAnQosTrafficFlowRuleRowStatus    RowStatus
+    }
+
+    zxAnQosTrafficFlowRuleId  OBJECT-TYPE
+        SYNTAX      Integer32(1..4)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Flow rule ID of the profile."
+        ::= { zxAnQosTrafficFlowRulePrfEntry 1 }
+
+     zxAnQosTrafficFlowRuleCosList  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(1))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "CoS list.
+             
+             |  bit 0   |  bit 1   |    ...   bit 7   |
+             +----------+----------+----...-----------+
+             |  CoS 0   |  CoS 1   |    ...   CoS 7   |
+             +----------+----------+----...-----------+
+
+             If one bit is set to '1', the corresponding CoS is configured to
+             CoS list.
+
+             If zxAnQosTrafficFlowPrfMode is any, this parameter must be all
+             zero. If zxAnQosTrafficFlowPrfMode is cos, this parameter must be
+             configured. A cos value can be set only once in the same profile."
+        ::= { zxAnQosTrafficFlowRulePrfEntry 2 }
+
+     zxAnQosTrafficFlowRuleTrafficPrf  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic configuration profile. The value of this object is the name
+             of the referenced profile in the zxAnQosTrafficPrfTable.
+             An empty string means not configured."
+        ::= { zxAnQosTrafficFlowRulePrfEntry 3 }
+
+     zxAnQosTrafficFlowRuleCarThresh  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            percent10(1),
+            percent25(2),
+            percent50(3),
+            percent75(4),
+            percent100(5)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "CAR (Commit Access Rate) threshold.
+             The flow can take x% of the tokens from the token bucket at most.
+             When the number of the tokens taken from the token bucket exceeds 
+             x%, the flow is forbidden to take any tokens.
+             For example, percent100 means the flow can take 
+             tokens once the token buket is not empty."
+        DEFVAL  { percent100 }
+        ::= { zxAnQosTrafficFlowRulePrfEntry 4 }
+
+    zxAnQosTrafficFlowRuleRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in ZxAnQosTrafficFlowRulePrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosTrafficFlowRulePrfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.20.3 zxAnQosTrafficFlowIfGrpConfTable
+--------------------------------------------------------------------------------
+
+    zxAnQosTrafficFlowIfGrpConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosTrafficFlowIfGrpConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow interface group configuration information table
+             for ethernet interface."
+        ::= { zxAnQosTrafficFlowObjects 4 }
+
+    zxAnQosTrafficFlowIfGrpConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnQosTrafficFlowIfGrpConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow interface group configuration information entry."
+        INDEX { ifIndex, zxAnSubIfIndex, zxAnQosTrafficFlowIfGrpId,
+                zxAnQosTrafficFlowIfGrpDirection }
+        ::= { zxAnQosTrafficFlowIfGrpConfTable 1 }
+
+    ZxAnQosTrafficFlowIfGrpConfEntry ::= SEQUENCE {
+        zxAnQosTrafficFlowIfGrpId          Integer32,
+        zxAnQosTrafficFlowIfGrpDirection   INTEGER,
+        zxAnQosTrafficFlowIfGrpFlowPrf     DisplayString,
+        zxAnQosTrafficFlowIfGrpSvlanList   OCTET STRING,
+        zxAnQosTrafficFlowIfGrpCvlanList   OCTET STRING,
+        zxAnQosTrafficFlowIfGrpTrffcPrf    DisplayString,
+        zxAnQosTrafficFlowIfGrpMode        INTEGER,
+        zxAnQosTrafficFlowIfGrpRowStatus   RowStatus
+    }
+    
+    zxAnQosTrafficFlowIfGrpId  OBJECT-TYPE
+        SYNTAX      Integer32(1..15000)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow group ID."
+        ::= { zxAnQosTrafficFlowIfGrpConfEntry 1 }
+        
+     zxAnQosTrafficFlowIfGrpDirection  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            ingress(1),
+            egress(2)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow direction."
+        ::= { zxAnQosTrafficFlowIfGrpConfEntry 2 }
+
+    zxAnQosTrafficFlowIfGrpFlowPrf  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow configuration profile. The value of this object
+             is the name of the referenced profile in the
+             zxAnQosTrafficFlowPrfTable."
+        ::= { zxAnQosTrafficFlowIfGrpConfEntry 3 }
+        
+    zxAnQosTrafficFlowIfGrpSvlanList  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(8))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow SVLAN list. The OCTET STRING contains pairs of values
+             in the following structure:
+             Octets 0-1 -- VLAN ID.
+             Octets 2-3 -- VLAN ID.
+             ...
+             Octets 6-7 -- VLAN ID."
+        ::= { zxAnQosTrafficFlowIfGrpConfEntry 4 }
+        
+     zxAnQosTrafficFlowIfGrpCvlanList  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE(8))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow CVLAN list. The OCTET STRING contains pairs of values
+             in the following structure:
+             Octets 0-1 -- VLAN ID.
+             Octets 2-3 -- VLAN ID.
+             ...
+             Octets 6-7 -- VLAN ID."
+        ::= { zxAnQosTrafficFlowIfGrpConfEntry 5 }
+
+     zxAnQosTrafficFlowIfGrpTrffcPrf  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic configuration profile. The value of this object is the name
+             of the referenced profile in the zxAnQosTrafficPrfTable.
+             An empty string means not configured."
+        ::= { zxAnQosTrafficFlowIfGrpConfEntry 6 }
+
+     zxAnQosTrafficFlowIfGrpMode  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            fullMatch(1),
+            oneToOne(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Traffic flow group mode.
+             fullMatch(1): A SVLAN+CVLAN+CoSs is mapping to a rule.
+             oneToOne(2): A SVLAN+CVLAN is mapping to a rule."
+        ::= { zxAnQosTrafficFlowIfGrpConfEntry 7 }
+
+    zxAnQosTrafficFlowIfGrpRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnQosTrafficFlowIfGrpConfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnQosTrafficFlowIfGrpConfEntry 50 }
+
+-------------------------------------------------------------------------------
+
+    zxAnQosTrafficConformance      OBJECT IDENTIFIER ::= { zxAnQosTrafficMib 4 }
+    zxAnQosTrafficCompliances     
+                           OBJECT IDENTIFIER ::= { zxAnQosTrafficConformance 1 }
+    zxAnQosTrafficGroups   OBJECT IDENTIFIER ::= { zxAnQosTrafficConformance 2 }
+
+    zxAnQosTrafficCompliance  MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-QOS-TRAFFIC-MIB."
+        MODULE -- this module
+            MANDATORY-GROUPS {
+                zxAnQosTrafficPrfGroup,
+                zxAnQosTrafficIfConfGroup,
+                zxAnQosTrafficIfStatsGroup
+            }
+        ::= { zxAnQosTrafficCompliances 1 }
+
+    zxAnQosTrafficPrfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosTrafficPrfCir,
+                  zxAnQosTrafficPrfCbs,
+                  zxAnQosTrafficPrfPir,
+                  zxAnQosTrafficPrfPbs,
+                  zxAnQosTrafficPrfDiscardMode,
+                  zxAnQosTrafficPrfColorMode,
+                  zxAnQosTrafficPrfRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects creating, modifying or deleting
+            a trafficPrf."
+        ::= { zxAnQosTrafficGroups 1 }
+
+    zxAnQosTrafficIfConfGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosTrafficIfConfPrf,
+                  zxAnQosTrafficIfRowStatus }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects configuring a trafficprf for an interface.
+
+             For gpon olt and gpon onu interface, variable 
+             zxAnQosTrafficIfConfPrf and zxAnQosTrafficIfRowStatus can be
+             configured."
+        ::= { zxAnQosTrafficGroups 2 }
+    
+    zxAnQosTrafficIfStatsGroup    OBJECT-GROUP
+        OBJECTS { zxAnQosTrafficIfUsedEgressCir,
+                  zxAnQosTrafficIfUsedIngressCir,
+                  zxAnQosTrafficIfAvailEgressCir,
+                  zxAnQosTrafficIfAvailIngressCir }
+        STATUS  current
+        DESCRIPTION
+            "A collection of total CIR for an interface."
+        ::= { zxAnQosTrafficGroups 3 }
+END

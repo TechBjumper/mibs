@@ -1,0 +1,1127 @@
+
+ZTE-AN-SECURITY-INTERFACE-MIB    DEFINITIONS ::= BEGIN
+    IMPORTS     
+        TEXTUAL-CONVENTION,RowStatus,MacAddress,
+        DisplayString                                   FROM SNMPv2-TC
+        MODULE-IDENTITY,  OBJECT-TYPE,Integer32, 
+        NOTIFICATION-TYPE,IpAddress                     FROM SNMPv2-SMI
+        ifIndex                                         FROM IF-MIB
+        OBJECT-GROUP,MODULE-COMPLIANCE                  FROM SNMPv2-CONF
+        VlanId                                          FROM ZTE-AN-TC-MIB
+        zxAnServiceSecurity                             FROM ZTE-AN-SMI
+        zxAnSubIfIndex                                  FROM ZTE-AN-IF-MIB;
+        
+    zxAnSecurityInterfaceMib    MODULE-IDENTITY
+        LAST-UPDATED    "201110202000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Zhang WeiPing      ZTE Corporation
+                        Mail: zhang.weiping@zte.com.cn
+                        Tel : 021-68896470"
+        DESCRIPTION     
+            "This MIB defines zte Access Node Security Interface managed 
+             objects."
+        REVISION        "201110202000Z"
+        DESCRIPTION
+            "Modify the broadcast and unknowcast value range."
+        REVISION        "201109132000Z"
+        DESCRIPTION
+            "Modify this mib according to standard."
+        REVISION        "201108291100Z"
+        DESCRIPTION
+            "Modify the description."   
+        REVISION        "201107211500Z"
+        DESCRIPTION
+            "Delete the tabel: zxAnProtoGlobalRateLimitTable."
+        REVISION "201105311500Z"
+        DESCRIPTION 
+            "Initial version of this MIB module."           
+        ::= { zxAnServiceSecurity 10 }  
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1 Security Interface Global Objects
+--  1.1 Security Interface Capabilities
+-- 2 Storm Control Objects
+--  2.1 Storm Control Global Objects 
+--  2.2 Storm Control Interface Table
+--  2.3 Storm Control Interface VLAN Table
+-- 3 Protocol Rate Limit Objects
+--  3.1 Protocol Rate Limit Capability Objects
+--  3.2 protocol Interface Rate Limit Table
+-- 4 Mac Security Objects
+--  4.1 MAC Address Learn Limit Table
+--  4.2 Interface VLAN MAC Address Learn Limit Table
+--  4.3 MAC Address Binding Table
+--  4.4 MAC Address Filtering Table
+-- 5 IPv6 Filter
+--  5.1 IPv6 Filter Global Objects
+--  5.2 IPv6 Filter VLAN Table
+-- 6 VLAN Rate Limit
+--  6.1 VLAN Rate Limit Table
+--  6.2 VLAN Range Rate Limit Table
+
+-- Following notification objects are defined.
+-- 21.Interface Notifications Definations
+
+-- Following conformance information is defined.
+-- 31. Interface Conformance
+--------------------------------------------------------------------------------
+
+    zxAnSecInterfaceGlobalObjects 
+                            OBJECT IDENTIFIER ::= { zxAnSecurityInterfaceMib 1 }
+
+    zxAnSecInterfaceObjects
+                            OBJECT IDENTIFIER ::= { zxAnSecurityInterfaceMib 2 }
+   
+    zxAnSecStormCtrlObjects  OBJECT IDENTIFIER ::= { zxAnSecInterfaceObjects 2 }
+    zxAnSecProtoRateLimitObjects
+                             OBJECT IDENTIFIER ::= { zxAnSecInterfaceObjects 3 }
+    zxAnSecMacSecurityObjects
+                             OBJECT IDENTIFIER ::= { zxAnSecInterfaceObjects 4 }
+    zxAnSecIpv6FilterObjects OBJECT IDENTIFIER ::= { zxAnSecInterfaceObjects 5 }
+    zxAnSecVlanRateLimitObjects
+                             OBJECT IDENTIFIER ::= { zxAnSecInterfaceObjects 6 }
+                             
+--------------------------------------------------------------------------------
+-- 1 Security Interface Global Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1.1 Security Interface Capabilities
+--------------------------------------------------------------------------------
+    zxAnSecInterfaceCapabilities  OBJECT-TYPE
+        SYNTAX      BITS {
+            supportVlanRateLmtBurstSize(0),
+            supportMaxLearnedMacsRangeTo1M(1)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The security interface capabilities of this equipment.
+             The bit value 1 means the function represented by this bit is 
+             supported by this equipment.
+             
+             bit 0: value 1 means supporting zxAnSecVlanRangeRateLmtTable and 
+             zxAnSecVlanRateLimitTable was deprecated.
+             
+             bit 1: value 1 means supporting the valid range of 
+             zxAnSecIfMaxLearnedMacs is from 0 to 1048576 or 2147483647, 
+             otherwise the valid range is from 0 to 16383 or 65535.
+             
+             NOTE: No recommended to display it in NMS."
+        ::= { zxAnSecInterfaceGlobalObjects 1 }
+        
+--------------------------------------------------------------------------------
+-- 2 Storm Control Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+--  2.1 Storm Control Global Objects 
+--------------------------------------------------------------------------------    
+
+    zxAnSecStormCtrlGlobalObjects      
+                             OBJECT IDENTIFIER ::= { zxAnSecStormCtrlObjects 1 }
+    
+    zxAnSecStormCtrlBcastRateLimit  OBJECT-TYPE 
+        SYNTAX      Integer32(0..1000000|2147483647) 
+        UNITS       "pps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "Broadcast packet rate limit.
+             Value 0 means that the packet will be discarded.
+             0x7FFFFFFF means no limit."
+        DEFVAL  { 100 }                
+        ::= { zxAnSecStormCtrlGlobalObjects 1 }
+                              
+    zxAnSecStormCtrlMcastRateLimit OBJECT-TYPE 
+        SYNTAX      Integer32(0..1000000|2147483647) 
+        UNITS       "pps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "Multicast packet rate limit.
+             Value 0 means that the packet will be discarded.
+             0x7FFFFFFF means no limit."
+        DEFVAL  { 100 }                
+        ::= { zxAnSecStormCtrlGlobalObjects 2 }
+
+    zxAnStormCtrlUnknownUcastRateLmt OBJECT-TYPE 
+        SYNTAX      Integer32(0..1000000|2147483647) 
+        UNITS       "pps"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "Unknown unicast packet rate limit.
+             Value 0 means that the packet will be discarded.
+             0x7FFFFFFF means no limit."
+        DEFVAL  { 100 }                
+        ::= { zxAnSecStormCtrlGlobalObjects 3 }
+        
+    zxAnSecStormCtrlBcastBurstSize  OBJECT-TYPE 
+        SYNTAX      Integer32(4..16384)
+        UNITS       "kbyte"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION     
+            "Broadcast packet burst size."
+        DEFVAL  { 512 }                
+        ::= { zxAnSecStormCtrlGlobalObjects 4 }
+        
+------------------------------------------------------------------------------
+-- 2.2 Storm Control Interface Table
+------------------------------------------------------------------------------ 
+
+    StormCtrlPktType ::= TEXTUAL-CONVENTION
+        STATUS      current
+        DESCRIPTION     
+            "Storm control packet type."
+        SYNTAX      INTEGER
+        {
+            broadcast(1),
+            unknownUnicast(2),
+            multicast(3) 
+        }
+    
+    zxAnSecStormCtrlIfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecStormCtrlIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Interface packet rate limit information table."
+        ::= { zxAnSecStormCtrlObjects 3 }
+         
+     zxAnSecStormCtrlIfEntry OBJECT-TYPE
+         SYNTAX      ZxAnSecStormCtrlIfEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A zxAnSecStormCtrlIfTable entry."
+         INDEX  
+         {
+             ifIndex, 
+             zxAnSubIfIndex,
+             zxAnSecStormCtrlIfPktType
+         }
+         ::= { zxAnSecStormCtrlIfTable 1 }
+         
+     ZxAnSecStormCtrlIfEntry ::= SEQUENCE {
+         zxAnSecStormCtrlIfPktType            StormCtrlPktType,
+         zxAnIfStormCtrlRateLmtUnit           INTEGER,
+         zxAnIfStormCtrlRateLmtIngress        Integer32,
+         zxAnIfStormCtrlRateLmtEgress         Integer32
+         }
+
+    zxAnSecStormCtrlIfPktType  OBJECT-TYPE 
+        SYNTAX      StormCtrlPktType 
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Storm control packet type."
+        ::= { zxAnSecStormCtrlIfEntry 1 }
+        
+    zxAnIfStormCtrlRateLmtUnit OBJECT-TYPE
+        SYNTAX      INTEGER 
+        {
+            pps(1),
+            kbps(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The unit of packet rate limit. Option 'kbps' has been deprecated."
+        ::= { zxAnSecStormCtrlIfEntry 2 } 
+
+    zxAnIfStormCtrlRateLmtIngress OBJECT-TYPE 
+        SYNTAX      Integer32(0..1000000|2147483646|2147483647)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Ingress packet rate limit. 
+             Value 0 means that the packet will be discarded.
+             0x7FFFFFFE means no limit.                            
+             0x7FFFFFFF means not supported."               
+        DEFVAL  { 100 }
+        ::= { zxAnSecStormCtrlIfEntry 3 }
+        
+    zxAnIfStormCtrlRateLmtEgress OBJECT-TYPE 
+        SYNTAX      Integer32(0..1000000|2147483646|2147483647) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Egress packet rate limit. 
+             Value 0 means that the packet will be discarded.
+             0x7FFFFFFE means no limit.
+             0x7FFFFFFF means not supported."              
+        DEFVAL  { 100 }
+        ::= { zxAnSecStormCtrlIfEntry 4 }
+
+------------------------------------------------------------------------------ 
+--  2.3 Storm Control Interface VLAN Table
+------------------------------------------------------------------------------ 
+
+    zxAnSecStormCtrlIfVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecStormCtrlIfVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Interface VLAN storm control table."
+        ::= { zxAnSecStormCtrlObjects 4 }
+
+    zxAnSecStormCtrlIfVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnSecStormCtrlIfVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnSecStormCtrlIfVlanTable entry."
+        INDEX   
+        { 
+            ifIndex, 
+            zxAnSubIfIndex,
+            zxAnSecStormCtrlIfVid,
+            zxAnSecStormCtrlIfVlanPktType 
+        }
+        ::= { zxAnSecStormCtrlIfVlanTable 1 }
+         
+    ZxAnSecStormCtrlIfVlanEntry ::= SEQUENCE 
+        {
+           zxAnSecStormCtrlIfVid                VlanId,
+           zxAnSecStormCtrlIfVlanPktType        StormCtrlPktType,
+           zxAnSecStormCtrlIfVlanRateLimit      Integer32,
+           zxAnSecStormCtrlIfVlanBurstSize      Integer32,
+           zxAnSecStormCtrlIfVlanRowStatus      RowStatus
+        }
+
+    zxAnSecStormCtrlIfVid    OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnSecStormCtrlIfVlanEntry 1 }
+
+    zxAnSecStormCtrlIfVlanPktType  OBJECT-TYPE
+        SYNTAX      StormCtrlPktType
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Storm control packet type."
+        ::= { zxAnSecStormCtrlIfVlanEntry 2 }
+
+    zxAnSecStormCtrlIfVlanRateLimit  OBJECT-TYPE
+        SYNTAX      Integer32(0..65535)
+        UNITS       "pps"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Packet rate limit.
+             Value 0 means that the packet will be discarded."
+        DEFVAL  { 100 }
+        ::= { zxAnSecStormCtrlIfVlanEntry 3 }
+
+    zxAnSecStormCtrlIfVlanBurstSize  OBJECT-TYPE
+        SYNTAX      Integer32(1..1023)
+        UNITS       "kbyte"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Packet burst size."
+        DEFVAL  { 1023 }
+        ::= { zxAnSecStormCtrlIfVlanEntry 4 }
+
+    zxAnSecStormCtrlIfVlanRowStatus    OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnSecStormCtrlIfVlanEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= {zxAnSecStormCtrlIfVlanEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 3 Protocol Rate Limit Objects
+-------------------------------------------------------------------------------- 
+    RateLimitProtocolType ::= TEXTUAL-CONVENTION
+        STATUS          current
+        DESCRIPTION     
+            "Protocol Type."
+        SYNTAX      INTEGER {
+            arp(1),
+            dhcpv4(2),
+            dhcpv6(3),
+            igmp(4),
+            pppoe(5),
+            cfm(6),
+            nd(7),
+            mld(8),
+            icmp(9),
+            icmpv6(10),
+            bpdu(11),
+            linkLocalAddr(12)
+        }
+
+    RateLimitScale ::= TEXTUAL-CONVENTION
+        STATUS          current
+        DESCRIPTION     
+            "Protocol Rate Limiting Scale."
+        SYNTAX      INTEGER {
+            vlan(2),
+            vport(3),
+            vportAndVlan(4),
+            physicalPort(5),
+            pvc(6)
+        }
+
+--------------------------------------------------------------------------------
+--  3.1 Protocol Rate Limit Capability Objects  
+-------------------------------------------------------------------------------- 
+    
+    zxAnProtoRateLimitCapObjects      
+                        OBJECT IDENTIFIER ::= { zxAnSecProtoRateLimitObjects 2 }
+        
+    zxAnProtoRateLimitCapTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnProtoRateLimitCapEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The supported protocol rate limiting table.
+             This table specifies which kinds of information on protocol type,
+             rate limiting scale and unit are supported for current device."
+        ::= { zxAnProtoRateLimitCapObjects 2 }
+        
+    zxAnProtoRateLimitCapEntry OBJECT-TYPE
+        SYNTAX      ZxAnProtoRateLimitCapEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The supported protocol rate limiting entry."
+        INDEX {zxAnProtoRateLimitCapScale, zxAnProtoRateLimitCapType }
+        ::= { zxAnProtoRateLimitCapTable 1 }
+        
+    ZxAnProtoRateLimitCapEntry ::= SEQUENCE {
+        zxAnProtoRateLimitCapScale                RateLimitScale,  
+        zxAnProtoRateLimitCapType                 RateLimitProtocolType,
+        zxAnProtoRateLimitCapDirection            INTEGER,
+        zxAnProtoRateLimitCapUnits                INTEGER
+        }
+
+    zxAnProtoRateLimitCapScale    OBJECT-TYPE
+        SYNTAX      RateLimitScale
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "Supported Protocol Rate Limiting Scale."
+        ::= { zxAnProtoRateLimitCapEntry 1 }
+
+    zxAnProtoRateLimitCapType    OBJECT-TYPE
+        SYNTAX      RateLimitProtocolType
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "Supported Protocol Type."
+        ::= { zxAnProtoRateLimitCapEntry 2 }
+ 
+    zxAnProtoRateLimitCapDirection OBJECT-TYPE
+        SYNTAX      INTEGER {
+            both(1),
+            ingress(2),
+            egress(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The VLAN rate limit direction."
+        ::= { zxAnProtoRateLimitCapEntry 3 }        
+        
+    zxAnProtoRateLimitCapUnits       OBJECT-TYPE
+        SYNTAX      INTEGER {
+            pps(1)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION   
+            "Supported unit type of rate for a specific protocol."
+        ::= { zxAnProtoRateLimitCapEntry 4 }
+        
+--------------------------------------------------------------------------------        
+--  3.2 protocol Interface Rate Limit Table
+--------------------------------------------------------------------------------   
+
+    zxAnProtoIfRateLimitTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF ZxAnProtoIfRateLimitEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+         "The global protocol rate limiting table.
+          This table specifies protocol rate limiting configuration, 
+          which is used to reduce the maximum traffic rate for 
+          each protocol such as DHCP, IGMP, ICMP and so on."
+        ::= { zxAnSecProtoRateLimitObjects 4 }    
+    
+    zxAnProtoIfRateLimitEntry  OBJECT-TYPE
+        SYNTAX      ZxAnProtoIfRateLimitEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The vport protocol rate limiting entry."
+        INDEX   {ifIndex, zxAnSubIfIndex ,
+                 zxAnProtoIfRateLimitProtoType}
+        ::=  { zxAnProtoIfRateLimitTable 1 }
+
+    ZxAnProtoIfRateLimitEntry  ::=  
+        SEQUENCE {
+            zxAnProtoIfRateLimitProtoType             RateLimitProtocolType,
+            zxAnProtoIfRateLimitIngress               Integer32,
+            zxAnProtoIfRateLimitEgress                Integer32
+        }
+
+    zxAnProtoIfRateLimitProtoType  OBJECT-TYPE
+        SYNTAX          RateLimitProtocolType
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     
+            "Supported Protocol Type."
+        ::= { zxAnProtoIfRateLimitEntry 3 }
+
+    zxAnProtoIfRateLimitIngress OBJECT-TYPE
+        SYNTAX      Integer32(0..65535 | 2147483646 | 2147483647)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+           "The packet rate limit ingress value.
+            Value 0 means that the packet will be discarded.
+            0x7FFFFFFE means no limit.
+            0x7FFFFFFF means not supported."
+        ::= { zxAnProtoIfRateLimitEntry 4 }
+
+    zxAnProtoIfRateLimitEgress OBJECT-TYPE
+        SYNTAX      Integer32(0..65535 | 2147483646 | 2147483647)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+           "The packet rate egress value.
+            Value 0 means that the packet will be discarded.
+            0x7FFFFFFE means no limit.
+            0x7FFFFFFF means not supported."
+        ::= { zxAnProtoIfRateLimitEntry 5 }
+
+--------------------------------------------------------------------------------
+-- 4 Mac Security Objects
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+--  4.1 MAC Address Learn Limit Table
+--------------------------------------------------------------------------------
+    
+    zxAnSecIfMacLearnedLimitTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecIfMacLearnedLimitEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the ethernet-like interface configuration."
+        ::= { zxAnSecMacSecurityObjects 2 }
+
+    zxAnSecIfMacLearnedLimitEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSecIfMacLearnedLimitEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnSecIfSecurityConfTable."
+        INDEX       { ifIndex, zxAnSubIfIndex  }
+        ::= { zxAnSecIfMacLearnedLimitTable 1 }
+
+    ZxAnSecIfMacLearnedLimitEntry  ::=  SEQUENCE {        
+        zxAnSecIfMacLearnedLimitEnable   INTEGER,
+        zxAnSecIfMaxLearnedMacs          Integer32
+        }
+
+    zxAnSecIfMacLearnedLimitEnable OBJECT-TYPE 
+        SYNTAX      INTEGER 
+        {
+            enable(1),
+            disable(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION     
+            "Enable/disable MAC learning limit."
+        DEFVAL  { enable }              
+        ::= { zxAnSecIfMacLearnedLimitEntry 3 }
+
+    zxAnSecIfMaxLearnedMacs OBJECT-TYPE 
+        SYNTAX      Integer32(0..1048576 | 2147483647) 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION     
+            "Configure the number of the MAC address learnt. One port can only
+             learn a maximum of the MACs configured.
+             When the value of bit 1 (supportMaxLearnedMacsRangeTo1M) of 
+             zxAnSecInterfaceCapabilities is 1, the valid range of the object is
+             from 0 to 1048576 or 2147483647, the value 2147483647 means no 
+             limit, and the default value is 2147483647, otherwise the valid 
+             range is from 0 to 16383 or 65535, the value 65535 means no limit, 
+             and the default value is 65535."
+        DEFVAL  { 2147483647 }
+        ::= { zxAnSecIfMacLearnedLimitEntry 4 }
+
+--------------------------------------------------------------------------------
+--  4.2 Interface VLAN MAC Address Learn Limit Table
+--------------------------------------------------------------------------------
+    
+    zxAnSecIfVlanMacLearnedTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecIfVlanMacLearnedEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Interface VLAN MAC address learned limit table."
+        ::= { zxAnSecMacSecurityObjects 3 }
+
+    zxAnSecIfVlanMacLearnedEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSecIfVlanMacLearnedEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnSecIfVlanMacLearnedTable."
+        INDEX       
+        {
+            ifIndex,
+            zxAnSubIfIndex,
+            zxAnSecIfVlanMacLearnedVid
+        }
+        ::= { zxAnSecIfVlanMacLearnedTable 1 }
+
+    ZxAnSecIfVlanMacLearnedEntry  ::= SEQUENCE {        
+        zxAnSecIfVlanMacLearnedVid        VlanId,
+        zxAnSecIfVlanMacLearnedMaxMacs    Integer32,
+        zxAnSecIfVlanMacLearnedRowStatus  RowStatus
+        }
+
+    zxAnSecIfVlanMacLearnedVid    OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnSecIfVlanMacLearnedEntry 1 }
+                      
+    zxAnSecIfVlanMacLearnedMaxMacs OBJECT-TYPE 
+        SYNTAX      Integer32(0..4095)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "Configure the number of the MAC address learnt limit.
+            
+             Value 0 mean to disable MAC address learning."
+        DEFVAL  { 4095 }
+        ::= { zxAnSecIfVlanMacLearnedEntry 2 }
+
+    zxAnSecIfVlanMacLearnedRowStatus    OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnSecIfVlanMacLearnedEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= {zxAnSecIfVlanMacLearnedEntry 50 }        
+        
+--------------------------------------------------------------------------------
+--  4.3 MAC Address Binding Table
+--------------------------------------------------------------------------------
+    
+    zxAnSecIfMacBindingTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecIfMacBindingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the interface static MAC binding infomation."
+        ::= { zxAnSecMacSecurityObjects 4 }
+
+    zxAnSecIfMacBindingEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSecIfMacBindingEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnSecIfMacBindingTable."
+        INDEX       
+        {
+            ifIndex,
+            zxAnSubIfIndex,
+            zxAnSecIfMacBindingMacAddress
+        }
+        ::= { zxAnSecIfMacBindingTable 1 }
+
+    ZxAnSecIfMacBindingEntry  ::= SEQUENCE {           
+        zxAnSecIfMacBindingMacAddress   MacAddress,
+        zxAnSecIfMacBindingRowStatus    RowStatus
+        }
+        
+    zxAnSecIfMacBindingMacAddress OBJECT-TYPE 
+        SYNTAX      MacAddress 
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "MAC address."
+        ::= { zxAnSecIfMacBindingEntry 1 }
+
+    zxAnSecIfMacBindingRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnSecIfMacBindingEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnSecIfMacBindingEntry 50 }
+        
+--------------------------------------------------------------------------------
+--  4.4 MAC Address Filtering Table
+--------------------------------------------------------------------------------
+    
+    zxAnSecIfMacFilterTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecIfMacFilterEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the interface static MAC filtering infomation."
+        ::= { zxAnSecMacSecurityObjects 5 }
+
+    zxAnSecIfMacFilterEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSecIfMacFilterEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnSecIfMacFilterTable."
+        INDEX
+        {
+            ifIndex,
+            zxAnSubIfIndex,
+            zxAnSecIfMacFilterMacAddress
+        }
+        ::= { zxAnSecIfMacFilterTable 1 }
+
+    ZxAnSecIfMacFilterEntry  ::=  SEQUENCE {              
+        zxAnSecIfMacFilterMacAddress   MacAddress,
+        zxAnSecIfMacFilterRowStatus    RowStatus
+        }
+
+    zxAnSecIfMacFilterMacAddress OBJECT-TYPE 
+        SYNTAX      MacAddress 
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "MAC address."
+        ::= { zxAnSecIfMacFilterEntry 1 }
+
+    zxAnSecIfMacFilterRowStatus OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnSecIfMacFilterEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnSecIfMacFilterEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 5 IPv6 Filter
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+--  5.1 IPv6 Filter Global Objects
+--------------------------------------------------------------------------------
+    
+    zxAnSecIpv6FilterGlobalObjects
+                            OBJECT IDENTIFIER ::= { zxAnSecIpv6FilterObjects 1 }
+
+    zxAnSecIpv6FiltVlanConfNextId  OBJECT-TYPE
+        SYNTAX      Integer32(0..32)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "This object contains an unused value for 
+             zxAnSecIpv6FilterVlanConfId in the zxAnSecIpv6FilterVlanConfTable.
+             The value 0 indicates that no unassigned entries are available."
+        ::= { zxAnSecIpv6FilterGlobalObjects 1 }
+
+--------------------------------------------------------------------------------
+--  5.2 IPv6 Filter VLAN Table
+--------------------------------------------------------------------------------
+
+    zxAnSecIpv6FilterVlanConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecIpv6FilterVlanConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table includes the IPv6 filter information."
+        ::= { zxAnSecIpv6FilterObjects 2 }
+
+    zxAnSecIpv6FilterVlanConfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnSecIpv6FilterVlanConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnSecIpv6FilterVlanConfTable."
+        INDEX { zxAnSecIpv6FilterVlanConfId }
+        ::= { zxAnSecIpv6FilterVlanConfTable 1 }
+
+    ZxAnSecIpv6FilterVlanConfEntry  ::= SEQUENCE {
+        zxAnSecIpv6FilterVlanConfId     Integer32,
+        zxAnSecIpv6FilterVid            VlanId,
+        zxAnSecIpv6FilterVlanMask       Integer32,
+        zxAnSecIpv6FilterVlanRowStatus  RowStatus
+        }
+
+   zxAnSecIpv6FilterVlanConfId  OBJECT-TYPE
+        SYNTAX      Integer32(1..32)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "IPv6 filter record ID."
+        ::= { zxAnSecIpv6FilterVlanConfEntry 1 }
+
+    zxAnSecIpv6FilterVid  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnSecIpv6FilterVlanConfEntry 2 }
+
+    zxAnSecIpv6FilterVlanMask  OBJECT-TYPE
+        SYNTAX      Integer32(0..4095)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The wildcard mask for the zxAnSecIpv6FilterVid bits that must 
+             match. 
+             
+             1 bits in the mask indicate the corresponding bits in the 
+             zxAnSecIpv6FilterVid must match in order for the matching to 
+             be successful, and 0 bits are don't care bits in the matching.
+             A value of zero causes only packets of source address the same as
+             zxAnSecIpv6FilterVid to match."
+        DEFVAL { 4095 }
+        ::= { zxAnSecIpv6FilterVlanConfEntry 3 }
+
+    zxAnSecIpv6FilterVlanRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnSecIpv6FilterVlanConfEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnSecIpv6FilterVlanConfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 6 VLAN Rate Limit
+--------------------------------------------------------------------------------
+
+    RateLimitDirection  ::= TEXTUAL-CONVENTION
+        STATUS      current
+        DESCRIPTION     
+            "Rate limit direction."
+        SYNTAX      INTEGER {
+            ingress(1),
+            egress(2) 
+        }
+
+--------------------------------------------------------------------------------
+--  6.1 VLAN Rate Limit Table
+--------------------------------------------------------------------------------      
+     zxAnSecVlanRateLimitTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecVlanRateLimitEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN rate limit table."
+        ::= { zxAnSecVlanRateLimitObjects 2 }
+
+    zxAnSecVlanRateLimitEntry OBJECT-TYPE
+        SYNTAX      ZxAnSecVlanRateLimitEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnSecVlanRateLimitTable entry."
+        INDEX {
+            zxAnSecVlanRateLimitVid,
+            zxAnSecVlanRateLimitDirection
+        }
+        ::= { zxAnSecVlanRateLimitTable 1 }
+         
+    ZxAnSecVlanRateLimitEntry ::= SEQUENCE  {
+        zxAnSecVlanRateLimitVid              VlanId,
+        zxAnSecVlanRateLimitDirection        RateLimitDirection,
+        zxAnSecVlanRateLimit                 Integer32,
+        zxAnSecVlanRateLimitRowStatus        RowStatus
+        }
+
+    zxAnSecVlanRateLimitVid    OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN ID."
+        ::= { zxAnSecVlanRateLimitEntry 1 }
+
+    zxAnSecVlanRateLimitDirection  OBJECT-TYPE
+        SYNTAX      RateLimitDirection
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN rate limit direction."
+        ::= { zxAnSecVlanRateLimitEntry 2 }
+
+    zxAnSecVlanRateLimit  OBJECT-TYPE
+        SYNTAX      Integer32(64..10000000)
+        UNITS       "kbps"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "VLAN rate limit, granularity is 64kbps."
+        ::= { zxAnSecVlanRateLimitEntry 3 }
+
+    zxAnSecVlanRateLimitRowStatus    OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnSecVlanRateLimitEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6).
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnSecVlanRateLimitEntry 50 }
+
+--------------------------------------------------------------------------------
+--  6.2 VLAN Range Rate Limit Table
+--------------------------------------------------------------------------------
+
+    zxAnSecVlanRangeRateLmtTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnSecVlanRangeRateLmtEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN range rate limit table."
+        ::= { zxAnSecVlanRateLimitObjects 3 }
+
+    zxAnSecVlanRangeRateLmtEntry OBJECT-TYPE
+        SYNTAX      ZxAnSecVlanRangeRateLmtEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "A zxAnSecVlanRangeRateLmtTable entry."
+        INDEX { zxAnSecVlanRangeRateLmtConfId }
+        ::= { zxAnSecVlanRangeRateLmtTable 1 }
+        
+    ZxAnSecVlanRangeRateLmtEntry ::= SEQUENCE {
+        zxAnSecVlanRangeRateLmtConfId        Integer32,
+        zxAnSecVlanRangeRateLmtDirection     INTEGER,
+        zxAnSecVlanRangeRateLmt              Integer32,
+        zxAnSecVlanRangeRateLmtBurstSize     Integer32,
+        zxAnSecVlanRangeRateLmtVlanIds       DisplayString,
+        zxAnSecVlanRangeRateLmtRowStatus     RowStatus
+    }
+
+    zxAnSecVlanRangeRateLmtConfId    OBJECT-TYPE
+        SYNTAX      Integer32(1..16)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VLAN rate limit record ID."
+        ::= { zxAnSecVlanRangeRateLmtEntry 1 }
+
+    zxAnSecVlanRangeRateLmtDirection  OBJECT-TYPE
+        SYNTAX     INTEGER {
+            ingress(1),
+            egress(2)
+        }
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+            "VLAN rate limit direction."
+        DEFVAL { ingress }
+        ::= { zxAnSecVlanRangeRateLmtEntry 2 }
+
+    zxAnSecVlanRangeRateLmt  OBJECT-TYPE
+        SYNTAX      Integer32(64..10000000)
+        UNITS       "kbps"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "VLAN rate limit, with a granularity of 64 kbps."
+        DEFVAL { 64 }
+        ::= { zxAnSecVlanRangeRateLmtEntry 3 }
+
+    zxAnSecVlanRangeRateLmtBurstSize  OBJECT-TYPE
+        SYNTAX      Integer32(4..16000)
+        UNITS       "kbytes"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "VLAN rate limit burst size."
+        DEFVAL { 8 }
+        ::= { zxAnSecVlanRangeRateLmtEntry 4 }
+   
+    zxAnSecVlanRangeRateLmtVlanIds  OBJECT-TYPE
+        SYNTAX          DisplayString (SIZE(1..32))
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The VLAN range for rate limiting. 
+             Each VLAN ID ranges from 1 to 4094. 
+             For multiple discrete VLAN IDs, separate them by commas.
+             For multiple continuous VLAN IDs, configure them by '-' character.
+             E.g., 100,200-1000,2000."
+        ::=  { zxAnSecVlanRangeRateLmtEntry 5 }
+        
+    zxAnSecVlanRangeRateLmtRowStatus    OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the multi-variables binding 
+             rule described in zxAnSecVlanRateLimitEntry.
+
+             To delete a row in this table, a manager must set this object to 
+             destroy(6).
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnSecVlanRangeRateLmtEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 31. Interface Conformance
+--------------------------------------------------------------------------------
+
+    zxAnSecInterfaceConformance   
+                            OBJECT IDENTIFIER ::= { zxAnSecurityInterfaceMib 4 }
+    
+    zxAnSecInterfaceCompliances        
+                         OBJECT IDENTIFIER ::= { zxAnSecInterfaceConformance 1 }
+    zxAnSecInterfaceGroups 
+                         OBJECT IDENTIFIER ::= { zxAnSecInterfaceConformance 2 }  
+                   
+    zxAnSecInterfaceCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION 
+            "The compliance statement for the ZTE-AN-SECURITY-INTERFACE-MIB."
+        MODULE -- this module
+            MANDATORY-GROUPS {
+                                zxAnSecStormCtrlIfGroup,
+                                zxAnProtoRateLimitCapGroup, 
+                                zxAnProtoIfRateLimitGroup,
+                                zxAnSecIfMacLearnedLimitGroup
+                             }
+        ::= { zxAnSecInterfaceCompliances 1 }
+                        
+    zxAnSecStormCtrlIfGroup OBJECT-GROUP
+        OBJECTS {
+                  zxAnIfStormCtrlRateLmtUnit,
+                  zxAnIfStormCtrlRateLmtIngress,
+                  zxAnIfStormCtrlRateLmtEgress
+                }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the interface storm control 
+            configuration information."
+        ::= { zxAnSecInterfaceGroups 1 }
+             
+    zxAnProtoRateLimitCapGroup OBJECT-GROUP
+        OBJECTS {
+                  zxAnProtoRateLimitCapDirection,
+                  zxAnProtoRateLimitCapUnits
+                }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the interface rate protocal limit
+             capability control configuration information."
+        ::= { zxAnSecInterfaceGroups 2 }
+  
+    zxAnProtoIfRateLimitGroup OBJECT-GROUP
+        OBJECTS {
+                   zxAnProtoIfRateLimitIngress, 
+                   zxAnProtoIfRateLimitEgress
+                }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the interface protocol rate limit
+             control configuration information."
+        ::= { zxAnSecInterfaceGroups 3 }
+
+    zxAnSecIfMacLearnedLimitGroup OBJECT-GROUP
+        OBJECTS {
+                   zxAnSecIfMacLearnedLimitEnable, 
+                   zxAnSecIfMaxLearnedMacs
+                }
+        STATUS current
+        DESCRIPTION 
+            "A collection of objects providing the interface max mac learn 
+             control configuration information."
+        ::= { zxAnSecInterfaceGroups 4 }
+
+END

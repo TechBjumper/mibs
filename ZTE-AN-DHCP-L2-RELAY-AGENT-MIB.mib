@@ -1,0 +1,308 @@
+ZTE-AN-DHCP-L2-RELAY-AGENT-MIB DEFINITIONS ::= BEGIN 
+IMPORTS 
+    OBJECT-TYPE, MODULE-IDENTITY, Integer32     FROM SNMPv2-SMI 
+    OBJECT-GROUP, NOTIFICATION-GROUP,MODULE-COMPLIANCE
+                                                FROM SNMPv2-CONF 
+    RowStatus, TruthValue                       FROM SNMPv2-TC                                            
+    ifIndex                                     FROM IF-MIB
+    zxAnServiceSecurity                         FROM ZTE-AN-SMI
+    zxAnSubIfIndex                              FROM ZTE-AN-IF-MIB;
+    
+    zxAnDhcpL2RAMib   MODULE-IDENTITY 
+        LAST-UPDATED    "201309100000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Chen Liang      ZTE Corporation
+                         Mail: chen.liang35@zte.com.cn
+                         Tel : +86-21-68897487"
+        DESCRIPTION     "This MIB defines the managed objects of DHCP Layer-2 Relay Agent."
+        REVISION        "201309100000Z"
+        DESCRIPTION     "The modification of this mib file is following:
+                        - New objects for ZxAnDhcpV6L2RAIfConfEntry:
+                         zxAnDhcpV6L2RAIfConfTrust         
+                         zxAnDhcpV6L2RAIfConfPolicy"
+        REVISION        "201108010000Z"     
+        DESCRIPTION
+                        "Initial version of this MIB module."
+        ::= { zxAnServiceSecurity 60 }
+
+    zxAnDhcpL2RAObjects              OBJECT IDENTIFIER ::= {zxAnDhcpL2RAMib 2}
+
+    zxAnDhcpV4L2RAObjects            OBJECT IDENTIFIER ::= {zxAnDhcpL2RAObjects 1}
+    zxAnDhcpV6L2RAObjects            OBJECT IDENTIFIER ::= {zxAnDhcpL2RAObjects 2}
+    
+
+--------------------------------------------------------------------------------
+-- 1. Global Objects
+--------------------------------------------------------------------------------
+
+  
+--------------------------------------------------------------------------------
+-- 2. DhcpV4 Layer-2 Relay Agent Global Objects
+--------------------------------------------------------------------------------
+               
+--------------------------------------------------------------------------------
+--3. DhcpV4 Layer-2 Relay Agent Vlan Table 
+--------------------------------------------------------------------------------
+        
+     zxAnDhcpV4L2RAVlanTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDhcpV4L2RAVlanEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "DhcpV4 layer-2 relay agent vlan switch table. 
+             When dhcpV4 layer-2 relay agent on the vlan is activated, 
+             the dhcpV4 packets with this vlan will be processed.
+            " 
+        ::= { zxAnDhcpV4L2RAObjects 2 }
+    
+    zxAnDhcpV4L2RAVlanEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDhcpV4L2RAVlanEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "The entry of DhcpV4 layer-2 relay agent vlan switch table."
+        INDEX { zxAnDhcpV4L2RAVid} 
+        ::= { zxAnDhcpV4L2RAVlanTable 1 }
+    
+    ZxAnDhcpV4L2RAVlanEntry ::= SEQUENCE {
+        zxAnDhcpV4L2RAVid                  Integer32,
+        zxAnDhcpV4L2RAVlanRowStatus        RowStatus
+        }
+
+    zxAnDhcpV4L2RAVid     OBJECT-TYPE
+        SYNTAX         Integer32
+        MAX-ACCESS     not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The vlan on which the dhcpV4 layer-2 relay agent is activated.
+             256 vlans at most can be created."        
+        ::= { zxAnDhcpV4L2RAVlanEntry 1 }
+           
+    zxAnDhcpV4L2RAVlanRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current        
+        DESCRIPTION 
+            "The status of this conceptual row.
+            The state of this conceptual row only supports 
+            'not exist' and  'active'.
+            The action of this conceptual row only supports
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+                
+            To delete a row in this table, a manager must
+            set this object to destroy(6). 
+             
+            To query this object, always return 1. "
+        ::= { zxAnDhcpV4L2RAVlanEntry 50 }
+    
+--------------------------------------------------------------------------------
+-- 5. DhcpV6 Layer-2 Relay Agent Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnDhcpV6L2RAGlobalObjects   OBJECT IDENTIFIER ::= {zxAnDhcpV6L2RAObjects 1} 
+    
+        
+    zxAnDhcpV6L2RAWorkMode OBJECT-TYPE
+        SYNTAX      INTEGER 
+            {   
+                noLdra(1),
+                ldra(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "DHCPv6 layer 2 relay agent work mode.
+             LDRA means the protocol RFC6221(Lightweight DHCPv6 Relay Agent).
+             noLdra: The format of the relay messages do not meet 
+                     RFC6221 standards. 
+             ldra:   The format of the relay messages meet RFC6221 standards."
+        DEFVAL { noLdra }
+        ::= { zxAnDhcpV6L2RAGlobalObjects 2 } 
+        
+--------------------------------------------------------------------------------
+--6. DhcpV6 Layer-2 Relay Agent Vlan Table 
+--------------------------------------------------------------------------------
+        
+     zxAnDhcpV6L2RAVlanTable OBJECT-TYPE 
+        SYNTAX      SEQUENCE OF ZxAnDhcpV6L2RAVlanEntry 
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "DhcpV6 layer-2 relay agent vlan switch table. 
+             When dhcpV6 layer-2 relay agent on the vlan is activated, 
+             the dhcpV6 packets with this vlan will be processed.
+            " 
+        ::= { zxAnDhcpV6L2RAObjects 2 }
+    
+    zxAnDhcpV6L2RAVlanEntry OBJECT-TYPE 
+        SYNTAX      ZxAnDhcpV6L2RAVlanEntry
+        MAX-ACCESS  not-accessible 
+        STATUS      current 
+        DESCRIPTION 
+            "The entry of DhcpV6 layer-2 relay agent vlan switch table."
+        INDEX { zxAnDhcpV6L2RAVid} 
+        ::= { zxAnDhcpV6L2RAVlanTable 1 }
+    
+    ZxAnDhcpV6L2RAVlanEntry ::= SEQUENCE {
+        zxAnDhcpV6L2RAVid                  Integer32,
+        zxAnDhcpV6L2RAVlanRowStatus        RowStatus
+        }
+
+    zxAnDhcpV6L2RAVid     OBJECT-TYPE
+        SYNTAX         Integer32
+        MAX-ACCESS     not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The vlan on which the dhcpV6 layer-2 relay agent is activated.
+             256 vlans at most can be created."        
+        ::= { zxAnDhcpV6L2RAVlanEntry 1 }
+           
+    zxAnDhcpV6L2RAVlanRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current        
+        DESCRIPTION 
+            "The status of this conceptual row.
+            The state of this conceptual row only supports 
+            'not exist' and  'active'.
+            The action of this conceptual row only supports
+            'createAndGo' and 'destroy'.
+            
+            To create a row in this table, a manager must
+            set this object to createAndGo(4).
+                
+            To delete a row in this table, a manager must
+            set this object to destroy(6). 
+             
+            To query this object, always return 1. "
+        ::= { zxAnDhcpV6L2RAVlanEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 7. DhcpV6 Layer-2 Relay Agent Interface Table
+--------------------------------------------------------------------------------
+       
+    zxAnDhcpV6L2RAIfConfTable OBJECT-TYPE 
+        SYNTAX SEQUENCE OF ZxAnDhcpV6L2RAIfConfEntry 
+        MAX-ACCESS not-accessible 
+        STATUS current 
+        DESCRIPTION 
+            "DhcpV6 layer-2 relay agent interface configuration table.
+             C6XX not support anymore." 
+        ::= { zxAnDhcpV6L2RAObjects 3 }
+    
+    zxAnDhcpV6L2RAIfConfEntry OBJECT-TYPE 
+        SYNTAX ZxAnDhcpV6L2RAIfConfEntry
+        MAX-ACCESS not-accessible 
+        STATUS current 
+        DESCRIPTION 
+            "An entry in zxAnDhcpV6L2RAIfConfTable.
+            When a manager wants to set the trust policy of the interface,
+            it must comply with the multi-variables usage rule that all t-
+            he mib variables related to the fuction must be in one snmp s-
+            et operation, the variables are all mandatory.
+       
+            - mandatoty: 
+            zxAnDhcpV6L2RAIfConfTrust, 
+            zxAnDhcpV6L2RAIfConfPolicy.
+            "
+        INDEX { ifIndex, zxAnSubIfIndex } 
+        ::= { zxAnDhcpV6L2RAIfConfTable 1 }
+    
+    ZxAnDhcpV6L2RAIfConfEntry ::= SEQUENCE {
+        zxAnDhcpV6L2RAIfConfEnable         INTEGER,         
+        zxAnDhcpV6L2RAIfConfTrust          TruthValue,
+        zxAnDhcpV6L2RAIfConfPolicy         INTEGER,
+        zxAnDhcpV6L2RAIfWorkMode           INTEGER 
+        }
+        
+    zxAnDhcpV6L2RAIfConfEnable OBJECT-TYPE 
+        SYNTAX INTEGER 
+            {   
+                enable(1),
+                disable(2)
+            }
+        MAX-ACCESS read-write 
+        STATUS current 
+        DESCRIPTION 
+            "The interface switch used to activate or deactivate interface 
+            DHCPv6 layer-2 relay agent.
+            There are two states:
+            - enable: the interface DHCPv6 layer-2 relay agent is activated.
+            - disable: the interface DHCPv6 layer-2 relay agent is deactivated.
+            "
+        DEFVAL { disable }
+        ::= { zxAnDhcpV6L2RAIfConfEntry 1 }
+        
+    
+    zxAnDhcpV6L2RAIfConfTrust OBJECT-TYPE 
+        SYNTAX TruthValue 
+        MAX-ACCESS read-write 
+        STATUS current 
+        DESCRIPTION 
+            "DHCPv6 layer-2 relay agent interface trust flag.
+             To set this variable, a manager must comply with the 
+             multi-variables usage rules in ZxAnDhcpV6L2RAIfConfEntry 
+             description.
+            "
+        DEFVAL { false }
+        ::= { zxAnDhcpV6L2RAIfConfEntry 2 }
+        
+    zxAnDhcpV6L2RAIfConfPolicy OBJECT-TYPE 
+        SYNTAX INTEGER  {
+                keep(1), 
+                replace(2), 
+                discard(3), 
+                add(4)
+        }
+        MAX-ACCESS read-write 
+        STATUS current 
+        DESCRIPTION 
+            "DHCPv6 layer-2 relay agent interface trust policy.
+             To set this variable, a manager must comply with the following 
+             rules:
+             - when trust flag is true, policy can be set to keep or replace. 
+             - when trust flag is false, policy can be set to discard or add.
+             In addition, a manager must comply with the multi-variables usage 
+             rules in ZxAnDhcpV6L2RAIfConfEntry description.
+             "
+        DEFVAL { add }
+        ::= { zxAnDhcpV6L2RAIfConfEntry 3 } 
+
+    zxAnDhcpV6L2RAIfWorkMode OBJECT-TYPE 
+        SYNTAX      INTEGER {   
+            noLdra(1),
+            ldra(2),
+            invalid(255)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "DHCPv6 layer 2 relay agent work mode of the interface.
+             LDRA means the protocol RFC6221(Lightweight DHCPv6 Relay Agent).
+             noLdra:  The format of the relay messages do not meet 
+                      RFC6221 standards. 
+             ldra:    The format of the relay messages meet RFC6221 standards.
+             invalid: The format of the relay message is configured by 
+                      zxAnDhcpV6L2RAWorkMode."
+        DEFVAL { invalid }
+        ::= { zxAnDhcpV6L2RAIfConfEntry 4}
+--------------------------------------------------------------------------------
+-- 31. zxAnDhcpL2RAConformance
+--------------------------------------------------------------------------------
+
+zxAnDhcpL2RAConformance      OBJECT IDENTIFIER ::= {zxAnDhcpL2RAMib 4}
+
+zxAnDhcpL2RACompliances      OBJECT IDENTIFIER ::= {zxAnDhcpL2RAConformance 1}
+zxAnDhcpL2RAGroups           OBJECT IDENTIFIER ::= {zxAnDhcpL2RAConformance 2}
+
+
+-- Note: the global variables and table variables in group, which have to be implemented by access node.
+            
+        
+-- Note: the following trap groups have to be implemented by access node.
+        
+END
+

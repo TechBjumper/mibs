@@ -1,0 +1,628 @@
+ZTE-AN-ARP-MIB DEFINITIONS ::= BEGIN 
+IMPORTS 
+    OBJECT-TYPE, MODULE-IDENTITY, IpAddress,
+    Integer32,NOTIFICATION-TYPE                  FROM SNMPv2-SMI 
+    MODULE-COMPLIANCE, OBJECT-GROUP              FROM SNMPv2-CONF
+    TruthValue, MacAddress, RowStatus            FROM SNMPv2-TC
+    ifIndex                                      FROM IF-MIB
+    VlanId, zxAccessNode,ZxAnSubIfIndex          FROM ZTE-AN-TC-MIB
+    zxAnSubIfIndex                               FROM ZTE-AN-IF-MIB
+    zxAnServiceSecurity                          FROM ZTE-AN-SMI
+    InetAddress,InetAddressType,
+    InetAddressPrefixLength                      FROM INET-ADDRESS-MIB;
+    
+    zxAnArpMib   MODULE-IDENTITY 
+        LAST-UPDATED    "201108100000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    
+               "Wang YaNan ZTE Corporation
+                Mail: wang.yanan@zte.com.cn
+                Tel : +86-21-68897224"
+        DESCRIPTION     
+               "The MIB module is for configuration of ARP anti-spoofing and 
+                ARP reply agent features. 
+                      
+                ARP anti-spoofing is a security mechanism which validate ARP 
+                packets seen on access ports.
+                
+                ARP reply agent is a mechanism that the device how to respond 
+                to ARP queries received from the network and ARP replies from 
+                the customer direction." 
+        REVISION        "201108100000Z"
+        DESCRIPTION
+               "The modification of this mib file is the following:
+                - Modifying all mibs's description
+                - Deleting zxAnArpAntiSpoofingGlbObjects and 
+                  zxAnArpAntiSpoofingGlbEnable
+                - Deleting a variable of zxAnArpAntiSpoofingVlanTable:
+                  zxAnArpAntiSpoofingDirection
+                - Adding ARP conformance
+               "               
+        REVISION        "200612060000Z"
+        DESCRIPTION
+               "Initial version of this MIB module."                       
+        ::= { zxAnServiceSecurity 45 } 
+
+    zxAnArpMibObjects     
+        OBJECT IDENTIFIER  ::= { zxAnArpMib 2 }  
+
+    zxAnArpConformance    
+        OBJECT IDENTIFIER  ::= { zxAnArpMib 4 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 2. Arp anti-spoofing Objects
+-- 2.1 Arp anti-spoofing
+-- 2.1.1 Arp Anti Spoofing Global Objects
+-- 2.1.2 Arp Anti Spoofing Config Table
+-- 2.2 ARP Reply Agent
+-- 2.2.2 ARP Reply Agent Vlan Config Table
+-- 2.3 Mac Forced Forwarding
+-- 2.3.1 Arp MFF Global Objects
+-- 2.3.2 Arp MFF Gateway Config Table
+-- 2.4 ARP Filter Vlan configure
+
+--------------------------------------------------------------------------------   
+        
+--------------------------------------------------------------------------------
+-- 2.1 Arp anti-spoofing
+--------------------------------------------------------------------------------
+
+    zxAnArpAntiSpoofingObjects        
+        OBJECT IDENTIFIER  ::= { zxAnArpMibObjects 1 }
+  
+--------------------------------------------------------------------------------
+-- 2.1.1 Arp Anti Spoofing Global Objects                          
+--------------------------------------------------------------------------------        
+    zxAnArpAntiSpoofingGlobalObjects 
+        OBJECT IDENTIFIER ::= { zxAnArpAntiSpoofingObjects 1 } 
+             
+    zxAnArpAntiSpoofingIfIndex OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the value of the physical interface from 
+             which the zxAnArpSpoofingTrap occurs."
+        ::= { zxAnArpAntiSpoofingGlobalObjects 1 }  
+        
+    zxAnArpAntiSpoofingSubIfIndex OBJECT-TYPE
+        SYNTAX      ZxAnSubIfIndex
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the value of the sub-interface from which
+             the zxAnArpSpoofingTrap occurs.   
+             The sub-interface for which this feature must be applicable is:
+             SubIfType = ONU service port sub-interface(3)."
+        ::= { zxAnArpAntiSpoofingGlobalObjects 2 }            
+                                                                                                                                                                                                                                                            
+    zxAnArpAntiSpoofingIpAddr OBJECT-TYPE                                                                      
+        SYNTAX      IpAddress                                                                              
+        MAX-ACCESS  accessible-for-notify                                                                           
+        STATUS      current                                                                                  
+        DESCRIPTION                                                                                          
+            "This object indicates the IP address obtained at this interface 
+             through DHCP dynamic configuration or static configuration by IP 
+             source guard module."                               
+        ::= { zxAnArpAntiSpoofingGlobalObjects 3 }     
+     
+    zxAnArpAntiSpoofingMac OBJECT-TYPE                                                                        
+        SYNTAX      MacAddress                                                                               
+        MAX-ACCESS  accessible-for-notify                                                                              
+        STATUS      current                                                                                  
+        DESCRIPTION                                                                                          
+            "This object indicates the MAC address obtained at this interface 
+             through DHCP dynamic configuration or static configuration by IP 
+             source guard module."                                     
+        ::= { zxAnArpAntiSpoofingGlobalObjects 4 } 
+        
+    zxAnArpAntiSpoofingFakedMac OBJECT-TYPE                                                                        
+        SYNTAX      MacAddress                                                                               
+        MAX-ACCESS  accessible-for-notify                                                                              
+        STATUS      current                                                                                  
+        DESCRIPTION                                                                                          
+            "This object indicates the faked MAC address framed by ARP spoofing 
+             attacker from user-side interface."                                      
+        ::= { zxAnArpAntiSpoofingGlobalObjects 5 }    
+
+    zxAnArpAntiSpoofingEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                enabled(1),
+                disabled(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+             "Enable or disable ARP anti-spoofing function."             
+        DEFVAL { disabled }                   
+        ::= { zxAnArpAntiSpoofingGlobalObjects 6 }               
+
+     zxAnArpAntiSpoofingCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            notSupportVlanDirection(0)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION   
+            "The Arp anti-Spoofing capabilities.
+             The bit value 1 means the function represented by this bit is 
+             supported by this equipment.
+             bit 0: value 1 means not supporting
+                    zxAnArpAntiSpoofingVlanDirection in
+                    zxAnArpAntiSpoofingVlanTable.
+
+             NOTE: No recommended to display it in NMS." 
+        ::=  { zxAnArpAntiSpoofingGlobalObjects  100 }
+
+--------------------------------------------------------------------------------
+-- 2.1.2 Arp Anti Spoofing Config Table
+--------------------------------------------------------------------------------     
+   zxAnArpAntiSpoofingVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnArpAntiSpoofingVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table provides the mechanism to control ARP anti-spoofing 
+             per VLAN. When a VLAN is created in a device supporting this 
+             table, a corresponding entry of this table will be added. 
+                
+             If the VLAN number on which ARP anti-spoofing at this interface
+             and ARP anti-spoofing at this interface are both enabled,the 
+             ARP requests or ARP responses whose IP-MAC assignment is not 
+             compliant, and for which there is therefore no matching entry 
+             in the DHCP Snooping Table, they must be rejected." 
+        ::= { zxAnArpAntiSpoofingObjects 2 }
+
+    zxAnArpAntiSpoofingVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnArpAntiSpoofingVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "A row instance contains the configuration to enable or disable 
+             ARP anti-spoofing at each existing VLAN."
+        INDEX       {  zxAnArpAntiSpoofingVid }
+        ::= { zxAnArpAntiSpoofingVlanTable 1 }
+    
+    ZxAnArpAntiSpoofingVlanEntry ::= SEQUENCE {
+        zxAnArpAntiSpoofingVid                       INTEGER,
+        zxAnArpAntiSpoofingVlanDirection             INTEGER,
+        zxAnArpAntiSpoofingVlanRowStatus             RowStatus
+    }
+        
+    zxAnArpAntiSpoofingVid  OBJECT-TYPE
+        SYNTAX      INTEGER(1..4094)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION  
+            "This object indicates the VLAN number on which ARP anti-spoofing
+             feature is configured. 
+                
+             If the VLAN number on which ARP anti-spoofing at this interface 
+             and ARP anti-spoofing at this interface are both enabled, the 
+             ARP requests or ARP responses whose IP-MAC assignment is not 
+             compliant, and for which there is therefore no matching entry 
+             in the DHCP Snooping Table, they must be rejected."
+        ::={zxAnArpAntiSpoofingVlanEntry 1}          
+
+     zxAnArpAntiSpoofingVlanDirection  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            downstream(1),
+            upstream(2),
+            both(3)              
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+           "Direction of ARP anti-Spoofing."        
+        DEFVAL { both }            
+        ::={zxAnArpAntiSpoofingVlanEntry 2}   
+
+     zxAnArpAntiSpoofingVlanRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object is used to manage the creation and deletion of rows 
+             in this table. It only supports 'active(1)','createAndGo(4)'and 
+             'destroy(6)' value.
+                
+             If this object is set to 'createAndGo(4)', the vlan number on 
+             which ARP anti-spoofing is active(1).Setting this object value 
+             to destroy(6),the vlan number on which ARP anti-spoofing is 
+             inactive."
+        ::= { zxAnArpAntiSpoofingVlanEntry 50 }          
+        
+--------------------------------------------------------------------------------
+-- 2.2 ARP Reply Agent
+--------------------------------------------------------------------------------
+    
+    zxAnArpReplyAgentObjects   
+    OBJECT IDENTIFIER  ::= { zxAnArpMibObjects 2 }
+
+--------------------------------------------------------------------------------
+-- 2.2.2 ARP Reply Agent Vlan Config Table
+--------------------------------------------------------------------------------   
+   zxAnArpReplyAgentVlanTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnArpReplyAgentVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table provides the mechanism to control ARP reply agent 
+             per VLAN. When a VLAN is created in a device supporting this 
+             table, a corresponding entry of this table will be added. 
+                
+             If the VLAN number on which ARP reply agent at this interface
+             and ARP reply agent at this interface are both enabled, The 
+             ARP Reply Agent must respond to ARP queries received from 
+             the network." 
+        ::= { zxAnArpReplyAgentObjects 2 }
+
+    zxAnArpReplyAgentVlanEntry OBJECT-TYPE
+        SYNTAX      ZxAnArpReplyAgentVlanEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "A row instance contains the configuration to enable or disable 
+             ARP reply agent at each existing VLAN."
+        INDEX       {  zxAnArpReplyAgentVid }
+        ::= { zxAnArpReplyAgentVlanTable 1 }
+    
+    ZxAnArpReplyAgentVlanEntry ::= SEQUENCE {
+        zxAnArpReplyAgentVid                 INTEGER,
+        zxAnArpReplyAgentVlanRowStatus       RowStatus
+    }
+        
+    zxAnArpReplyAgentVid  OBJECT-TYPE
+        SYNTAX    INTEGER(1..4094)
+        MAX-ACCESS  not-accessible
+        STATUS    current
+        DESCRIPTION  
+            "This object indicates the VLAN number on which ARP reply agent 
+             feature is configured. 
+                
+             If the VLAN number on which ARP reply agent at this interface 
+             and ARP reply agent at this interface are both enabled, The ARP
+             Reply Agent must respond to ARP queries received from the network."
+        ::={zxAnArpReplyAgentVlanEntry 1}          
+
+     zxAnArpReplyAgentVlanRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object is used to manage the creation and deletion of rows 
+             in this table. It only supports 'active(1)','createAndGo(4)'and 
+             'destroy(6)' value.
+                
+             If this object is set to 'createAndGo(4)', the vlan number on 
+             which ARP reply agent is active(1).Setting this object value to
+             destroy(6),the vlan number on which ARP reply agent is inactive."
+        ::= { zxAnArpReplyAgentVlanEntry 50 }        
+
+------------------------------------------------------------------------------
+-- 2.3 Mac Forced Forwarding
+------------------------------------------------------------------------------
+    zxAnArpMacForcedForwardObjects
+        OBJECT IDENTIFIER  ::={ zxAnArpMibObjects 3}  
+   
+------------------------------------------------------------------------------
+-- 2.3.1 Arp MFF Global Objects 
+------------------------------------------------------------------------------          
+    zxAnArpMffGlobalObjects
+        OBJECT IDENTIFIER ::= { zxAnArpMacForcedForwardObjects 1 } 
+   
+    zxAnArpMffEnable  OBJECT-TYPE
+        SYNTAX      INTEGER 
+        {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable MFF function."
+        DEFVAL { disabled }
+        ::= { zxAnArpMffGlobalObjects 1 }          
+    
+    zxAnArpMffGwTransparentEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable gateway transparent function when MFF function is
+             enabled.
+             This object is effective only when zxAnArpMffEnable is enabled."
+        DEFVAL { disabled }
+        ::= { zxAnArpMffGlobalObjects 2 }
+------------------------------------------------------------------------------
+-- 2.3.2 Arp MFF Gateway Config Table
+------------------------------------------------------------------------------          
+    zxAnArpMffTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnArpMffEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table indicates MFF configuration.MFF is MAC-Forced 
+            Forwarding.This table supports 32 VLAN's configuration of the 
+            MFF gateway,and 8 gateway configuration per vlan.In a same VLAN,
+            IP or MAC of the gateway should not be duplicated.           
+            "   
+        ::= { zxAnArpMacForcedForwardObjects 2 }
+
+    zxAnArpMffEntry OBJECT-TYPE
+        SYNTAX      ZxAnArpMffEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "A row instance contains the configuration to enable or disable 
+             MFF at each existing VLAN."
+        INDEX       {  zxAnArpMffVid, zxAnArpMffGatewayIpAddr }
+        ::= { zxAnArpMffTable 1 }
+    
+    ZxAnArpMffEntry ::= SEQUENCE {
+        zxAnArpMffVid                    Integer32,
+        zxAnArpMffGatewayIpAddr          IpAddress, 
+        zxAnArpMffGatewayIpMask          IpAddress,
+        zxAnArpMffGatewayMac             MacAddress,        
+        zxAnArpMffGatewayMacConfMode     INTEGER,
+        zxAnArpMffRowStatus              RowStatus
+    }
+        
+    zxAnArpMffVid  OBJECT-TYPE
+        SYNTAX    Integer32(1..4094)
+        MAX-ACCESS  not-accessible
+        STATUS    current
+        DESCRIPTION  
+           "An index for zxAnArpMffTable."
+        ::={zxAnArpMffEntry 1}    
+        
+    zxAnArpMffGatewayIpAddr  OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+           "MFF gateway IP address."        
+        ::={zxAnArpMffEntry 2}     
+        
+    zxAnArpMffGatewayIpMask OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+           "MFF gateway IP mask."                          
+        ::= { zxAnArpMffEntry 3 }
+        
+    zxAnArpMffGatewayMac  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+           "MFF gateway MAC address. A 0 value of this variable indicates no 
+            configure."
+        DEFVAL { '000000000000'h }      
+        ::={zxAnArpMffEntry 4}               
+                          
+    zxAnArpMffGatewayMacConfMode  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            manual(1),    
+            automatic(2)                    
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+           "MFF gateway MAC address configuration mode.
+            If zxAnArpMffGatewayMac has been configured, the mode should be 
+            manual when doing a request, otherwise, the mode should be 
+            automatic."
+        ::={zxAnArpMffEntry 5}            
+   
+    zxAnArpMffRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "This object is used to manage the creation and deletion of rows 
+             in this table. It only supports 'active(1)','createAndGo(4)'and 
+             'destroy(6)' value.
+                
+             If this object is set to 'createAndGo(4)', the VLAN on 
+             which MFF is active(1).Setting this object value to
+             destroy(6),the VLAN on which MFF is inactive."
+        ::= { zxAnArpMffEntry 50 }       
+ 
+------------------------------------------------------------------------------
+-- 2.4 ARP Filter Vlan configure
+------------------------------------------------------------------------------
+
+    zxAnArpFilterObjects        OBJECT IDENTIFIER  ::= { zxAnArpMibObjects 4 }
+     
+    zxAnArpFilterVlanConfTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnArpFilterVlanConfEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "ARP filter table based on VLAN.
+             If the VLAN item is set, the NE will dispatch the ARP 
+             packets downward by check the out port strictly.
+            "
+        ::= { zxAnArpFilterObjects 2 }
+
+    zxAnArpFilterVlanConfEntry OBJECT-TYPE
+        SYNTAX ZxAnArpFilterVlanConfEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "An entry in zxAnArpFilterVlanConfTable."
+        INDEX { zxAnArpFilterVlanConfVid}
+        ::= { zxAnArpFilterVlanConfTable 1 }
+
+    ZxAnArpFilterVlanConfEntry ::= SEQUENCE {
+        zxAnArpFilterVlanConfVid                Integer32,
+        zxAnArpFilterVlanConfRowStatus          RowStatus
+        }
+
+    zxAnArpFilterVlanConfVid OBJECT-TYPE
+        SYNTAX         Integer32(1..4094)
+        MAX-ACCESS     not-accessible
+        STATUS         current       
+        DESCRIPTION
+            "This object indicates the VLAN ID on which ARP filter feature
+             is configured."
+        ::= { zxAnArpFilterVlanConfEntry 1 }
+   
+    zxAnArpFilterVlanConfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnArpFilterVlanConfEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1).
+            
+            And the entry just supports createAndGo(4) and destroy(6) 
+            operation.
+            "
+        ::= { zxAnArpFilterVlanConfEntry 50 }    
+                
+--------------------------------------------------------------------------------
+-- 4. ARP conformance
+--------------------------------------------------------------------------------       
+   
+    zxAnArpCompliances
+        OBJECT IDENTIFIER ::= { zxAnArpConformance 1 }
+    zxAnArpGroups  
+        OBJECT IDENTIFIER ::= { zxAnArpConformance 2 }
+
+    zxAnArpAntiSpoofingCompliances MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+            "The compliance statement for implementing Arp Anti-Spoofing MIB.
+             Only supports C3XX, not supports C6XX."
+        MODULE  -- this module
+        MANDATORY-GROUPS { 
+                            zxAnArpAntiSpoofingVlanGroup,
+                            zxAnArpSpoofingGlobalGroup
+                         }
+        ::= { zxAnArpCompliances 1 }
+        
+    zxAnArpReplyAgentCompliances MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+            "The compliance statement for implementing Arp Reply Agent MIB."
+        MODULE  -- this module
+        MANDATORY-GROUPS { 
+                            zxAnArpReplyAgentVlanGroup
+                         }
+        ::= { zxAnArpCompliances 2 }
+        
+    zxAnArpMFFCompliances MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+            "The compliance statement for implementing Arp Mff MIB."
+        MODULE  -- this module
+        MANDATORY-GROUPS { 
+                            zxAnArpMffGlobalObjectsGroup,
+                            zxAnArpMffTableConfigGroup
+                         }
+        ::= { zxAnArpCompliances 3 }
+        
+    zxAnArpFilterCompliances MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+            "The compliance statement for implementing Arp Filter MIB."
+        MODULE  -- this module
+        MANDATORY-GROUPS { 
+                            zxAnArpFilterVlanConfGroup
+                         }
+        ::= { zxAnArpCompliances 4 }
+         
+    zxAnArpAntiSpoofingVlanGroup OBJECT-GROUP
+        OBJECTS         { zxAnArpAntiSpoofingVlanRowStatus }
+        STATUS          current
+        DESCRIPTION
+            "A collection of object which are used to configure as
+             well as show information regarding the Arp Anti-Spoofing 
+             feature per VLAN."
+        ::= { zxAnArpGroups 1 }
+         
+    zxAnArpReplyAgentVlanGroup OBJECT-GROUP
+        OBJECTS         { zxAnArpReplyAgentVlanRowStatus }
+        STATUS          current
+        DESCRIPTION
+            "A collection of object which are used to configure as
+             well as show information regarding the Arp Reply Agent 
+             feature per VLAN."
+        ::= { zxAnArpGroups 4 }     
+        
+    zxAnArpSpoofingGlobalGroup OBJECT-GROUP
+        OBJECTS         {          
+                           zxAnArpAntiSpoofingIfIndex,
+                           zxAnArpAntiSpoofingSubIfIndex,
+                           zxAnArpAntiSpoofingIpAddr,
+                           zxAnArpAntiSpoofingMac,
+                           zxAnArpAntiSpoofingFakedMac,
+                           zxAnArpAntiSpoofingEnable,
+                           zxAnArpAntiSpoofingCapabilities
+                        }
+        STATUS          current
+        DESCRIPTION
+            "A collection of object which are used to configure as
+             well as show information regarding the Arp Anti-Spoofing  
+             Global Objects feature per user interface."
+        ::= { zxAnArpGroups 7 }
+
+    zxAnArpMffGlobalObjectsGroup OBJECT-GROUP
+        OBJECTS         {          
+                           zxAnArpMffEnable,
+                           zxAnArpMffGwTransparentEnable
+                        }
+        STATUS          current
+        DESCRIPTION
+            "A collection of object which are used to configure as
+             well as show information regarding the Arp Mff  
+             Global Objects feature per user interface."
+        ::= { zxAnArpGroups 8 }
+
+    zxAnArpMffTableConfigGroup OBJECT-GROUP
+        OBJECTS         {          
+                           zxAnArpMffGatewayIpMask,
+                           zxAnArpMffGatewayMac,
+                           zxAnArpMffGatewayMacConfMode,
+                           zxAnArpMffRowStatus
+                        }
+        STATUS          current
+        DESCRIPTION
+            "A collection of object which are used to configure as
+             well as show information regarding the Arp Mff Table  
+             feature per user interface."
+        ::= { zxAnArpGroups 9 }
+        
+    zxAnArpFilterVlanConfGroup OBJECT-GROUP
+        OBJECTS         {          
+                           zxAnArpFilterVlanConfGroup
+                        }
+        STATUS          current
+        DESCRIPTION
+            "A collection of object which are used to configure as
+             well as show information regarding the Arp Filter Table  
+             feature per user interface."
+        ::= { zxAnArpGroups 10 }
+               
+END

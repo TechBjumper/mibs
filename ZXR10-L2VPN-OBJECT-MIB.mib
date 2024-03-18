@@ -1,0 +1,330 @@
+-- *****************************************************************
+-- L2vpn_object.mib 
+-- MPLS Layer 2 Virtual Private Networks MIB Definitions  
+-- zhuxianzhu164077
+-- 2010-05-11
+--
+-- Copyright (c) 1985-2008 by ZTE Corp.
+-- All rights reserved.
+-- *****************************************************************
+--
+
+ZXR10-L2VPN-OBJECT-MIB DEFINITIONS ::= BEGIN  
+     
+IMPORTS
+       OBJECT-TYPE, 
+       MODULE-IDENTITY,  
+           
+             enterprises
+             FROM SNMPv2-SMI; 
+             
+l2vpnObjectMIB MODULE-IDENTITY
+         LAST-UPDATED "200108161200Z"  -- August 16, 2001
+         ORGANIZATION "Multiprotocol Label Switching (mpls)
+                       Working Group"
+         CONTACT-INFO
+             "Joan Cucchiara (jcucchiara@crescentnetworks.com)
+              Crescent Networks
+
+              Hans Sjostrand (hans@ipunplugged.com)
+              ipUnplugged
+
+              James V. Luciani (jluciani@crescentnetworks.com)
+              Crescent Networks
+
+              Working Group Chairs:
+              George Swallow,   email: swallow@cisco.com
+              Vijay Srinivasan, email: vijay@cosinecom.com
+              MPLS Working Group, email: mpls@uu.net
+         "
+         DESCRIPTION
+             "This MIB contains managed object definitions for the
+             'MPLS Layer 2 Virtual Private Networks
+' document."
+         ::= { zxr10L2vpn 10} 
+     
+      zte OBJECT IDENTIFIER ::= { enterprises 3902 }
+      zxr10 OBJECT IDENTIFIER ::= { zte 3} 
+      zxr10L2vpn OBJECT IDENTIFIER ::= { zxr10 104}     
+
+--********************************************         
+--definition of tables::  
+--********************************************    
+
+--*************zxr10L2vpnVplsTable*************** 
+zxr10L2vpnObjectTable OBJECT-TYPE
+            SYNTAX     SEQUENCE OF Zxr10L2vpnObjectEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "L2vpn Object Table. This table contains
+                 one entry per object table."        
+            ::= { l2vpnObjectMIB 7 }
+
+zxr10L2vpnObjectEntry OBJECT-TYPE
+            SYNTAX     Zxr10L2vpnObjectEntry
+            MAX-ACCESS not-accessible
+            STATUS     current
+            DESCRIPTION
+                "The parameter of an object entity containing statistics 
+                information about a particular vpls."
+            INDEX { zxr10L2vpnObjectType,zxr10L2vpnObjectName,zxr10L2vpnObjectNamePostfix }
+            ::= { zxr10L2vpnObjectTable 1 }
+
+Zxr10L2vpnObjectEntry ::= SEQUENCE {  
+	zxr10L2vpnObjectType							INTEGER,
+	zxr10L2vpnObjectName							OCTET STRING,
+	zxr10L2vpnObjectNamePostfix						INTEGER,
+	zxr10L2vpnObjectCounterMacsMaximum				INTEGER,
+	zxr10L2vpnObjectCounterStaticMacs				INTEGER,
+	zxr10L2vpnObjectLimitCounterStaticMacsMaximum	INTEGER,
+	zxr10L2vpnObjectLimitCounterLearnedMacsMaximum	INTEGER,
+	zxr10L2vpnObjectLimitCounterLearnedMacsAction	INTEGER,
+	zxr10L2vpnObjectLimitRateMacLearningMaximum		INTEGER,
+	zxr10L2vpnObjectLimitRateMacLearningAction		INTEGER,
+	zxr10L2vpnObjectLimitRateMacLearningHoldingTime	INTEGER,
+	zxr10L2vpnObjectLimitRateMacMovingMaximum		INTEGER,
+	zxr10L2vpnObjectLimitRateMacMovingAction		INTEGER,
+	zxr10L2vpnObjectLimitRateMacMovingHoldingTime	INTEGER,    
+	zxr10L2vpnObjectLimitRateBroadcastMaximum       INTEGER, 
+	zxr10L2vpnObjectLimitRateBroadcastAction        INTEGER, 
+	zxr10L2vpnObjectLimitRateBroadcastHoldingTime   INTEGER, 
+	zxr10L2vpnObjectLimitRateMulticastMaximum       INTEGER, 
+	zxr10L2vpnObjectLimitRateMulticastAction        INTEGER, 
+	zxr10L2vpnObjectLimitRateMulticastHoldingTime   INTEGER, 
+	zxr10L2vpnObjectLimitRateUnknownUnicastMaximum  INTEGER, 
+	zxr10L2vpnObjectLimitRateUnknownUnicastAction   INTEGER, 
+	zxr10L2vpnObjectLimitRateUnknownUnicastHoldingTime   INTEGER, 
+	zxr10L2vpnObjectTrackSessionName                INTEGER, 
+	zxr10L2vpnObjectSwitchMacLearning               INTEGER, 
+	zxr10L2vpnObjectSwitchMacMoving                 INTEGER, 
+	zxr10L2vpnObjectStatCounterDynamicMacs          INTEGER, 
+	zxr10L2vpnObjectStatForwardStatus               INTEGER
+
+    }
+         	
+zxr10L2vpnObjectType  OBJECT-TYPE
+        SYNTAX       INTEGER {vpls(1),cip(8),sdu(7),pw(9)}
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "The type of object.There are several types of object:(1)Virtual Private LAN Service(VPLS),and (2)Service Attachment Circuit(Sac) ,and(3)Service Distribution Unit(Sdu),and (4)Pseudowires(PW)."
+         ::= { zxr10L2vpnObjectEntry 1 }   
+         
+zxr10L2vpnObjectName  OBJECT-TYPE
+        SYNTAX       OCTET STRING
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "The name of the object."
+         ::= { zxr10L2vpnObjectEntry 2 }     
+         
+zxr10L2vpnObjectNamePostfix  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "The postfix of the object's name."
+         ::= { zxr10L2vpnObjectEntry 3 }    
+         
+zxr10L2vpnObjectCounterMacsMaximum  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Couter macs maximum specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 4 }   
+         
+zxr10L2vpnObjectCounterStaticMacs  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Couter static macs specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 5 } 
+ 
+zxr10L2vpnObjectLimitCounterStaticMacsMaximum  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Couter static macs maximum limit specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 6 }      
+         
+zxr10L2vpnObjectLimitCounterLearnedMacsMaximum  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Couter learned macs maximum limit specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 7 }  
+       
+zxr10L2vpnObjectLimitCounterLearnedMacsAction  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Couter Learned Macs action limit specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 8 } 
+          
+zxr10L2vpnObjectLimitRateMacLearningMaximum  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac learning limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 9 }         
+         
+zxr10L2vpnObjectLimitRateMacLearningAction  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac learning action limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 10 } 
+         
+zxr10L2vpnObjectLimitRateMacLearningHoldingTime  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac learning holding time limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 11 }    
+         
+zxr10L2vpnObjectLimitRateMacMovingMaximum  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac moving maximum limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 12 } 
+   
+zxr10L2vpnObjectLimitRateMacMovingAction  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac moving action limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 13 }   
+         
+zxr10L2vpnObjectLimitRateMacMovingHoldingTime  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac moving holding time limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 14 }       
+         
+zxr10L2vpnObjectLimitRateBroadcastMaximum  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac broadcast maximum limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 15 }    
+         
+zxr10L2vpnObjectLimitRateBroadcastAction  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac broadcast action limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 16 }      
+ 
+ zxr10L2vpnObjectLimitRateBroadcastHoldingTime  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac broadcast holding time limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 17 }   
+         
+  zxr10L2vpnObjectLimitRateMulticastMaximum  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac multicast maximum limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 18 } 
+         
+  zxr10L2vpnObjectLimitRateMulticastAction  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac multicast action limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 19 }  
+                                              
+  zxr10L2vpnObjectLimitRateMulticastHoldingTime  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac multicast holding time limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 20 }  
+                                        
+  zxr10L2vpnObjectLimitRateUnknownUnicastMaximum  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac unknown unicast maximum limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 21 }   
+         
+  zxr10L2vpnObjectLimitRateUnknownUnicastAction  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac unknown unicast action limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 22 }  
+   
+  zxr10L2vpnObjectLimitRateUnknownUnicastHoldingTime  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "Mac unknown unicast holding time limit rate specified for each configured  L2vpn."
+         ::= { zxr10L2vpnObjectEntry 23 }  
+   
+  zxr10L2vpnObjectTrackSessionName  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "The track session name of the object."
+         ::= { zxr10L2vpnObjectEntry 24 } 
+
+  zxr10L2vpnObjectSwitchMacLearning  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "The switch of mac learnint to the object."
+         ::= { zxr10L2vpnObjectEntry 25 } 
+
+   zxr10L2vpnObjectSwitchMacMoving  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "The switch of mac moving to the object."
+         ::= { zxr10L2vpnObjectEntry 26 } 
+   
+   zxr10L2vpnObjectStatCounterDynamicMacs  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "The stat counter of dynamic macs to the object."
+         ::= { zxr10L2vpnObjectEntry 27 }    
+         
+   zxr10L2vpnObjectStatForwardStatus  OBJECT-TYPE
+        SYNTAX       INTEGER
+        MAX-ACCESS  read-only
+        STATUS  current
+        DESCRIPTION
+        "The stat of forward status to the object."
+         ::= { zxr10L2vpnObjectEntry 28 }                            
+ END
+                                                                                                                                                                                                                                                                                                       

@@ -1,0 +1,841 @@
+ZTE-AN-VND-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+        RowStatus, DisplayString        FROM SNMPv2-TC
+        MODULE-IDENTITY, OBJECT-TYPE,
+        Integer32                       FROM SNMPv2-SMI
+        zxAnVnd                         FROM ZTE-AN-SMI
+        zxAnSubIfIndex                  FROM ZTE-AN-IF-MIB
+        ifIndex                         FROM IF-MIB;
+
+    zxAnVndMib MODULE-IDENTITY
+        LAST-UPDATED    "201703272000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Tong Tao      ZTE Corporation
+                         Mail: tong.tao@zte.com.cn
+                         Tel : 021-68896470"
+        DESCRIPTION     "This MIB defines managed objects of
+                         VND(virtual network device)."
+        REVISION        "201703272000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= { zxAnVnd 530 }
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 2. VND Objects
+-- 2.1 VND Resource Objects
+-- 2.1.2 VND Resource Profile Table
+-- 2.1.3 VND Resource Profile Configuration Table
+-- 2.1.11 VND Resource Statistics Table
+-- 2.2 VND Current Resource Statistics Objects
+-- 2.2.2 VND Current Resource Statistics Table
+-- 2.3 VND Assigned Information Objects
+-- 2.3.2 VND Interface Assigned Information Table
+-- 2.4 VND Assignable Resource Objects
+-- 2.4.2 VND Assignable Card Table
+-- 2.5 VND Configuration Objects
+-- 2.5.2 VND Configuration Table
+-- 2.5.3 VND Interface Assignment Table
+-- 2.5.4 VND Interface Information Table
+-- 2.5.5 VND Card Assignment Table
+-- 2.5.6 VND Card Information Table
+--------------------------------------------------------------------------------
+    zxAnVndGlobalObjects      OBJECT IDENTIFIER ::= { zxAnVndMib 1 }
+    zxAnVndObjects            OBJECT IDENTIFIER ::= { zxAnVndMib 2 }
+
+--------------------------------------------------------------------------------
+-- 1. zxAnVndCapabilities
+--------------------------------------------------------------------------------
+    zxAnVndCapabilities OBJECT-TYPE
+        SYNTAX BITS {
+           notSupportQosResType(0),
+           supportPppoeAndDhcpResType(1)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The VND capabilities.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             bit 0: value 1 means not supporting qosCosToCos(9),
+             qosDscpToDscp(10) and qosDscpToCos(11) in zxAnVndResType.
+             bit 1: value 1 means supporting pppoe(15), dhcpv4(16) and
+             dhcpv6(17) in zxAnVndResType."
+        ::=  { zxAnVndGlobalObjects  100 }
+--------------------------------------------------------------------------------
+-- 2. VND Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.1 VND Resource Objects
+--------------------------------------------------------------------------------
+
+    zxAnVndResourceObjects    OBJECT IDENTIFIER ::= { zxAnVndObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2.1.2 VND Resource Profile Table
+--------------------------------------------------------------------------------
+
+    zxAnVndResProfileTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndResProfileEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND resource profile table.
+            This table is valid only in VND 0."
+        ::= { zxAnVndResourceObjects 2 }
+
+    zxAnVndResProfileEntry  OBJECT-TYPE
+        SYNTAX      ZxAnVndResProfileEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND resource profile entry."
+        INDEX   { zxAnVndResProfileName, zxAnVndResType }
+        ::= { zxAnVndResProfileTable 1 }
+
+    ZxAnVndResProfileEntry ::= SEQUENCE {
+        zxAnVndResProfileName          DisplayString,
+        zxAnVndResType                 INTEGER,
+        zxAnVndResUpperThresh          Integer32,
+        zxAnVndResProfileRowStatus     RowStatus
+    }
+
+    zxAnVndResProfileName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND resource profile name."
+        ::= { zxAnVndResProfileEntry 1 }
+
+    zxAnVndResType OBJECT-TYPE
+        SYNTAX      INTEGER {
+            vlan(1),
+            igmp(2),
+            mld(3),
+            mac(4),
+            vport(5),
+            onu(6),
+            vlanForwardingMode(7),
+            servicePort(8),
+            qosCosToCos(9),
+            qosDscpToDscp(10),
+            qosDscpToCos(11),
+            aclRule(12),
+            l2cp(13),
+            trafficPir(14),
+            pppoe(15),
+            dhcpv4(16),
+            dhcpv6(17),
+            allDefault(255)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND resource type."
+        ::= { zxAnVndResProfileEntry 2 }
+
+    zxAnVndResUpperThresh  OBJECT-TYPE
+        SYNTAX      Integer32(0..10000000)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "VND resource number upper threshold.
+            
+             When zxAnVndResType is vlan(1), the maximum value of 
+             zxAnVndResUpperThresh is 4094.
+             When zxAnVndResType is igmp(2) the maximum value of 
+             zxAnVndResUpperThresh is 4096 for C600 and C680, 8192 for C300v2.
+             When zxAnVndResType is mld(3) the maximum value of 
+             zxAnVndResUpperThresh is 4096 for C600 and C680, 8192 for C300v2.
+             When zxAnVndResType is mac(4) the maximum value of 
+             zxAnVndResUpperThresh is 524288 for C600 and C680, 163840 for
+             C300v2.
+             When zxAnVndResType is vport(5) the maximum value of 
+             zxAnVndResUpperThresh is 32768 for C600 and C300v2, 65536 for
+             C680.
+             When zxAnVndResType is onu(6) the maximum value of 
+             zxAnVndResUpperThresh is 32768 for C600, 65536 for C680 and 16384.
+             for C300v2.
+             When zxAnVndResType is vlanForwardingMode(7) the maximum value of 
+             zxAnVndResUpperThresh is 73728 for C600 and C680, 4096 for C300v2.
+             When zxAnVndResType is servicePort(8) the maximum value of 
+             zxAnVndResUpperThresh is 262144 for C600, 524288 for C680 and
+             131072 for C300v2.
+             When zxAnVndResType is qosCosToCos(9) the maximum value of 
+             zxAnVndResUpperThresh is 112. C300v2 does not support.
+             When zxAnVndResType is qosDscpToDscp(10) the maximum value of 
+             zxAnVndResUpperThresh is 120. C300v2 does not support.
+             When zxAnVndResType is qosDscpToCos(11) the maximum value of 
+             zxAnVndResUpperThresh is 120. C300v2 does not support.
+             When zxAnVndResType is aclRule(12) the maximum value of 
+             zxAnVndResUpperThresh is 8192 for C600, 18432 for C680 and 38500
+             for C300v2.
+             When zxAnVndResType is l2cp(13) the maximum value of 
+             zxAnVndResUpperThresh is 62 for C600 and C680, 32 for C300v2.
+             When zxAnVndResType is trafficPir(14) the maximum value of
+             zxAnVndResUpperThresh is 10000000.
+             When zxAnVndResType is pppoe(15) the maximum value of
+             zxAnVndResUpperThresh is 65536 for C600, 131072 for C680.
+             C300v2 does not support.
+             When zxAnVndResType is dhcpv4(16) the maximum value of
+             zxAnVndResUpperThresh is 65536 for C600, 131072 for C680.
+             C300v2 does not support.
+             When zxAnVndResType is dhcpv6(17) the maximum value of
+             zxAnVndResUpperThresh is 65536 for C600, 131072 for C680.
+             C300v2 does not support.
+             When zxAnVndResType is allDefault(255), it indicates that a
+             resource profile is created and all resource types are initialized
+             to default values."
+        ::=  {  zxAnVndResProfileEntry  3}
+
+    zxAnVndResProfileRowStatus    OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnVndResProfileEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= {zxAnVndResProfileEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.1.3 VND Resource Profile Configuration Table
+--------------------------------------------------------------------------------
+
+    zxAnVndResProfileConfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndResProfileConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND resource profile configuration table.
+            This table is valid only in VND 0."
+        ::= { zxAnVndResourceObjects 3 }
+
+    zxAnVndResProfileConfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnVndResProfileConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND resource profile configuration entry."
+        INDEX    { zxAnVndName }
+        ::= { zxAnVndResProfileConfTable 1 }
+
+    ZxAnVndResProfileConfEntry ::= SEQUENCE {
+        zxAnVndName                DisplayString,
+        zxAnVndResConfPrfName      DisplayString
+    }
+
+    zxAnVndName OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND name."
+        ::= { zxAnVndResProfileConfEntry 1 }
+
+     zxAnVndResConfPrfName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "VND resource profile name."
+        ::= { zxAnVndResProfileConfEntry 2 }
+
+--------------------------------------------------------------------------------
+-- 2.1.11 VND Resource Statistics Table
+--------------------------------------------------------------------------------
+
+    zxAnVndResStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndResStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND Resource Statistics Table.
+            This table is valid only in VND 0."
+        ::= { zxAnVndResourceObjects 11 }
+
+    zxAnVndResStatsEntry  OBJECT-TYPE
+        SYNTAX      ZxAnVndResStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND Resource Statistics Entry."
+        INDEX    { zxAnVndName, zxAnVndResType }
+        ::= { zxAnVndResStatsTable 1 }
+
+    ZxAnVndResStatsEntry ::= SEQUENCE {
+        zxAnVndResStatsTotalNum            Integer32,
+        zxAnVndResStatsUsedNum             Integer32,
+        zxAnVndResStatsAvailableNum        Integer32
+    }
+
+    zxAnVndResStatsTotalNum  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Total resources.
+            
+             This object is valid only in VND 0."
+        ::= { zxAnVndResStatsEntry 1 }
+
+    zxAnVndResStatsUsedNum  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Used resources."
+        ::= { zxAnVndResStatsEntry 2 }
+
+    zxAnVndResStatsAvailableNum  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Available resources."
+        ::=  { zxAnVndResStatsEntry 3 }
+
+--------------------------------------------------------------------------------
+-- 2.2 VND Current Resource Statistics Objects
+--------------------------------------------------------------------------------
+
+    zxAnVndCurrResourceObjects    OBJECT IDENTIFIER ::= { zxAnVndObjects 2 }
+
+--------------------------------------------------------------------------------
+-- 2.2.2 VND Current Resource Statistics Table
+--------------------------------------------------------------------------------
+
+    zxAnVndCurrResStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndCurrResStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND Current Resource Statistics Table.
+            This table is valid in every VND and only can get current VND
+            resource."
+        ::= { zxAnVndCurrResourceObjects 2 }
+
+    zxAnVndCurrResStatsEntry  OBJECT-TYPE
+        SYNTAX      ZxAnVndCurrResStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND Current Resource Statistics Entry."
+        INDEX    { zxAnVndResType }
+        ::= { zxAnVndCurrResStatsTable 1 }
+
+    ZxAnVndCurrResStatsEntry ::= SEQUENCE {
+        zxAnVndCurrResStatsUsedNum             Integer32,
+        zxAnVndCurrResStatsAvailableNum        Integer32
+    }
+
+
+    zxAnVndCurrResStatsUsedNum  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Used resources."
+        ::= { zxAnVndCurrResStatsEntry 1 }
+
+    zxAnVndCurrResStatsAvailableNum  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Available resources."
+        ::=  { zxAnVndCurrResStatsEntry 2 }     
+
+--------------------------------------------------------------------------------
+-- 2.3 VND Assigned Information Objects
+--------------------------------------------------------------------------------
+
+    zxAnVndAssignedInfoObjects    OBJECT IDENTIFIER ::= { zxAnVndObjects 3 }
+    
+--------------------------------------------------------------------------------
+-- 2.3.2 VND Interface Assigned Information Table
+--------------------------------------------------------------------------------
+    zxAnVndIfAssignedInfoTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndIfAssignedInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND interface assigned information table.
+             This table is valid in every VND."
+        ::= { zxAnVndAssignedInfoObjects 2 }
+
+    zxAnVndIfAssignedInfoEntry   OBJECT-TYPE
+        SYNTAX      ZxAnVndIfAssignedInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND interface assigned information entry."
+        INDEX { ifIndex }
+        ::= { zxAnVndIfAssignedInfoTable 1 }
+
+    ZxAnVndIfAssignedInfoEntry  ::= SEQUENCE {
+        zxAnVndIfAssignedMode     INTEGER
+        }
+       
+    zxAnVndIfAssignedMode   OBJECT-TYPE
+        SYNTAX      INTEGER {
+            exclusive(1),
+            shared(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The interface assigned mode."  
+        ::= { zxAnVndIfAssignedInfoEntry 1 }
+
+--------------------------------------------------------------------------------
+-- 2.4 VND Assignable Resource Objects
+--------------------------------------------------------------------------------
+
+    zxAnVndAssignableResObjects    OBJECT IDENTIFIER ::= { zxAnVndObjects 4 }
+    
+--------------------------------------------------------------------------------
+-- 2.4.2 VND Assignable Card Table
+--------------------------------------------------------------------------------
+    zxAnVndAssignableCardTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndAssignableCardEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Assignable card information table.
+             This table is valid only in VND 0."
+        ::= { zxAnVndAssignableResObjects 2 }
+
+    zxAnVndAssignableCardEntry   OBJECT-TYPE
+        SYNTAX      ZxAnVndAssignableCardEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Assignable card information entry."
+        INDEX { zxAnVndAssignableGranularity, zxAnVndAssignableRack, 
+                zxAnVndAssignableShelf, zxAnVndAssignableSlot }
+        ::= { zxAnVndAssignableCardTable 1 }
+
+    ZxAnVndAssignableCardEntry  ::= SEQUENCE {
+        zxAnVndAssignableGranularity      INTEGER,
+        zxAnVndAssignableRack             Integer32,
+        zxAnVndAssignableShelf            Integer32,
+        zxAnVndAssignableSlot             Integer32,
+        zxAnVndAssignableCardMainType     Integer32
+        }
+    
+    zxAnVndAssignableGranularity   OBJECT-TYPE
+        SYNTAX      INTEGER {
+            card(1),
+            port(2)  
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The assignment granularity of the VND."
+        ::= { zxAnVndAssignableCardEntry 1 }
+    
+    zxAnVndAssignableRack   OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "The rack number."
+        ::=  {  zxAnVndAssignableCardEntry  2  }
+
+    zxAnVndAssignableShelf  OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "The shelf number."
+        ::=  {  zxAnVndAssignableCardEntry  3  }
+
+    zxAnVndAssignableSlot   OBJECT-TYPE 
+        SYNTAX          Integer32
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "The slot number."
+        ::=  {  zxAnVndAssignableCardEntry  4  }  
+       
+    zxAnVndAssignableCardMainType   OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The configured main type of the assignable card ."
+        ::= { zxAnVndAssignableCardEntry 5 }
+
+--------------------------------------------------------------------------------
+-- 2.5 VND Configuration Objects
+--------------------------------------------------------------------------------
+
+    zxAnVndConfObjects OBJECT IDENTIFIER ::= { zxAnVndObjects 5 }
+
+--------------------------------------------------------------------------------
+-- 2.5.2 VND Configuration Table
+--------------------------------------------------------------------------------
+    zxAnVndConfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND configuration table."
+        ::= { zxAnVndConfObjects 2 }
+
+    zxAnVndConfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnVndConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND configuration entry."
+        INDEX { zxAnVndConfName }
+        ::= { zxAnVndConfTable 1 }
+
+    ZxAnVndConfEntry ::= SEQUENCE {
+        zxAnVndConfName         DisplayString,
+        zxAnVndConfId           Integer32,
+        zxAnVndConfAssignMode   INTEGER,
+        zxAnVndConfOperStatus   INTEGER,
+        zxAnVndConfDescription  DisplayString,
+        zxAnVndConfAction       INTEGER,
+        zxAnVndConfRowStatus    RowStatus
+    }
+
+    zxAnVndConfName OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..31))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The name of the VND."
+        ::= { zxAnVndConfEntry 1 }
+
+    zxAnVndConfId   OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The identification of the VND."
+        ::= { zxAnVndConfEntry 2 }
+
+    zxAnVndConfAssignMode   OBJECT-TYPE
+        SYNTAX      INTEGER {
+            mixed(1),
+            port(2),
+            card(3),
+            onu(4)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The assignment mode of the VND.
+             mixed(1): the card and interface can be assigned to the VND.
+             port(2) : only the interface can be assigned to the VND.
+             card(3) : only the card can be assigned to the VND.
+             onu(4)  : the PON port can be shared with the VND."
+        DEFVAL  { mixed }
+        ::= { zxAnVndConfEntry 3 }
+
+    zxAnVndConfOperStatus   OBJECT-TYPE
+        SYNTAX      INTEGER {
+            running(1),
+            stopped(2),
+            noLicense(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The operational status of the VND."
+        DEFVAL { stopped }
+        ::= { zxAnVndConfEntry 4 }
+
+    zxAnVndConfDescription  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..127))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The description of the VND."
+        ::= { zxAnVndConfEntry 5 }
+
+    zxAnVndConfAction   OBJECT-TYPE
+        SYNTAX      INTEGER {
+            start(1),
+            stop(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Start or stop the VND.
+             Starting the VND, the operational status will be running.
+             Stopping the VND, the operational status will be stopped."
+        ::= { zxAnVndConfEntry 6 }
+
+    zxAnVndConfRowStatus    OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4).
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnVndConfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.5.3 VND Interface Assignment Table
+--------------------------------------------------------------------------------
+    zxAnVndIfAssignTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndIfAssignEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND interface assignment table."
+        ::= { zxAnVndConfObjects 3 }
+
+    zxAnVndIfAssignEntry OBJECT-TYPE
+        SYNTAX      ZxAnVndIfAssignEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND interface assignment entry.
+             The interface assignment need to follow the following principles:
+             1. If the physical interface has been assigned to a VND,
+                the subinterface can not be assigned to another VND.
+             2. If the subinterface has been assigned to a VND,
+                the physical interface can not be assigned to another VND."
+        INDEX { zxAnVndConfName, ifIndex, zxAnSubIfIndex }
+        ::= { zxAnVndIfAssignTable 1 }
+
+    ZxAnVndIfAssignEntry ::= SEQUENCE {
+        zxAnVndIfAssignMode      INTEGER,
+        zxAnVndIfAssignRowStatus RowStatus
+    }
+
+    zxAnVndIfAssignMode  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            shared(1),
+            exclusive(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The assignment mode of the interface."
+        ::= { zxAnVndIfAssignEntry 1 }
+
+    zxAnVndIfAssignRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4).
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnVndIfAssignEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.5.4 VND Interface Information Table
+--------------------------------------------------------------------------------
+    zxAnVndIfInfoTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndIfInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND interface information table."
+        ::= { zxAnVndConfObjects 4 }
+
+    zxAnVndIfInfoEntry   OBJECT-TYPE
+        SYNTAX      ZxAnVndIfInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND interface information entry."
+        INDEX { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnVndIfInfoTable 1 }
+
+    ZxAnVndIfInfoEntry ::= SEQUENCE {
+        zxAnVndIfAssignedVndName DisplayString,
+        zxAnVndIfAssignStatus    INTEGER,
+        zxAnVndIfAssignmentMode  INTEGER
+    }
+
+    zxAnVndIfAssignedVndName OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..255))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The VND name of the interface assigned to.
+             If the assignment mode of the interface is shared, the VND
+             names are seperated by comma, such as 'vnd1,vnd2'."
+        ::= { zxAnVndIfInfoEntry 1 }
+
+    zxAnVndIfAssignStatus    OBJECT-TYPE
+        SYNTAX      INTEGER {
+            assigned(1),
+            assigning(2),
+            unassigned(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The assignment status of the interface."
+        ::= { zxAnVndIfInfoEntry 2 }
+
+    zxAnVndIfAssignmentMode OBJECT-TYPE
+        SYNTAX      INTEGER {
+            shared(1),
+            exclusive(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The assignment mode of the interface."
+        ::= { zxAnVndIfInfoEntry 3 }
+
+--------------------------------------------------------------------------------
+-- 2.5.5 VND Card Assignment Table
+--------------------------------------------------------------------------------
+    zxAnVndCardAssignTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndCardAssignEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND card assignment table."
+    ::= { zxAnVndConfObjects 5 }
+
+    zxAnVndCardAssignEntry  OBJECT-TYPE
+        SYNTAX      ZxAnVndCardAssignEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND card assignment entry."
+        INDEX {
+            zxAnVndConfName,
+            zxAnVndCardRack,
+            zxAnVndCardShelf,
+            zxAnVndCardSlot
+        }
+        ::= { zxAnVndCardAssignTable 1 }
+
+    ZxAnVndCardAssignEntry ::= SEQUENCE {
+        zxAnVndCardRack             Integer32,
+        zxAnVndCardShelf            Integer32,
+        zxAnVndCardSlot             Integer32,
+        zxAnVndCardAssignRowStatus  RowStatus
+    }
+
+    zxAnVndCardRack   OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Rack number."
+        ::= { zxAnVndCardAssignEntry 1 }
+
+    zxAnVndCardShelf  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Shelf number."
+        ::= { zxAnVndCardAssignEntry 2 }
+
+    zxAnVndCardSlot   OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Slot number."
+        ::= { zxAnVndCardAssignEntry 3 }
+
+    zxAnVndCardAssignRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4).
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnVndCardAssignEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.5.6 VND Card Information Table
+--------------------------------------------------------------------------------
+    zxAnVndCardInfoTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVndCardInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND card configuration table."
+        ::= { zxAnVndConfObjects 6 }
+
+    zxAnVndCardInfoEntry    OBJECT-TYPE
+        SYNTAX      ZxAnVndCardInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "VND card configuration entry."
+        INDEX { zxAnVndCardRack, zxAnVndCardShelf, zxAnVndCardSlot }
+        ::= { zxAnVndCardInfoTable 1 }
+
+    ZxAnVndCardInfoEntry ::= SEQUENCE {
+        zxAnVndCardAssignedVndName DisplayString,
+        zxAnVndCardAssignStatus    INTEGER
+    }
+
+    zxAnVndCardAssignedVndName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (1..31))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The VND name of the card assigned to."
+        ::= { zxAnVndCardInfoEntry 4 }
+
+    zxAnVndCardAssignStatus OBJECT-TYPE
+        SYNTAX      INTEGER {
+            assigned(1),
+            assigning(2),
+            unassigned(3)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The assignment status of the card."
+        ::= { zxAnVndCardInfoEntry 5 }
+
+END

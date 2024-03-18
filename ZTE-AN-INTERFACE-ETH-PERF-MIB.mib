@@ -1,0 +1,4306 @@
+ZTE-AN-INTERFACE-ETH-PERF-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS 
+        MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
+        Counter32, Integer32, Gauge32, Counter64       FROM SNMPv2-SMI
+        RowStatus, DisplayString, TruthValue,
+        TEXTUAL-CONVENTION, DateAndTime                 FROM SNMPv2-TC
+        MODULE-COMPLIANCE, OBJECT-GROUP                 FROM SNMPv2-CONF
+        ifIndex                                         FROM IF-MIB
+        ZxAnSubIfIndex                                  FROM ZTE-AN-TC-MIB
+        zxAnInterface                                   FROM ZTE-AN-SMI
+        HCPerfCurrentCount, HCPerfTimeElapsed           FROM HC-PerfHist-TC-MIB;
+    
+    zxAnInterfaceEthPerfMib MODULE-IDENTITY
+        LAST-UPDATED    "201706212000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    " Zhang Weiping   ZTE Corporation
+                         Mail: zhang.weiping@zte.com.cn
+                         Tel : 021-68896470"
+        DESCRIPTION     "The MIB module for the Performance Management of ZTE 
+                         Access Node interface."
+             
+        REVISION        "201706212000Z"
+        DESCRIPTION
+           "Support ethernet interface minutes performance table."
+    
+        REVISION        "201703212000Z"
+        DESCRIPTION
+           "Add some historical performance objects."
+           
+        REVISION        "201109132000Z"
+        DESCRIPTION
+           "Modify this mib according to standard."
+    
+        REVISION        "201109101600Z"
+        DESCRIPTION
+            "Modify the description."
+                         
+        REVISION        "201107021400Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= {zxAnInterface 32}
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnEthIfCurr15MinPerfTable
+-- 2. zxAnEthIfCurr1DayPerfTable
+-- 3. zxAnEthIfHis15MinPerfTable
+-- 4. zxAnEthIfHis1DayPerfTable
+-- 5. zxAnEthIfAlmProfileConfTable
+-- 6. zxAnEthIfAlmProfileApplyTable
+-- 7. zxAnEthIfAlmProfileTable
+-- 8. zxAnEthIfCurrMinPerfTable
+-- 9. zxAnEthIfHisMinPerfTable
+-- Following conformance information is defined.
+--31. zxAnEthIfPerfConformance
+--------------------------------------------------------------------------------    
+    zxAnEthIfPerfObjects     OBJECT IDENTIFIER ::= { zxAnInterfaceEthPerfMib 2 }            
+       
+--------------------------------------------------------------------------------
+-- 1. zxAnEthIfCurr15MinPerfTable
+--------------------------------------------------------------------------------
+
+    zxAnEthIfCurr15MinPerfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfCurr15MinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The 15 minutes interval performance data table of the 
+              ethernet interfaces."             
+        ::= { zxAnEthIfPerfObjects 2 }
+
+    zxAnEthIfCurr15MinPerfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnEthIfCurr15MinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The 15 minutes interval performance data entry of the 
+             ethernet interfaces."
+        INDEX   { ifIndex}
+        ::= { zxAnEthIfCurr15MinPerfTable 1 }
+
+    ZxAnEthIfCurr15MinPerfEntry ::= SEQUENCE {
+        zxAnEthIfC15MTimeElapsed              Gauge32,
+        zxAnEthIfC15MInOctets                 Counter64,
+        zxAnEthIfC15MInPkts                   Counter64,
+        zxAnEthIfC15MInUcastPkts              Counter64,
+        zxAnEthIfC15MInMcastPkts              Counter64,
+        zxAnEthIfC15MInBcastPkts              Counter64,
+        zxAnEthIfC15MInOversizedPkts          Counter64,
+        zxAnEthIfC15MInUndersizedPkts         Counter64,
+        zxAnEthIfC15MOutOctets                Counter64,
+        zxAnEthIfC15MOutPkts                  Counter64,
+        zxAnEthIfC15MOutUcastPkts             Counter64,
+        zxAnEthIfC15MOutMcastPkts             Counter64,
+        zxAnEthIfC15MOutBcastPkts             Counter64,
+        zxAnEthIfC15MOutPausePkts             Counter64,
+        zxAnEthIfC15MOutDiscardPkts           Counter64,
+        zxAnEthIfC15MOutCollisions            Counter64,
+        zxAnEthIfC15MSingleCollisions         Counter64,
+        zxAnEthIfC15MMultipleCollisions       Counter64,
+        zxAnEthIfC15MFcsErrors                Counter64,
+        zxAnEthIfC15MAlignmentErrors          Counter64,
+        zxAnEthIfC15MInCrcErrPkts             Counter64,
+        zxAnEthIfC15MInDiscardPkts            Counter64,
+        zxAnEthIfC15MInErrPkts                Counter64,
+        zxAnEthIfC15MOutErrPkts               Counter64,   
+        zxAnEthIfC15MInDropEvents             Counter64,
+        zxAnEthIfC15MOutDropEvents            Counter64,
+        zxAnEthIfC15MOutCrcErrPkts            Counter64,
+        zxAnEthIfC15MOutOversizedPkts         Counter64,
+        zxAnEthIfC15MOutUndersizedPkts        Counter64,
+        zxAnEthIfC15MInFragments              Counter64,
+        zxAnEthIfC15MOutFragments             Counter64,
+        zxAnEthIfC15MInJabbers                Counter64,
+        zxAnEthIfC15MOutJabbers               Counter64,
+        zxAnEthIfC15MInPkts64Octets           Counter64,
+        zxAnEthIfC15MOutPkts64Octets          Counter64,
+        zxAnEthIfC15MInPkts65to127Octs        Counter64,
+        zxAnEthIfC15MOutPkts65to127Octs       Counter64,
+        zxAnEthIfC15MInPkts128to255Octs       Counter64,
+        zxAnEthIfC15MOutPkts128to255Octs      Counter64,
+        zxAnEthIfC15MInPkts256to511Octs       Counter64,
+        zxAnEthIfC15MOutPkts256to511Octs      Counter64,
+        zxAnEthIfC15MInPkts512to1023          Counter64,
+        zxAnEthIfC15MOutPkts512to1023         Counter64,
+        zxAnEthIfC15MInPkts1024to1518         Counter64,
+        zxAnEthIfC15MOutPkts1024to1518        Counter64,
+        zxAnEthIfC15MLinkStatusChanges        Counter32,
+        zxAnEthIfC15MInBwUsingRatio           Integer32,
+        zxAnEthIfC15MOutBwUsingRatio          Integer32,     
+        zxAnEthIfC15MReset                    INTEGER
+        }
+      
+    zxAnEthIfC15MTimeElapsed OBJECT-TYPE 
+        SYNTAX      Gauge32(0..899)
+        UNITS       "seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "Number of seconds that have elapsed since the beginning of the 
+             current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 1 }         
+        
+    zxAnEthIfC15MInOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets received on the interface,
+            including framing characters in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 2 }
+
+    zxAnEthIfC15MInPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets received on the interface,
+            including framing characters in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 3 }
+
+    zxAnEthIfC15MInUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were not addressed to a multicast
+            or broadcast address at this sub-layer in current 15 minutes
+            interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 4 }
+
+    zxAnEthIfC15MInMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a multicast
+            address at this sub-layer in current 15 minutes interval.
+            For a MAC layer protocol, this includes both Group and 
+            Functional addresses."
+        ::= { zxAnEthIfCurr15MinPerfEntry 5 }
+
+    zxAnEthIfC15MInBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a broadcast
+            address at this sub-layer in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 6 }
+
+    zxAnEthIfC15MInOversizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the configured MTU-size,
+             e.g.mtu = 2000 (frames >2000 are discarded) in current 15
+             minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 7 }
+
+    zxAnEthIfC15MInUndersizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the min port size,
+             the value is 64 in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 8 }
+
+    zxAnEthIfC15MOutOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets transmitted out of the interface, 
+            including framing characters in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 9 }
+
+    zxAnEthIfC15MOutPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets transmitted out of the interface, 
+            including framing characters in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 10 }
+
+    zxAnEthIfC15MOutUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were not addressed to a
+            multicast or broadcast address at this sub-layer, including
+            those that were discarded or not sent in current 15 minutes
+            interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 11 }
+        
+    zxAnEthIfC15MOutMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            multicast address at this sub-layer, including those that
+            were discarded or not sent in current 15 minutes interval.
+            For a MAC layer protocol, this includes both Group and 
+            Functional addresses."
+        ::= { zxAnEthIfCurr15MinPerfEntry 12 }
+
+    zxAnEthIfC15MOutBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            broadcast address at this sub-layer, including those that
+            were discarded or not sent in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 13 }
+
+    zxAnEthIfC15MOutPausePkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of MAC Control frames transmitted on
+             this interface with an opcode indicating the
+             PAUSE operation in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 14 }
+
+    zxAnEthIfC15MOutDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of outbound packets which were chosen to be
+            discarded even though no errors had been detected to prevent
+            their being transmitted in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 15 }
+
+    zxAnEthIfC15MOutCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in out collision and 
+             are subsequently transmitted successfully in current 15 
+             minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 16 }
+        
+    zxAnEthIfC15MSingleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in a single
+             collision, and are subsequently transmitted
+             successfully in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 17 }
+
+    zxAnEthIfC15MMultipleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in more
+             than one collision and are subsequently
+             transmitted successfully in current 15 minutes
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 18 }
+
+    zxAnEthIfC15MFcsErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are an integral number of octets
+             in length but do not pass the FCS check.  This
+             count does not include frames received with
+             frame-too-long or frame-too-short error in current
+             15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 19 }
+        
+    zxAnEthIfC15MAlignmentErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are not an integral number of
+             octets in length and do not pass the FCS check
+             in current 15 minutes interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 20 }
+
+
+    zxAnEthIfC15MInCrcErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of CRC errored packets received on the interface
+             in current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 21 }
+        
+    zxAnEthIfC15MInDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of discarded packets received on the interface
+             in current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 22 }
+        
+    zxAnEthIfC15MInErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets received on the interface
+             in current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 23 }
+        
+    zxAnEthIfC15MOutErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets that could not be transmitted 
+             from the interface because of errors in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 24 }       
+     
+    zxAnEthIfC15MInDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets received were 
+             dropped by the probe due to lack of resources in current 
+             15-minute interval.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfCurr15MinPerfEntry 25 }
+        
+    zxAnEthIfC15MOutDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets transmitted were 
+             dropped by the probe due to lack of resources in current 
+             15-minute interval.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfCurr15MinPerfEntry 26 }
+        
+    zxAnEthIfC15MOutCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets transmitted out of the 
+             interface in current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 27 }
+        
+    zxAnEthIfC15MOutOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed in current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 28 }
+
+    zxAnEthIfC15MOutUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 
+             64 octets long (excluding framing bits, but including FCS 
+             octets) and were otherwise well formed in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 29 }
+
+    zxAnEthIfC15MInFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with 
+             an integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in current 
+             15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 30 }
+
+    zxAnEthIfC15MOutFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with an 
+             integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in current 
+             15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 31 }
+        
+    zxAnEthIfC15MInJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error) in current 15-minute 
+             interval.
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfCurr15MinPerfEntry 32 }
+
+    zxAnEthIfC15MOutJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error) in current 15-minute 
+             interval.
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfCurr15MinPerfEntry 33 }
+        
+    zxAnEthIfC15MInPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 34 }
+
+    zxAnEthIfC15MOutPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 35 }
+        
+    zxAnEthIfC15MInPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 36 }
+        
+    zxAnEthIfC15MOutPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 37 }
+        
+    zxAnEthIfC15MInPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 38 }
+
+    zxAnEthIfC15MOutPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 39 }
+        
+    zxAnEthIfC15MInPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 40 }
+
+    zxAnEthIfC15MOutPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 41 }
+        
+    zxAnEthIfC15MInPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 42 }
+
+    zxAnEthIfC15MOutPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 43 }
+        
+    zxAnEthIfC15MInPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 44 }
+
+    zxAnEthIfC15MOutPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in current 15-minute 
+             interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 45 }
+    
+    zxAnEthIfC15MLinkStatusChanges   OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the interface
+             in current 15-minute interval.
+             The total number is increased when the link status changes
+             from up to down, or from down to up."
+        ::= { zxAnEthIfCurr15MinPerfEntry 46 }  
+        
+    zxAnEthIfC15MInBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's received bandwidth using ratio in 
+             current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 50 }
+
+    zxAnEthIfC15MOutBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's transmitted bandwidth using ratio 
+             in current 15-minute interval."
+        ::= { zxAnEthIfCurr15MinPerfEntry 51 }
+
+    zxAnEthIfC15MReset OBJECT-TYPE 
+        SYNTAX      INTEGER
+            {
+                perfReset(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION     
+            "Clear all the current 15-minute performance variables.
+             When get this variable, always return 1."
+        ::= { zxAnEthIfCurr15MinPerfEntry 100 }     
+            
+--------------------------------------------------------------------------------
+-- 2. zxAnEthIfCurr1DayPerfTable
+--------------------------------------------------------------------------------
+
+    zxAnEthIfCurr1DayPerfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfCurr1DayPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The 1 day interval performance data table of the ethernet 
+              interfaces."             
+        ::= { zxAnEthIfPerfObjects 3 }
+
+    zxAnEthIfCurr1DayPerfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnEthIfCurr1DayPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The 1 day interval performance data entry of the ethernet 
+             interfaces."
+        INDEX   { ifIndex}
+        ::= { zxAnEthIfCurr1DayPerfTable 1 }
+
+    ZxAnEthIfCurr1DayPerfEntry ::= SEQUENCE {
+        zxAnEthIfC1DTimeElapsed               Gauge32,
+        zxAnEthIfC1DInOctets                  Counter64,
+        zxAnEthIfC1DInPkts                    Counter64,
+        zxAnEthIfC1DInUcastPkts               Counter64,
+        zxAnEthIfC1DInMcastPkts               Counter64,
+        zxAnEthIfC1DInBcastPkts               Counter64,
+        zxAnEthIfC1DInOversizedPkts           Counter64,
+        zxAnEthIfC1DInUndersizedPkts          Counter64,
+        zxAnEthIfC1DOutOctets                 Counter64,
+        zxAnEthIfC1DOutPkts                   Counter64,
+        zxAnEthIfC1DOutUcastPkts              Counter64,
+        zxAnEthIfC1DOutMcastPkts              Counter64,
+        zxAnEthIfC1DOutBcastPkts              Counter64,
+        zxAnEthIfC1DOutPausePkts              Counter64,
+        zxAnEthIfC1DOutDiscardPkts            Counter64,
+        zxAnEthIfC1DOutCollisions             Counter64,        
+        zxAnEthIfC1DSingleCollisions          Counter64,
+        zxAnEthIfC1DMultipleCollisions        Counter64,
+        zxAnEthIfC1DFcsErrors                 Counter64,
+        zxAnEthIfC1DAlignmentErrors           Counter64,
+        zxAnEthIfC1DInCrcErrPkts              Counter64,
+        zxAnEthIfC1DInDiscardPkts             Counter64,
+        zxAnEthIfC1DInErrPkts                 Counter64,
+        zxAnEthIfC1DOutErrPkts                Counter64, 
+        zxAnEthIfC1DInDropEvents              Counter64,
+        zxAnEthIfC1DOutDropEvents             Counter64,
+        zxAnEthIfC1DOutCrcErrPkts             Counter64,
+        zxAnEthIfC1DOutOversizedPkts          Counter64,
+        zxAnEthIfC1DOutUndersizedPkts         Counter64,
+        zxAnEthIfC1DInFragments               Counter64,
+        zxAnEthIfC1DOutFragments              Counter64,
+        zxAnEthIfC1DInJabbers                 Counter64,
+        zxAnEthIfC1DOutJabbers                Counter64,
+        zxAnEthIfC1DInPkts64Octets            Counter64,
+        zxAnEthIfC1DOutPkts64Octets           Counter64,
+        zxAnEthIfC1DInPkts65to127Octs         Counter64,
+        zxAnEthIfC1DOutPkts65to127Octs        Counter64,
+        zxAnEthIfC1DInPkts128to255Octs        Counter64,
+        zxAnEthIfC1DOutPkts128to255Octs       Counter64,
+        zxAnEthIfC1DInPkts256to511Octs        Counter64,
+        zxAnEthIfC1DOutPkts256to511Octs       Counter64,
+        zxAnEthIfC1DInPkts512to1023           Counter64,
+        zxAnEthIfC1DOutPkts512to1023          Counter64,
+        zxAnEthIfC1DInPkts1024to1518          Counter64,
+        zxAnEthIfC1DOutPkts1024to1518         Counter64,
+        zxAnEthIfC1DLinkStatusChanges         Counter32,
+        zxAnEthIfC1DInBwUsingRatio            Integer32,
+        zxAnEthIfC1DOutBwUsingRatio           Integer32,
+        zxAnEthIfC1DReset                     INTEGER
+        }
+      
+    zxAnEthIfC1DTimeElapsed OBJECT-TYPE 
+        SYNTAX      Gauge32(0..86399)
+        UNITS       "seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "Number of seconds that have elapsed since the beginning of the 
+             current 1 day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 1 } 
+    
+    zxAnEthIfC1DInOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets received on the interface,
+            including framing characters in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 2 }
+
+    zxAnEthIfC1DInPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets received on the interface,
+            including framing characters in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 3 }
+
+    zxAnEthIfC1DInUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were not addressed to a multicast
+            or broadcast address at this sub-layer in current one day
+            interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 4 }
+
+    zxAnEthIfC1DInMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a multicast
+            address at this sub-layer in current one day interval.
+            For a MAC layer protocol, this includes both Group and 
+            Functional addresses."
+        ::= { zxAnEthIfCurr1DayPerfEntry 5 }
+
+    zxAnEthIfC1DInBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a broadcast
+            address at this sub-layer in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 6 }
+
+    zxAnEthIfC1DInOversizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the configured MTU-size,
+             e.g.mtu = 2000 (frames >2000 are discarded) in current one
+              day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 7 }
+
+    zxAnEthIfC1DInUndersizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the min port size,
+             the value is 64 in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 8 }
+
+    zxAnEthIfC1DOutOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets transmitted out of the interface, 
+            including framing characters in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 9 }
+
+    zxAnEthIfC1DOutPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets transmitted out of the interface, 
+            including framing characters in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 10 }
+
+    zxAnEthIfC1DOutUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were not addressed to a
+            multicast or broadcast address at this sub-layer, including
+            those that were discarded or not sent in current one day
+            interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 11 }
+        
+    zxAnEthIfC1DOutMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            multicast address at this sub-layer, including those that
+            were discarded or not sent in current one day interval.
+            For a MAC layer protocol, this includes both Group and 
+            Functional addresses."
+        ::= { zxAnEthIfCurr1DayPerfEntry 12 }
+
+    zxAnEthIfC1DOutBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            broadcast address at this sub-layer, including those that
+            were discarded or not sent in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 13 }
+
+    zxAnEthIfC1DOutPausePkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of MAC Control frames transmitted on
+             this interface with an opcode indicating the
+             PAUSE operation in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 14 }
+
+    zxAnEthIfC1DOutDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of outbound packets which were chosen to be
+            discarded even though no errors had been detected to prevent
+            their being transmitted in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 15 }
+
+    zxAnEthIfC1DOutCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in out collision and 
+             are subsequently transmitted successfully in current one 
+             day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 16 }
+        
+    zxAnEthIfC1DSingleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in a single
+             collision, and are subsequently transmitted
+             successfully in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 17 }
+
+    zxAnEthIfC1DMultipleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in more
+             than one collision and are subsequently
+             transmitted successfully in current one day
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 18 }
+
+    zxAnEthIfC1DFcsErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are an integral number of octets
+             in length but do not pass the FCS check.  This
+             count does not include frames received with
+             frame-too-long or frame-too-short error in current
+             one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 19 }
+        
+    zxAnEthIfC1DAlignmentErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are not an integral number of
+             octets in length and do not pass the FCS check
+             in current one day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 20 }
+
+
+    zxAnEthIfC1DInCrcErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of CRC errored packets received on the interface
+             in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 21 }
+        
+        
+    zxAnEthIfC1DInDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of discarded packets received on the interface
+             in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 22 }
+        
+        
+    zxAnEthIfC1DInErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets received on the interface
+             in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 23 }
+        
+        
+    zxAnEthIfC1DOutErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets that could not be transmitted 
+             from the interface because of errors in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 24 }
+        
+    zxAnEthIfC1DInDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets received were 
+             dropped by the probe due to lack of resources in current 
+             1-day interval.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfCurr1DayPerfEntry 25 }
+        
+    zxAnEthIfC1DOutDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets transmitted were 
+             dropped by the probe due to lack of resources in current 
+             1-day interval.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfCurr1DayPerfEntry 26 }
+        
+    zxAnEthIfC1DOutCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets transmitted out of the 
+             interface in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 27 }
+        
+    zxAnEthIfC1DOutOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 28 }
+
+    zxAnEthIfC1DOutUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 
+             64 octets long (excluding framing bits, but including FCS 
+             octets) and were otherwise well formed in current 1-day
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 29 }
+        
+    zxAnEthIfC1DInFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with 
+             an integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in current 
+             1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 30 }
+
+    zxAnEthIfC1DOutFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with an 
+             integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in current 
+             1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 31 }
+        
+    zxAnEthIfC1DInJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error) in current 1-day interval.
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfCurr1DayPerfEntry 32 }
+
+    zxAnEthIfC1DOutJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error) in current 1-day interval.
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfCurr1DayPerfEntry 33 }
+        
+    zxAnEthIfC1DInPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 34 }
+
+    zxAnEthIfC1DOutPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 35 }
+        
+    zxAnEthIfC1DInPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day 
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 36 }
+
+    zxAnEthIfC1DOutPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day 
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 37 }
+        
+    zxAnEthIfC1DInPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day 
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 38 }
+
+    zxAnEthIfC1DOutPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day 
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 39 }
+        
+    zxAnEthIfC1DInPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 40 }
+
+    zxAnEthIfC1DOutPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 41 }
+        
+    zxAnEthIfC1DInPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day 
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 42 }
+
+    zxAnEthIfC1DOutPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day 
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 43 }
+        
+    zxAnEthIfC1DInPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 44 }
+
+    zxAnEthIfC1DOutPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in current 1-day 
+             interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 45 }
+
+    zxAnEthIfC1DLinkStatusChanges  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the interface
+             in current 1-day interval.
+             The total number is increased when the link status changes
+             from up to down, or from down to up."
+        ::= { zxAnEthIfCurr1DayPerfEntry 46 }   
+        
+    zxAnEthIfC1DInBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's received bandwidth using ratio in 
+             current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 50 }
+
+    zxAnEthIfC1DOutBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's transmitted bandwidth using ratio 
+             in current 1-day interval."
+        ::= { zxAnEthIfCurr1DayPerfEntry 51 }
+
+    zxAnEthIfC1DReset OBJECT-TYPE 
+        SYNTAX      INTEGER
+            {
+                perfReset(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION     
+            "Clear all the current 1-day performance variables.
+             When get this variable, always return 1."
+        ::= { zxAnEthIfCurr1DayPerfEntry 100 }  
+        
+--------------------------------------------------------------------------------
+-- 3. zxAnEthIfHis15MinPerfTable
+--------------------------------------------------------------------------------
+
+    zxAnEthIfHis15MinPerfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfHis15MinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The 15 minutes interval history performance data table of 
+              the ethernet interfaces."             
+        ::= { zxAnEthIfPerfObjects 4 }
+
+    zxAnEthIfHis15MinPerfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnEthIfHis15MinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The 15 minutes interval performance data entry of the 
+             ethernet interfaces."
+        INDEX   { ifIndex, zxAnEthIfH15MIntervalNo }
+        ::= { zxAnEthIfHis15MinPerfTable 1 }
+
+    ZxAnEthIfHis15MinPerfEntry ::= SEQUENCE {
+        zxAnEthIfH15MIntervalNo               Integer32,
+        zxAnEthIfH15MIntervalValidData        TruthValue,
+        zxAnEthIfH15MDateTime                 DateAndTime,
+        zxAnEthIfH15MInOctets                 Counter64,
+        zxAnEthIfH15MInPkts                   Counter64,
+        zxAnEthIfH15MInUcastPkts              Counter64,
+        zxAnEthIfH15MInMcastPkts              Counter64,
+        zxAnEthIfH15MInBcastPkts              Counter64,
+        zxAnEthIfH15MInOversizedPkts          Counter64,
+        zxAnEthIfH15MInUndersizedPkts         Counter64,
+        zxAnEthIfH15MOutOctets                Counter64,
+        zxAnEthIfH15MOutPkts                  Counter64,
+        zxAnEthIfH15MOutUcastPkts             Counter64,
+        zxAnEthIfH15MOutMcastPkts             Counter64,
+        zxAnEthIfH15MOutBcastPkts             Counter64,
+        zxAnEthIfH15MOutPausePkts             Counter64,
+        zxAnEthIfH15MOutDiscardPkts           Counter64,
+        zxAnEthIfH15MOutCollisions            Counter64,        
+        zxAnEthIfH15MSingleCollisions         Counter64,
+        zxAnEthIfH15MMultipleCollisions       Counter64,
+        zxAnEthIfH15MFcsErrors                Counter64,
+        zxAnEthIfH15MAlignmentErrors          Counter64,
+        zxAnEthIfH15MInCrcErrPkts             Counter64,
+        zxAnEthIfH15MInDiscardPkts            Counter64,
+        zxAnEthIfH15MInErrPkts                Counter64,
+        zxAnEthIfH15MOutErrPkts               Counter64,
+        zxAnEthIfH15MInDropEvents             Counter64,
+        zxAnEthIfH15MOutDropEvents            Counter64,
+        zxAnEthIfH15MOutCrcErrPkts            Counter64,
+        zxAnEthIfH15MOutOversizedPkts         Counter64,
+        zxAnEthIfH15MOutUndersizedPkts        Counter64,
+        zxAnEthIfH15MInFragments              Counter64,
+        zxAnEthIfH15MOutFragments             Counter64,
+        zxAnEthIfH15MInJabbers                Counter64,
+        zxAnEthIfH15MOutJabbers               Counter64,
+        zxAnEthIfH15MInPkts64Octets           Counter64,
+        zxAnEthIfH15MOutPkts64Octets          Counter64,
+        zxAnEthIfH15MInPkts65to127Octs        Counter64,
+        zxAnEthIfH15MOutPkts65to127Octs       Counter64,
+        zxAnEthIfH15MInPkts128to255Octs       Counter64,
+        zxAnEthIfH15MOutPkts128to255Octs      Counter64,
+        zxAnEthIfH15MInPkts256to511Octs       Counter64,
+        zxAnEthIfH15MOutPkts256to511Octs      Counter64,
+        zxAnEthIfH15MInPkts512to1023          Counter64,
+        zxAnEthIfH15MOutPkts512to1023         Counter64,
+        zxAnEthIfH15MInPkts1024to1518         Counter64,
+        zxAnEthIfH15MOutPkts1024to1518        Counter64,
+        zxAnEthIfH15MLinkStatusChanges        Counter32,
+        zxAnEthIfH15MInBwUsingRatio           Integer32,
+        zxAnEthIfH15MOutBwUsingRatio          Integer32
+        }
+      
+    zxAnEthIfH15MIntervalNo    OBJECT-TYPE 
+        SYNTAX      Integer32(1..96)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+             "Performance data interval number 1 is the the most recent 
+              previous interval; interval 96 is 24 hours ago.  
+              Intervals 2..96 are optional."       
+        ::= { zxAnEthIfHis15MinPerfEntry 1 }        
+        
+    zxAnEthIfH15MIntervalValidData    OBJECT-TYPE 
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+             "Performance data valid flag. 
+              true(1) means valid.  
+              false(2) means invalidm and the performace data is useless."       
+        ::= { zxAnEthIfHis15MinPerfEntry 2 }        
+
+    zxAnEthIfH15MDateTime    OBJECT-TYPE   
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+             "The 15 minutes interval performance data generation time."       
+        ::= { zxAnEthIfHis15MinPerfEntry 3 }            
+        
+    zxAnEthIfH15MInOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets received on the interface,
+            including framing characters in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 4 }
+
+    zxAnEthIfH15MInPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets received on the interface,
+            including framing characters in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 5 }
+
+    zxAnEthIfH15MInUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were not addressed to a multicast
+            or broadcast address at this sub-layer in historical 15 minutes
+            interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 6 }
+
+    zxAnEthIfH15MInMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a multicast
+            address at this sub-layer in historical 15 minutes interval.
+            For a MAC layer protocol, this includes both Group and 
+            Functional addresses."
+        ::= { zxAnEthIfHis15MinPerfEntry 7 }
+
+    zxAnEthIfH15MInBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a broadcast
+            address at this sub-layer in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 8 }
+
+    zxAnEthIfH15MInOversizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the configured MTU-size,
+             e.g.mtu = 2000 (frames >2000 are discarded) in historical 15
+             minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 9 }
+
+    zxAnEthIfH15MInUndersizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the min port size,
+             the value is 64 in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 10 }
+
+    zxAnEthIfH15MOutOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets transmitted out of the interface, 
+            including framing characters in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 11 }
+
+    zxAnEthIfH15MOutPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets transmitted out of the interface, 
+            including framing characters in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 12 }
+
+    zxAnEthIfH15MOutUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were not addressed to a
+            multicast or broadcast address at this sub-layer, including
+            those that were discarded or not sent in historical 15 minutes
+            interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 13 }
+        
+    zxAnEthIfH15MOutMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            multicast address at this sub-layer, including those that
+            were discarded or not sent in historical 15 minutes interval.
+            For a MAC layer protocol, this includes both Group and 
+            Functional addresses."
+        ::= { zxAnEthIfHis15MinPerfEntry 14 }
+
+    zxAnEthIfH15MOutBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            broadcast address at this sub-layer, including those that
+            were discarded or not sent in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 15 }
+
+    zxAnEthIfH15MOutPausePkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of MAC Control frames transmitted on
+             this interface with an opcode indicating the
+             PAUSE operation in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 16 }
+
+    zxAnEthIfH15MOutDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of outbound packets which were chosen to be
+            discarded even though no errors had been detected to prevent
+            their being transmitted in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 17 }
+
+    zxAnEthIfH15MOutCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in out collision and 
+             are subsequently transmitted successfully in historical 15 
+             minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 18 }
+
+    zxAnEthIfH15MSingleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in a single
+             collision, and are subsequently transmitted
+             successfully in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 19 }
+
+    zxAnEthIfH15MMultipleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in more
+             than one collision and are subsequently
+             transmitted successfully in historical 15 minutes
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 20 }
+
+    zxAnEthIfH15MFcsErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are an integral number of octets
+             in length but do not pass the FCS check.  This
+             count does not include frames received with
+             frame-too-long or frame-too-short error in historical
+             15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 21 }
+        
+    zxAnEthIfH15MAlignmentErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are not an integral number of
+             octets in length and do not pass the FCS check
+             in historical 15 minutes interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 22 }
+
+    zxAnEthIfH15MInCrcErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of CRC errored packets received on the interface
+             in historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 23 }
+        
+    zxAnEthIfH15MInDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of discarded packets received on the interface
+             in historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 24 }
+        
+    zxAnEthIfH15MInErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets received on the interface
+             in historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 25 }
+        
+    zxAnEthIfH15MOutErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets that could not be transmitted 
+             from the interface because of errors 
+             in historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 26 }        
+    
+    zxAnEthIfH15MInDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets received were 
+             dropped by the probe due to lack of resources in historical 
+             15-minute interval.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfHis15MinPerfEntry 27 }
+        
+    zxAnEthIfH15MOutDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets transmitted were 
+             dropped by the probe due to lack of resources in historical 
+             15-minute interval.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfHis15MinPerfEntry 28 }
+
+    zxAnEthIfH15MOutCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets transmitted out of the 
+             interface in historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 29 }
+        
+    zxAnEthIfH15MOutOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed in historical 15-minute 
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 30 }
+
+    zxAnEthIfH15MOutUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 
+             64 octets long (excluding framing bits, but including FCS 
+             octets) and were otherwise well formed in historical 15-minute 
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 31 }
+        
+    zxAnEthIfH15MInFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with 
+             an integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in historical 
+             15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 32 }
+
+    zxAnEthIfH15MOutFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with an 
+             integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in historical 
+             15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 33 }
+        
+    zxAnEthIfH15MInJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error) in historical 15-minute 
+             interval.
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfHis15MinPerfEntry 34 }
+        
+    zxAnEthIfH15MOutJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error) in historical 15-minute 
+             interval.
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfHis15MinPerfEntry 35 }
+        
+    zxAnEthIfH15MInPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 36 }
+
+    zxAnEthIfH15MOutPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 37 }
+        
+    zxAnEthIfH15MInPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in historical 
+             15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 38 }
+
+    zxAnEthIfH15MOutPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute 
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 39 }
+        
+    zxAnEthIfH15MInPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute 
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 40 }
+
+    zxAnEthIfH15MOutPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute 
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 41 }
+        
+    zxAnEthIfH15MInPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 42 }
+
+    zxAnEthIfH15MOutPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 43 }
+        
+    zxAnEthIfH15MInPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute 
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 44 }
+
+    zxAnEthIfH15MOutPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute 
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 45 }
+        
+    zxAnEthIfH15MInPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 46 }
+
+    zxAnEthIfH15MOutPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in historical 15-minute 
+             interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 47 } 
+        
+    zxAnEthIfH15MLinkStatusChanges   OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the interface
+             in historical 15-minute interval.
+             The total number is increased when the link status changes
+             from up to down, or from down to up."
+        ::= { zxAnEthIfHis15MinPerfEntry 48 }
+        
+    zxAnEthIfH15MInBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's received bandwidth using ratio in 
+             historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 50 }
+
+    zxAnEthIfH15MOutBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's transmitted bandwidth using ratio 
+             in historical 15-minute interval."
+        ::= { zxAnEthIfHis15MinPerfEntry 51 }        
+
+--------------------------------------------------------------------------------
+-- 4. zxAnEthIfHis1DayPerfTable
+--------------------------------------------------------------------------------
+
+    zxAnEthIfHis1DayPerfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfHis1DayPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The 1 day interval history performance data table of 
+              the ethernet interfaces."             
+        ::= { zxAnEthIfPerfObjects 5 }
+
+    zxAnEthIfHis1DayPerfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnEthIfHis1DayPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The 1 day interval performance data entry of 
+             the ethernet interfaces."
+        INDEX   { ifIndex, zxAnEthIfH1DIntervalNo }
+        ::= { zxAnEthIfHis1DayPerfTable 1 }
+
+    ZxAnEthIfHis1DayPerfEntry ::= SEQUENCE {
+        zxAnEthIfH1DIntervalNo                Integer32,
+        zxAnEthIfH1DIntervalValidData         TruthValue,
+        zxAnEthIfH1DDateTime                  DateAndTime,
+        zxAnEthIfH1DInOctets                  Counter64,
+        zxAnEthIfH1DInPkts                    Counter64,
+        zxAnEthIfH1DInUcastPkts               Counter64,
+        zxAnEthIfH1DInMcastPkts               Counter64,
+        zxAnEthIfH1DInBcastPkts               Counter64,
+        zxAnEthIfH1DInOversizedPkts           Counter64,
+        zxAnEthIfH1DInUndersizedPkts          Counter64,
+        zxAnEthIfH1DOutOctets                 Counter64,
+        zxAnEthIfH1DOutPkts                   Counter64,
+        zxAnEthIfH1DOutUcastPkts              Counter64,
+        zxAnEthIfH1DOutMcastPkts              Counter64,
+        zxAnEthIfH1DOutBcastPkts              Counter64,
+        zxAnEthIfH1DOutPausePkts              Counter64,
+        zxAnEthIfH1DOutDiscardPkts            Counter64,
+        zxAnEthIfH1DOutCollisions             Counter64,        
+        zxAnEthIfH1DSingleCollisions          Counter64,
+        zxAnEthIfH1DMultipleCollisions        Counter64,
+        zxAnEthIfH1DFcsErrors                 Counter64,
+        zxAnEthIfH1DAlignmentErrors           Counter64,
+        zxAnEthIfH1DInCrcErrPkts              Counter64,
+        zxAnEthIfH1DInDiscardPkts             Counter64,
+        zxAnEthIfH1DInErrPkts                 Counter64,
+        zxAnEthIfH1DOutErrPkts                Counter64,
+        zxAnEthIfH1DInDropEvents              Counter64,
+        zxAnEthIfH1DOutDropEvents             Counter64,
+        zxAnEthIfH1DOutCrcErrPkts             Counter64,
+        zxAnEthIfH1DOutOversizedPkts          Counter64,
+        zxAnEthIfH1DOutUndersizedPkts         Counter64,
+        zxAnEthIfH1DInFragments               Counter64,
+        zxAnEthIfH1DOutFragments              Counter64,
+        zxAnEthIfH1DInJabbers                 Counter64,
+        zxAnEthIfH1DOutJabbers                Counter64,
+        zxAnEthIfH1DInPkts64Octets            Counter64,
+        zxAnEthIfH1DOutPkts64Octets           Counter64,
+        zxAnEthIfH1DInPkts65to127Octs         Counter64,
+        zxAnEthIfH1DOutPkts65to127Octs        Counter64,
+        zxAnEthIfH1DInPkts128to255Octs        Counter64,
+        zxAnEthIfH1DOutPkts128to255Octs       Counter64,
+        zxAnEthIfH1DInPkts256to511Octs        Counter64,
+        zxAnEthIfH1DOutPkts256to511Octs       Counter64,
+        zxAnEthIfH1DInPkts512to1023           Counter64,
+        zxAnEthIfH1DOutPkts512to1023          Counter64,
+        zxAnEthIfH1DInPkts1024to1518          Counter64,
+        zxAnEthIfH1DOutPkts1024to1518         Counter64,
+        zxAnEthIfH1DLinkStatusChanges         Counter32,
+        zxAnEthIfH1DInBwUsingRatio            Integer32,
+        zxAnEthIfH1DOutBwUsingRatio           Integer32
+        }                                  
+
+    zxAnEthIfH1DIntervalNo  OBJECT-TYPE 
+        SYNTAX      Integer32(1..7)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+             "Performance data interval number 1 is the the most recent 
+              previous interval; interval 7 is 1 week ago.  
+              Intervals 2..7 are optional."       
+        ::= { zxAnEthIfHis1DayPerfEntry 1 }        
+        
+    zxAnEthIfH1DIntervalValidData    OBJECT-TYPE 
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+             "Performance data valid flag. 
+              true(1) means valid.  
+              false(2) means invalidm and the performace data is useless."       
+        ::= { zxAnEthIfHis1DayPerfEntry 2 }        
+
+    zxAnEthIfH1DDateTime    OBJECT-TYPE   
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+             "The 1 day interval performance data generation time."       
+        ::= { zxAnEthIfHis1DayPerfEntry 3 }
+    
+    zxAnEthIfH1DInOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets received on the interface,
+            including framing characters in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 4 }
+
+    zxAnEthIfH1DInPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets received on the interface,
+            including framing characters in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 5 }
+
+    zxAnEthIfH1DInUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were not addressed to a multicast
+            or broadcast address at this sub-layer in historical one day
+            interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 6 }
+
+    zxAnEthIfH1DInMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a multicast
+            address at this sub-layer in historical one day interval.
+            For a MAC layer protocol, this includes both Group and 
+            Functional addresses."
+        ::= { zxAnEthIfHis1DayPerfEntry 7 }
+
+    zxAnEthIfH1DInBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+            higher (sub-)layer, which were addressed to a broadcast
+            address at this sub-layer in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 8 }
+
+    zxAnEthIfH1DInOversizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the configured MTU-size,
+             e.g.mtu = 2000 (frames >2000 are discarded) in current one
+              day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 9 }
+
+    zxAnEthIfH1DInUndersizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the min port size,
+             the value is 64 in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 10 }
+
+    zxAnEthIfH1DOutOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets transmitted out of the interface, 
+            including framing characters in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 11 }
+
+    zxAnEthIfH1DOutPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets transmitted out of the interface, 
+            including framing characters in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 12 }
+
+    zxAnEthIfH1DOutUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were not addressed to a
+            multicast or broadcast address at this sub-layer, including
+            those that were discarded or not sent in historical one day
+            interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 13 }
+        
+    zxAnEthIfH1DOutMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            multicast address at this sub-layer, including those that
+            were discarded or not sent in historical one day interval.
+            For a MAC layer protocol, this includes both Group and 
+            Functional addresses."
+        ::= { zxAnEthIfHis1DayPerfEntry 14 }
+
+    zxAnEthIfH1DOutBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+            requested be transmitted, and which were addressed to a
+            broadcast address at this sub-layer, including those that
+            were discarded or not sent in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 15 }
+
+    zxAnEthIfH1DOutPausePkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of MAC Control frames transmitted on
+             this interface with an opcode indicating the
+             PAUSE operation in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 16 }
+
+    zxAnEthIfH1DOutDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of outbound packets which were chosen to be
+            discarded even though no errors had been detected to prevent
+            their being transmitted in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 17 }
+
+    zxAnEthIfH1DOutCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in out collision and 
+             are subsequently transmitted successfully in historical one 
+             day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 18 }
+
+    zxAnEthIfH1DSingleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in a single
+             collision, and are subsequently transmitted
+             successfully in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 19 }
+
+    zxAnEthIfH1DMultipleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in more
+             than one collision and are subsequently
+             transmitted successfully in historical one day
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 20 }
+
+    zxAnEthIfH1DFcsErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are an integral number of octets
+             in length but do not pass the FCS check.  This
+             count does not include frames received with
+             frame-too-long or frame-too-short error in historical
+             one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 21 }
+        
+    zxAnEthIfH1DAlignmentErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are not an integral number of
+             octets in length and do not pass the FCS check
+             in historical one day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 22 }
+
+    zxAnEthIfH1DInCrcErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION      
+            "The total number of CRC errored packets received on the interface
+             in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 23 }
+        
+    zxAnEthIfH1DInDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of discarded packets received on the interface
+             in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 24 }
+        
+   zxAnEthIfH1DInErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets received on the interface
+             in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 25 }
+        
+    zxAnEthIfH1DOutErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets that could not be transmitted 
+             from the interface because of errors
+             in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 26 }        
+        
+    zxAnEthIfH1DInDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets received were 
+             dropped by the probe due to lack of resources in historical 
+             1-day interval.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfHis1DayPerfEntry 27 }
+        
+    zxAnEthIfH1DOutDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets transmitted were 
+             dropped by the probe due to lack of resources in historical 
+             1-day interval.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected."
+        ::= { zxAnEthIfHis1DayPerfEntry 28 }
+        
+    zxAnEthIfH1DOutCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets transmitted out of the 
+             interface in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 29 }
+
+    zxAnEthIfH1DOutOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 30 }
+
+    zxAnEthIfH1DOutUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 
+             64 octets long (excluding framing bits, but including FCS 
+             octets) and were otherwise well formed in historical 1-day
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 31 }
+        
+    zxAnEthIfH1DInFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with 
+             an integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in historical 
+             1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 32 }
+
+    zxAnEthIfH1DOutFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with an 
+             integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in historical 
+             1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 33 }
+        
+    zxAnEthIfH1DInJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error) in historical 1-day interval.
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfHis1DayPerfEntry 34 }
+
+    zxAnEthIfH1DOutJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error) in historical 1-day interval.
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms."
+        ::= { zxAnEthIfHis1DayPerfEntry 35 }
+        
+    zxAnEthIfH1DInPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 36 }
+
+    zxAnEthIfH1DOutPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 37 }
+        
+    zxAnEthIfH1DInPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day 
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 38 }
+
+    zxAnEthIfH1DOutPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day 
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 39 }
+        
+    zxAnEthIfH1DInPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day 
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 40 }
+
+    zxAnEthIfH1DOutPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day 
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 41 }
+        
+    zxAnEthIfH1DInPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 42 }
+
+    zxAnEthIfH1DOutPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 43 }
+        
+    zxAnEthIfH1DInPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day 
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 44 }
+
+    zxAnEthIfH1DOutPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day 
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 45 }
+        
+    zxAnEthIfH1DInPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 46 }
+
+    zxAnEthIfH1DOutPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in historical 1-day 
+             interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 47 }
+        
+    zxAnEthIfH1DLinkStatusChanges  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the interface
+             in historical 1-day interval.
+             The total number is increased when the link status changes
+             from up to down, or from down to up."
+        ::= { zxAnEthIfHis1DayPerfEntry 48 }
+        
+    zxAnEthIfH1DInBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's received bandwidth using ratio in 
+             historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 50 }
+        
+    zxAnEthIfH1DOutBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's transmitted bandwidth using ratio 
+              in historical 1-day interval."
+        ::= { zxAnEthIfHis1DayPerfEntry 51 }        
+
+--------------------------------------------------------------------------------
+-- 5. zxAnEthIfAlmProfileConfTable
+--------------------------------------------------------------------------------
+
+    zxAnEthIfAlmProfileConfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfAlmProfileConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The performance alarm threshold profile table of the ethernet interfaces."             
+        ::= { zxAnEthIfPerfObjects 6 }
+
+    zxAnEthIfAlmProfileConfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnEthIfAlmProfileConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The performance alarm threshold profile entry of the ethernet interfaces.These
+             variables in the profile configuration is optional,if not configured,
+             it means the correspongding alarm is not reported, but the alarm and
+             clear alarm threshold configuration is needed to bind."
+        INDEX   { zxAnEthIfAlmProfileName, zxAnEthIfPerfVariable }
+        ::= { zxAnEthIfAlmProfileConfTable 1 }
+
+    ZxAnEthIfAlmProfileConfEntry ::= SEQUENCE {
+        zxAnEthIfAlmProfileName        DisplayString,  
+        zxAnEthIfPerfVariable          OBJECT IDENTIFIER,
+        zxAnEthIfRiseAlmThresh         HCPerfCurrentCount,
+        zxAnEthIfClrRiseAlmThresh      HCPerfCurrentCount,        
+        zxAnEthIfRiseWarnThresh        HCPerfCurrentCount,  
+        zxAnEthIfClrRiseWarnThresh     HCPerfCurrentCount,        
+        zxAnEthIfFallWarnThresh        HCPerfCurrentCount, 
+        zxAnEthIfClrFallWarnThresh     HCPerfCurrentCount, 
+        zxAnEthIfFallAlmThresh         HCPerfCurrentCount,
+        zxAnEthIfClrFallAlmThresh      HCPerfCurrentCount,
+        zxAnEthIfThreshUsed            BITS,
+        zxAnEthIfAlmProfileConfRowStatus   RowStatus
+        }
+
+    zxAnEthIfAlmProfileName  OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "The profile name."
+        ::= { zxAnEthIfAlmProfileConfEntry 1 }
+        
+    zxAnEthIfPerfVariable  OBJECT-TYPE 
+        SYNTAX      OBJECT IDENTIFIER
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "The object identifier of performance variables."
+        ::= { zxAnEthIfAlmProfileConfEntry 2 }
+        
+    zxAnEthIfRiseAlmThresh  OBJECT-TYPE 
+        SYNTAX      HCPerfCurrentCount
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold for rising alarm."
+        ::= { zxAnEthIfAlmProfileConfEntry 3 }
+
+    zxAnEthIfClrRiseAlmThresh  OBJECT-TYPE 
+        SYNTAX      HCPerfCurrentCount
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold for rising alarm restore."
+        ::= { zxAnEthIfAlmProfileConfEntry 4 }
+
+    zxAnEthIfRiseWarnThresh  OBJECT-TYPE 
+        SYNTAX      HCPerfCurrentCount
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold for rising warning."
+        ::= { zxAnEthIfAlmProfileConfEntry 5 }
+
+    zxAnEthIfClrRiseWarnThresh  OBJECT-TYPE 
+        SYNTAX      HCPerfCurrentCount
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold for rising warning restore."
+        ::= { zxAnEthIfAlmProfileConfEntry 6 }
+        
+    zxAnEthIfFallWarnThresh  OBJECT-TYPE 
+        SYNTAX      HCPerfCurrentCount
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold for falling warning."
+        ::= { zxAnEthIfAlmProfileConfEntry 7 }
+
+    zxAnEthIfClrFallWarnThresh  OBJECT-TYPE 
+        SYNTAX      HCPerfCurrentCount
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold for falling warning restore."
+        ::= { zxAnEthIfAlmProfileConfEntry 8 }        
+        
+    zxAnEthIfFallAlmThresh  OBJECT-TYPE 
+        SYNTAX      HCPerfCurrentCount
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold for falling alarm."
+        ::= { zxAnEthIfAlmProfileConfEntry 9 }
+
+    zxAnEthIfClrFallAlmThresh  OBJECT-TYPE 
+        SYNTAX      HCPerfCurrentCount
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold for falling alarm restore."
+        ::= { zxAnEthIfAlmProfileConfEntry 10 }   
+                    
+    zxAnEthIfThreshUsed  OBJECT-TYPE 
+         SYNTAX           BITS 
+           {
+               riseAlmThresh(0),
+               riseAlmClrThresh(1),
+               riseWarnThresh(2),
+               riseWarnClrThresh(3),
+               fallWarnThresh(4),
+               fallWarnClrThresh(5),
+               fallAlmThresh(6),
+               fallAlmClrThresh(7)
+           }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The threshold used flag."
+        ::= { zxAnEthIfAlmProfileConfEntry 11 }   
+        
+    zxAnEthIfAlmProfileConfRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             To delete a row in this table, a manager must
+             set this object to destroy(6). "
+        ::= { zxAnEthIfAlmProfileConfEntry 50 }
+        
+--------------------------------------------------------------------------------
+-- 6. zxAnEthIfAlmProfileApplyTable
+
+--------------------------------------------------------------------------------
+
+    zxAnEthIfAlmProfileApplyTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfAlmProfileApplyEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The performance alarm threshold profile configuration table of 
+              the ethernet interfaces."             
+        ::= { zxAnEthIfPerfObjects 7 }
+
+    zxAnEthIfAlmProfileApplyEntry   OBJECT-TYPE
+        SYNTAX      ZxAnEthIfAlmProfileApplyEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The performance alarm threshold profile configuration entry of 
+             the ethernet interfaces."
+        INDEX   { ifIndex }
+        ::= { zxAnEthIfAlmProfileApplyTable 1 }
+
+    ZxAnEthIfAlmProfileApplyEntry ::= SEQUENCE {
+        zxAnEthIfAlmPrf                DisplayString,
+        zxAnEthIfAlmPrfApplyRowStatus      RowStatus
+        }
+        
+    zxAnEthIfAlmPrf  OBJECT-TYPE 
+        SYNTAX      DisplayString (SIZE (1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The performance alarm threshold profile."
+        ::= { zxAnEthIfAlmProfileApplyEntry 1 }
+               
+     zxAnEthIfAlmPrfApplyRowStatus  OBJECT-TYPE 
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+            
+             To delete a row in this table, a manager must
+             set this object to destroy(6). "
+        ::= { zxAnEthIfAlmProfileApplyEntry 50 }   
+        
+        
+--------------------------------------------------------------------------------
+-- 7. zxAnEthIfAlmProfileTable
+--------------------------------------------------------------------------------
+
+    zxAnEthIfAlmProfileTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfAlmProfileEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The performance alarm threshold profile table of the ethernet interfaces.It can be used to
+              delete all of the performance alarm threshold profiles which has the same name configured
+               in 'zxAnEthIfAlmProfileConfTable'."
+        ::= { zxAnEthIfPerfObjects 8 }
+
+    zxAnEthIfAlmProfileEntry   OBJECT-TYPE
+        SYNTAX      ZxAnEthIfAlmProfileEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The performance alarm threshold profile entry of the ethernet interfaces."
+        INDEX   { zxAnEthIfAlmProfileName}
+        ::= { zxAnEthIfAlmProfileTable 1 }
+
+    ZxAnEthIfAlmProfileEntry ::= SEQUENCE {
+        zxAnEthIfAlmProfileRowStatus   RowStatus
+        }
+
+    zxAnEthIfAlmProfileRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION     
+            "The status of this profile.
+
+             To create a profile in this table, a manager must
+             set this object to createAndGo(4).
+             
+             To delete a profile in this table, a manager must
+             set this object to destroy(6). "
+        ::= { zxAnEthIfAlmProfileEntry 50 }
+  
+--------------------------------------------------------------------------------
+-- 8. zxAnEthIfCurrMinPerfTable
+--------------------------------------------------------------------------------
+
+    zxAnEthIfCurrMinPerfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfCurrMinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The minutes interval performance data table of the 
+              ethernet interfaces."             
+        ::= { zxAnEthIfPerfObjects 9 }
+
+    zxAnEthIfCurrMinPerfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnEthIfCurrMinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The minutes interval performance data entry of the 
+             ethernet interfaces."
+        INDEX   { ifIndex}
+        ::= { zxAnEthIfCurrMinPerfTable 1 }
+
+    ZxAnEthIfCurrMinPerfEntry ::= SEQUENCE {
+        zxAnEthIfCMinTimeElapsed              HCPerfTimeElapsed,
+        zxAnEthIfCMinInOctets                 Counter64,
+        zxAnEthIfCMinInPkts                   Counter64,
+        zxAnEthIfCMinInUcastPkts              Counter64,
+        zxAnEthIfCMinInMcastPkts              Counter64,
+        zxAnEthIfCMinInBcastPkts              Counter64,
+        zxAnEthIfCMinInOversizedPkts          Counter64,
+        zxAnEthIfCMinInUndersizedPkts         Counter64,
+        zxAnEthIfCMinOutOctets                Counter64,
+        zxAnEthIfCMinOutPkts                  Counter64,
+        zxAnEthIfCMinOutUcastPkts             Counter64,
+        zxAnEthIfCMinOutMcastPkts             Counter64,
+        zxAnEthIfCMinOutBcastPkts             Counter64,
+        zxAnEthIfCMinOutPausePkts             Counter64,
+        zxAnEthIfCMinOutDiscardPkts           Counter64,
+        zxAnEthIfCMinOutCollisions            Counter64,
+        zxAnEthIfCMinSingleCollisions         Counter64,
+        zxAnEthIfCMinMultipleCollisions       Counter64,
+        zxAnEthIfCMinFcsErrors                Counter64,
+        zxAnEthIfCMinAlignmentErrors          Counter64,
+        zxAnEthIfCMinInCrcErrPkts             Counter64,
+        zxAnEthIfCMinInDiscardPkts            Counter64,
+        zxAnEthIfCMinInErrPkts                Counter64,
+        zxAnEthIfCMinOutErrPkts               Counter64,   
+        zxAnEthIfCMinInDropEvents             Counter64,
+        zxAnEthIfCMinOutDropEvents            Counter64,
+        zxAnEthIfCMinOutCrcErrPkts            Counter64,
+        zxAnEthIfCMinOutOversizedPkts         Counter64,
+        zxAnEthIfCMinOutUndersizedPkts        Counter64,
+        zxAnEthIfCMinInFragments              Counter64,
+        zxAnEthIfCMinOutFragments             Counter64,
+        zxAnEthIfCMinInJabbers                Counter64,
+        zxAnEthIfCMinOutJabbers               Counter64,
+        zxAnEthIfCMinInPkts64Octets           Counter64,
+        zxAnEthIfCMinOutPkts64Octets          Counter64,
+        zxAnEthIfCMinInPkts65to127Octs        Counter64,
+        zxAnEthIfCMinOutPkts65to127Octs       Counter64,
+        zxAnEthIfCMinInPkts128to255Octs       Counter64,
+        zxAnEthIfCMinOutPkts128to255Octs      Counter64,
+        zxAnEthIfCMinInPkts256to511Octs       Counter64,
+        zxAnEthIfCMinOutPkts256to511Octs      Counter64,
+        zxAnEthIfCMinInPkts512to1023          Counter64,
+        zxAnEthIfCMinOutPkts512to1023         Counter64,
+        zxAnEthIfCMinInPkts1024to1518         Counter64,
+        zxAnEthIfCMinOutPkts1024to1518        Counter64,
+        zxAnEthIfCMinLinkStatusChanges        Counter32,
+        zxAnEthIfCMinInBwUsingRatio           Integer32,
+        zxAnEthIfCMinOutBwUsingRatio          Integer32,
+        zxAnEthIfCMinReset                    INTEGER
+        }
+      
+    zxAnEthIfCMinTimeElapsed OBJECT-TYPE 
+        SYNTAX      HCPerfTimeElapsed
+        UNITS       "Seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "Number of seconds that have elapsed since the beginning of the 
+             current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 1 }         
+        
+    zxAnEthIfCMinInOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets received on the interface,
+             including framing characters in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 2 }
+
+    zxAnEthIfCMinInPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets received on the interface,
+             including framing characters in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 3 }
+
+    zxAnEthIfCMinInUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+             higher (sub-)layer, which were not addressed to a multicast
+             or broadcast address at this sub-layer in current minutes
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 4 }
+
+    zxAnEthIfCMinInMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+             higher (sub-)layer, which were addressed to a multicast
+             address at this sub-layer in current minutes interval.
+             For a MAC layer protocol, this includes both Group and 
+             functional addresses."
+        ::= { zxAnEthIfCurrMinPerfEntry 5 }
+
+    zxAnEthIfCMinInBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+             higher (sub-)layer, which were addressed to a broadcast
+             address at this sub-layer in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 6 }
+
+    zxAnEthIfCMinInOversizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the configured MTU-size,
+             e.g.mtu = 2000 (frames >2000 are discarded) in current
+             minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 7 }
+
+    zxAnEthIfCMinInUndersizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the min port size,
+             the value is 64 in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 8 }
+
+    zxAnEthIfCMinOutOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets transmitted out of the interface, 
+             including framing characters in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 9 }
+
+    zxAnEthIfCMinOutPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets transmitted out of the interface, 
+             including framing characters in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 10 }
+
+    zxAnEthIfCMinOutUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+             requested be transmitted, and which were not addressed to a
+             multicast or broadcast address at this sub-layer, including
+             those that were discarded or not sent in current minutes
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 11 }
+        
+    zxAnEthIfCMinOutMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+             requested be transmitted, and which were addressed to a
+             multicast address at this sub-layer, including those that
+             were discarded or not sent in current minutes interval.
+             For a MAC layer protocol, this includes both Group and 
+             functional addresses."
+        ::= { zxAnEthIfCurrMinPerfEntry 12 }
+
+    zxAnEthIfCMinOutBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+             requested be transmitted, and which were addressed to a
+             broadcast address at this sub-layer, including those that
+             were discarded or not sent in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 13 }
+
+    zxAnEthIfCMinOutPausePkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of MAC Control frames transmitted on
+             this interface with an opcode indicating the
+             PAUSE operation in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 14 }
+
+    zxAnEthIfCMinOutDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of outbound packets which were chosen to be
+             discarded even though no errors had been detected to prevent
+             their being transmitted in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 15 }
+
+    zxAnEthIfCMinOutCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in out collision and 
+             are subsequently transmitted successfully in current 
+             minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 16 }
+        
+    zxAnEthIfCMinSingleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in a single
+             collision, and are subsequently transmitted
+             successfully in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 17 }
+
+    zxAnEthIfCMinMultipleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in more
+             than one collision and are subsequently
+             transmitted successfully in current minutes
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 18 }
+
+    zxAnEthIfCMinFcsErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are an integral number of octets
+             in length but do not pass the FCS check.  This
+             count does not include frames received with
+             frame-too-long or frame-too-short error in current
+             minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 19 }
+        
+    zxAnEthIfCMinAlignmentErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are not an integral number of
+             octets in length and do not pass the FCS check
+             in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 20 }
+
+    zxAnEthIfCMinInCrcErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of CRC errored packets received on the interface
+             in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 21 }
+        
+    zxAnEthIfCMinInDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of discarded packets received on the interface
+             in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 22 }
+        
+    zxAnEthIfCMinInErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets received on the interface
+             in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 23 }
+        
+    zxAnEthIfCMinOutErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets that could not be transmitted 
+             from the interface because of errors in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 24 }   
+     
+    zxAnEthIfCMinInDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets received were 
+             dropped by the probe due to lack of resources.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 25 }
+        
+    zxAnEthIfCMinOutDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets transmitted were 
+             dropped by the probe due to lack of resources.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 26 }
+        
+    zxAnEthIfCMinOutCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets transmitted out of the 
+             interface in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 27 }
+        
+    zxAnEthIfCMinOutOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 28 }
+
+    zxAnEthIfCMinOutUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 
+             64 octets long (excluding framing bits, but including FCS 
+             octets) and were otherwise well formed in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 29 }
+        
+    zxAnEthIfCMinInFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with 
+             an integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in current 
+             minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 30 }
+
+    zxAnEthIfCMinOutFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with an 
+             integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in current 
+             minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 31 }
+        
+    zxAnEthIfCMinInJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error).
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 32 }
+
+    zxAnEthIfCMinOutJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error).
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 33 }
+        
+    zxAnEthIfCMinInPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 34 }
+
+    zxAnEthIfCMinOutPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 35 }
+        
+    zxAnEthIfCMinInPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 36 }
+
+    zxAnEthIfCMinOutPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 37 }
+        
+    zxAnEthIfCMinInPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 38 }
+
+    zxAnEthIfCMinOutPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 39 }
+        
+    zxAnEthIfCMinInPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 40 }
+
+    zxAnEthIfCMinOutPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 41 }
+        
+    zxAnEthIfCMinInPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 42 }
+
+    zxAnEthIfCMinOutPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 43 }
+        
+    zxAnEthIfCMinInPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 44 }
+
+    zxAnEthIfCMinOutPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in current minutes 
+             interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 45 }   
+        
+    zxAnEthIfCMinLinkStatusChanges   OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the interface
+             in in current minutes interval.
+             The total number is increased when the link status changes
+             from up to down, or from down to up."
+        ::= { zxAnEthIfCurrMinPerfEntry 46 }
+        
+    zxAnEthIfCMinInBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's received bandwidth using ratio in 
+             current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 50 }
+    
+    zxAnEthIfCMinOutBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's transmitted bandwidth using ratio 
+             in current minutes interval."
+        ::= { zxAnEthIfCurrMinPerfEntry 51 }
+    
+    zxAnEthIfCMinReset OBJECT-TYPE 
+        SYNTAX      INTEGER
+            {
+                perfReset(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION     
+            "Clear all the current minutes performance variables.
+             When get this variable, always return 1."
+        ::= { zxAnEthIfCurrMinPerfEntry 100 }     
+--------------------------------------------------------------------------------
+-- 9. zxAnEthIfHisMinPerfTable
+--------------------------------------------------------------------------------
+
+    zxAnEthIfHisMinPerfTable    OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnEthIfHisMinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+             "The minutes interval history performance data table of 
+              the ethernet interfaces."             
+        ::= { zxAnEthIfPerfObjects 10 }
+
+    zxAnEthIfHisMinPerfEntry    OBJECT-TYPE
+        SYNTAX      ZxAnEthIfHisMinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "The minutes interval performance data entry of the 
+             ethernet interfaces."
+        INDEX   { ifIndex, zxAnEthIfHMinIntervalNo }
+        ::= { zxAnEthIfHisMinPerfTable 1 }
+
+    ZxAnEthIfHisMinPerfEntry ::= SEQUENCE {
+        zxAnEthIfHMinIntervalNo               Integer32,
+        zxAnEthIfHMinIntervalValidData        TruthValue,
+        zxAnEthIfHMinDateTime                 DateAndTime,
+        zxAnEthIfHMinInOctets                 Counter64,
+        zxAnEthIfHMinInPkts                   Counter64,
+        zxAnEthIfHMinInUcastPkts              Counter64,
+        zxAnEthIfHMinInMcastPkts              Counter64,
+        zxAnEthIfHMinInBcastPkts              Counter64,
+        zxAnEthIfHMinInOversizedPkts          Counter64,
+        zxAnEthIfHMinInUndersizedPkts         Counter64,
+        zxAnEthIfHMinOutOctets                Counter64,
+        zxAnEthIfHMinOutPkts                  Counter64,
+        zxAnEthIfHMinOutUcastPkts             Counter64,
+        zxAnEthIfHMinOutMcastPkts             Counter64,
+        zxAnEthIfHMinOutBcastPkts             Counter64,
+        zxAnEthIfHMinOutPausePkts             Counter64,
+        zxAnEthIfHMinOutDiscardPkts           Counter64,
+        zxAnEthIfHMinOutCollisions            Counter64,        
+        zxAnEthIfHMinSingleCollisions         Counter64,
+        zxAnEthIfHMinMultipleCollisions       Counter64,
+        zxAnEthIfHMinFcsErrors                Counter64,
+        zxAnEthIfHMinAlignmentErrors          Counter64,
+        zxAnEthIfHMinInCrcErrPkts             Counter64,
+        zxAnEthIfHMinInDiscardPkts            Counter64,
+        zxAnEthIfHMinInErrPkts                Counter64,
+        zxAnEthIfHMinOutErrPkts               Counter64,
+        zxAnEthIfHMinInDropEvents             Counter64,
+        zxAnEthIfHMinOutDropEvents            Counter64,
+        zxAnEthIfHMinOutCrcErrPkts            Counter64,
+        zxAnEthIfHMinOutOversizedPkts         Counter64,
+        zxAnEthIfHMinOutUndersizedPkts        Counter64,
+        zxAnEthIfHMinInFragments              Counter64,
+        zxAnEthIfHMinOutFragments             Counter64,
+        zxAnEthIfHMinInJabbers                Counter64,
+        zxAnEthIfHMinOutJabbers               Counter64,
+        zxAnEthIfHMinInPkts64Octets           Counter64,
+        zxAnEthIfHMinOutPkts64Octets          Counter64,
+        zxAnEthIfHMinInPkts65to127Octs        Counter64,
+        zxAnEthIfHMinOutPkts65to127Octs       Counter64,
+        zxAnEthIfHMinInPkts128to255Octs       Counter64,
+        zxAnEthIfHMinOutPkts128to255Octs      Counter64,
+        zxAnEthIfHMinInPkts256to511Octs       Counter64,
+        zxAnEthIfHMinOutPkts256to511Octs      Counter64,
+        zxAnEthIfHMinInPkts512to1023          Counter64,
+        zxAnEthIfHMinOutPkts512to1023         Counter64,
+        zxAnEthIfHMinInPkts1024to1518         Counter64,
+        zxAnEthIfHMinOutPkts1024to1518        Counter64,
+        zxAnEthIfHMinLinkStatusChanges        Counter32,
+        zxAnEthIfHMinInBwUsingRatio           Integer32,
+        zxAnEthIfHMinOutBwUsingRatio          Integer32
+        }
+      
+    zxAnEthIfHMinIntervalNo    OBJECT-TYPE 
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "The performance data interval number."       
+        ::= { zxAnEthIfHisMinPerfEntry 1 }        
+        
+    zxAnEthIfHMinIntervalValidData    OBJECT-TYPE 
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "Performance data valid flag. 
+             true(1) means valid.  
+             false(2) means invalidm and the performace data is useless."       
+        ::= { zxAnEthIfHisMinPerfEntry 2 }        
+
+    zxAnEthIfHMinDateTime    OBJECT-TYPE   
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The minutes interval performance data generation time."       
+        ::= { zxAnEthIfHisMinPerfEntry 3 }            
+        
+    zxAnEthIfHMinInOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets received on the interface,
+             including framing characters in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 4 }
+
+    zxAnEthIfHMinInPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets received on the interface,
+             including framing characters in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 5 }
+
+    zxAnEthIfHMinInUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+             higher (sub-)layer, which were not addressed to a multicast
+             or broadcast address at this sub-layer in historical minutes
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 6 }
+
+    zxAnEthIfHMinInMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+             higher (sub-)layer, which were addressed to a multicast
+             address at this sub-layer in historical minutes interval.
+             For a MAC layer protocol, this includes both Group and 
+             Functional addresses."
+        ::= { zxAnEthIfHisMinPerfEntry 7 }
+
+    zxAnEthIfHMinInBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets, delivered by this sub-layer to a
+             higher (sub-)layer, which were addressed to a broadcast
+             address at this sub-layer in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 8 }
+
+    zxAnEthIfHMinInOversizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the configured MTU-size,
+             e.g.mtu = 2000 (frames >2000 are discarded) in historical
+             minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 9 }
+
+    zxAnEthIfHMinInUndersizedPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of packets,whick above the min port size,
+             the value is 64 in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 10 }
+
+    zxAnEthIfHMinOutOctets    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of octets transmitted out of the interface, 
+             including framing characters in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 11 }
+
+    zxAnEthIfHMinOutPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets transmitted out of the interface, 
+             including framing characters in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 12 }
+
+    zxAnEthIfHMinOutUcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+             requested be transmitted, and which were not addressed to a
+             multicast or broadcast address at this sub-layer, including
+             those that were discarded or not sent in historical minutes
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 13 }
+        
+    zxAnEthIfHMinOutMcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+             requested be transmitted, and which were addressed to a
+             multicast address at this sub-layer, including those that
+             were discarded or not sent in historical minutes interval.
+             For a MAC layer protocol, this includes both Group and 
+             functional addresses."
+        ::= { zxAnEthIfHisMinPerfEntry 14 }
+
+    zxAnEthIfHMinOutBcastPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of packets that higher-level protocols
+             requested be transmitted, and which were addressed to a
+             broadcast address at this sub-layer, including those that
+             were discarded or not sent in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 15}
+
+    zxAnEthIfHMinOutPausePkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of MAC Control frames transmitted on
+             this interface with an opcode indicating the
+             PAUSE operation in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 16 }
+
+    zxAnEthIfHMinOutDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The number of outbound packets which were chosen to be
+             discarded even though no errors had been detected to prevent
+             their being transmitted in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 17 }
+
+    zxAnEthIfHMinOutCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in out collision and 
+             are subsequently transmitted successfully in historical 
+             minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 18 }
+
+    zxAnEthIfHMinSingleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in a single
+             collision, and are subsequently transmitted
+             successfully in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 19 }
+
+    zxAnEthIfHMinMultipleCollisions    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames that are involved in more
+             than one collision and are subsequently
+             transmitted successfully in historical minutes
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 20 }
+
+    zxAnEthIfHMinFcsErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are an integral number of octets
+             in length but do not pass the FCS check.  This
+             count does not include frames received with
+             frame-too-long or frame-too-short error in historical
+             minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 21 }
+        
+    zxAnEthIfHMinAlignmentErrors    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "A count of frames received on a particular
+             interface that are not an integral number of
+             octets in length and do not pass the FCS check
+             in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 22 }
+
+    zxAnEthIfHMinInCrcErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of CRC errored packets received on the interface
+             in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 23 }
+        
+    zxAnEthIfHMinInDiscardPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of discarded packets received on the interface
+             in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 24 }
+        
+    zxAnEthIfHMinInErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets received on the interface
+             in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 25 }
+        
+    zxAnEthIfHMinOutErrPkts    OBJECT-TYPE 
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "The total number of errored packets that could not be transmitted 
+             from the interface because of errors 
+             in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 26 }  
+    
+    zxAnEthIfHMinInDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets received were 
+             dropped by the probe due to lack of resources.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 27 }
+        
+    zxAnEthIfHMinOutDropEvents OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of events in which packets transmitted were 
+             dropped by the probe due to lack of resources.
+             Note that this number is not necessarily the number of packets 
+             dropped; it is just the number of times this condition has been 
+             detected in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 28 }
+        
+    zxAnEthIfHMinOutCrcErrPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CRC errored packets transmitted out of the 
+             interface in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 29 }
+        
+    zxAnEthIfHMinOutOversizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets) 
+             and were otherwise well formed in historical minutes 
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 30 }
+
+    zxAnEthIfHMinOutUndersizedPkts    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 
+             64 octets long (excluding framing bits, but including FCS 
+             octets) and were otherwise well formed in historical minutes 
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 31 }
+        
+    zxAnEthIfHMinInFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with 
+             an integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in historical 
+             minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 32 }
+
+    zxAnEthIfHMinOutFragments    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were less than 64 
+             octets in length (excluding framing bits but including FCS 
+             octets) and had either a bad Frame Check Sequence (FCS) with an 
+             integral number of octets (FCS Error) or a bad FCS with a 
+             non-integral number of octets (Alignment Error) in historical 
+             minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 33 }
+        
+    zxAnEthIfHMinInJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets received that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error).
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms in historical
+             minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 34 }
+
+    zxAnEthIfHMinOutJabbers    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets transmitted that were longer than 
+             1518 octets (excluding framing bits, but including FCS octets), 
+             and had either a bad Frame Check Sequence (FCS) with an integral 
+             number of octets (FCS Error) or a bad FCS with a non-integral
+             number of octets (Alignment Error).
+             
+             Note that this definition of jabber is different than the 
+             definition in IEEE-802.3 section 8.2.1.5 (10BASE5) and section 
+             10.3.1.4 (10BASE2). These documents define jabber as the 
+             condition where any packet exceeds 20 ms. The allowed range to 
+             detect jabber is between 20 ms and 150 ms in historical
+             minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 35 }
+        
+    zxAnEthIfHMinInPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 36 }
+
+    zxAnEthIfHMinOutPkts64Octets    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were 64 octets in length (excluding framing bits but 
+             including FCS octets) in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 37 }
+        
+    zxAnEthIfHMinInPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in historical 
+             minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 38 }
+
+    zxAnEthIfHMinOutPkts65to127Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 65 and 127 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes 
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 39 }
+        
+    zxAnEthIfHMinInPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes 
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 40 }
+
+    zxAnEthIfHMinOutPkts128to255Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 128 and 255 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes 
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 41 }
+        
+    zxAnEthIfHMinInPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 42 }
+
+    zxAnEthIfHMinOutPkts256to511Octs    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 256 and 511 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 43 }
+        
+    zxAnEthIfHMinInPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes 
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 44 }
+
+    zxAnEthIfHMinOutPkts512to1023    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 512 and 1023 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes 
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 45 }
+        
+    zxAnEthIfHMinInPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) received 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 46 }
+
+    zxAnEthIfHMinOutPkts1024to1518    OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of packets (including bad packets) transmitted 
+             that were between 1024 and 1518 octets in length (excluding 
+             framing bits but including FCS octets) in historical minutes 
+             interval."
+        ::= { zxAnEthIfHisMinPerfEntry 47 }        
+        
+    zxAnEthIfHMinLinkStatusChanges   OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of the link status changes on the interface
+             in historical minutes interval.
+             The total number is increased when the link status changes
+             from up to down, or from down to up."
+        ::= { zxAnEthIfHisMinPerfEntry 48 }
+        
+    zxAnEthIfHMinInBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's received bandwidth using ratio in 
+             historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 50 }
+
+    zxAnEthIfHMinOutBwUsingRatio    OBJECT-TYPE 
+        SYNTAX      Integer32(0..100)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "An estimate of the interface's transmitted bandwidth using ratio 
+             in historical minutes interval."
+        ::= { zxAnEthIfHisMinPerfEntry 51 }   
+                                
+--------------------------------------------------------------------------------
+--31 zxAnEthIfPerfConformance
+--------------------------------------------------------------------------------
+
+    zxAnEthIfPerfConformance      OBJECT IDENTIFIER ::= { zxAnInterfaceEthPerfMib 4 }     
+
+    zxAnEthIfPerfCompliances      OBJECT IDENTIFIER ::= { zxAnEthIfPerfConformance 1 }
+    zxAnEthIfPerfGroups           OBJECT IDENTIFIER ::= { zxAnEthIfPerfConformance 2 } 
+
+    zxAnEthIfPerfCompliance MODULE-COMPLIANCE
+        STATUS      current
+        DESCRIPTION 
+            "The compliance statement for entities which implement the
+             ZTE-AN-INTERFACE-ETH-PERF-MIB."
+    
+        MODULE       -- this module
+            MANDATORY-GROUPS { 
+                   zxAnEthIfPerfCurr15MinGroup,
+                   zxAnEthIfPerfCurr1DayGroup,
+                   zxAnEthIfPerfHis15MinGroup,
+                   zxAnEthIfPerfHis1DayGroup,
+                   zxAnEthIfPerfAlmProfileGroup,
+                   zxAnEthIfAlmProfileApplyGroup,
+                   zxAnEthIfAlmProfileGroup,
+                   zxAnEthIfPerfCurrMinGroup,
+                   zxAnEthIfPerfHisMinGroup
+                   }
+        ::= { zxAnEthIfPerfCompliances 1 }
+    
+-- Units of compliance
+         
+    zxAnEthIfPerfCurr15MinGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfC15MTimeElapsed,
+            zxAnEthIfC15MInOctets,
+            zxAnEthIfC15MInPkts,
+            zxAnEthIfC15MInUcastPkts,
+            zxAnEthIfC15MInMcastPkts,
+            zxAnEthIfC15MInBcastPkts,
+            zxAnEthIfC15MInOversizedPkts,
+            zxAnEthIfC15MInUndersizedPkts,
+            zxAnEthIfC15MOutOctets,
+            zxAnEthIfC15MOutPkts,
+            zxAnEthIfC15MOutUcastPkts,
+            zxAnEthIfC15MOutMcastPkts,
+            zxAnEthIfC15MOutBcastPkts,
+            zxAnEthIfC15MOutPausePkts,
+            zxAnEthIfC15MOutCollisions,
+            zxAnEthIfC15MOutDiscardPkts,
+            zxAnEthIfC15MSingleCollisions,
+            zxAnEthIfC15MMultipleCollisions,
+            zxAnEthIfC15MFcsErrors,
+            zxAnEthIfC15MAlignmentErrors,
+            zxAnEthIfC15MInBwUsingRatio,
+            zxAnEthIfC15MOutBwUsingRatio, 
+            zxAnEthIfC15MReset 
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing for 15 minutes interval 
+             performance data of interfaces."
+        ::= { zxAnEthIfPerfGroups 1 }
+        
+    zxAnEthIfPerfCurr1DayGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfC1DTimeElapsed,
+            zxAnEthIfC1DInOctets,
+            zxAnEthIfC1DInPkts,
+            zxAnEthIfC1DInUcastPkts,
+            zxAnEthIfC1DInMcastPkts,
+            zxAnEthIfC1DInBcastPkts,
+            zxAnEthIfC1DInOversizedPkts,
+            zxAnEthIfC1DInUndersizedPkts,
+            zxAnEthIfC1DOutOctets,
+            zxAnEthIfC1DOutPkts,
+            zxAnEthIfC1DOutUcastPkts,
+            zxAnEthIfC1DOutMcastPkts,
+            zxAnEthIfC1DOutBcastPkts,
+            zxAnEthIfC1DOutPausePkts,
+            zxAnEthIfC1DOutCollisions,
+            zxAnEthIfC1DOutDiscardPkts,
+            zxAnEthIfC1DSingleCollisions,
+            zxAnEthIfC1DMultipleCollisions,
+            zxAnEthIfC1DFcsErrors,
+            zxAnEthIfC1DAlignmentErrors,
+            zxAnEthIfC1DInBwUsingRatio,
+            zxAnEthIfC1DOutBwUsingRatio,
+            zxAnEthIfC1DReset  
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing 1 day interval performance data 
+             of interfaces."
+        ::= { zxAnEthIfPerfGroups 2 }                
+
+    zxAnEthIfPerfHis15MinGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfH15MIntervalValidData,
+            zxAnEthIfH15MDateTime,
+            zxAnEthIfH15MInOctets,
+            zxAnEthIfH15MInPkts,
+            zxAnEthIfH15MInUcastPkts,
+            zxAnEthIfH15MInMcastPkts,
+            zxAnEthIfH15MInBcastPkts,
+            zxAnEthIfH15MInOversizedPkts,
+            zxAnEthIfH15MInUndersizedPkts,
+            zxAnEthIfH15MOutOctets,
+            zxAnEthIfH15MOutPkts,
+            zxAnEthIfH15MOutUcastPkts,
+            zxAnEthIfH15MOutMcastPkts,
+            zxAnEthIfH15MOutBcastPkts,
+            zxAnEthIfH15MOutPausePkts,
+            zxAnEthIfH15MOutCollisions,
+            zxAnEthIfH15MOutDiscardPkts,
+            zxAnEthIfH15MSingleCollisions,
+            zxAnEthIfH15MMultipleCollisions,
+            zxAnEthIfH15MFcsErrors,
+            zxAnEthIfH15MAlignmentErrors,
+            zxAnEthIfH15MInBwUsingRatio,
+            zxAnEthIfH15MOutBwUsingRatio
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing for 15 minutes interval 
+             performance data of interfaces."
+        ::= { zxAnEthIfPerfGroups 3 }
+        
+    zxAnEthIfPerfHis1DayGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfH1DIntervalValidData,
+            zxAnEthIfH1DDateTime,
+            zxAnEthIfH1DInOctets,
+            zxAnEthIfH1DInPkts,
+            zxAnEthIfH1DInUcastPkts,
+            zxAnEthIfH1DInMcastPkts,
+            zxAnEthIfH1DInBcastPkts,
+            zxAnEthIfH1DInOversizedPkts,
+            zxAnEthIfH1DInUndersizedPkts,
+            zxAnEthIfH1DOutOctets,
+            zxAnEthIfH1DOutPkts,
+            zxAnEthIfH1DOutUcastPkts,
+            zxAnEthIfH1DOutMcastPkts,
+            zxAnEthIfH1DOutBcastPkts,
+            zxAnEthIfH1DOutPausePkts,
+            zxAnEthIfH1DOutCollisions,
+            zxAnEthIfH1DOutDiscardPkts,
+            zxAnEthIfH1DSingleCollisions,
+            zxAnEthIfH1DMultipleCollisions,
+            zxAnEthIfH1DFcsErrors,
+            zxAnEthIfH1DAlignmentErrors,
+            zxAnEthIfH1DInBwUsingRatio,
+            zxAnEthIfH1DOutBwUsingRatio
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing 1 day interval performance data 
+             of interfaces."
+        ::= { zxAnEthIfPerfGroups 4 }   
+        
+    zxAnEthIfPerfAlmProfileGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfRiseAlmThresh,
+            zxAnEthIfClrRiseAlmThresh,        
+            zxAnEthIfRiseWarnThresh,  
+            zxAnEthIfClrRiseWarnThresh,        
+            zxAnEthIfFallWarnThresh, 
+            zxAnEthIfClrFallWarnThresh, 
+            zxAnEthIfFallAlmThresh,
+            zxAnEthIfClrFallAlmThresh,
+            zxAnEthIfAlmProfileConfRowStatus
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing for performance alarm threshold 
+             profile of interfaces."
+        ::= { zxAnEthIfPerfGroups 5 }    
+ 
+    zxAnEthIfAlmProfileApplyGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfAlmPrf,
+            zxAnEthIfAlmPrfApplyRowStatus
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing for performance alarm threshold 
+             profile apply control configuration information."            
+        ::= { zxAnEthIfPerfGroups 6 }   
+ 
+    zxAnEthIfAlmProfileGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfAlmProfileRowStatus
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing for performance alarm threshold 
+             profile  configuration information."            
+        ::= { zxAnEthIfPerfGroups 7 }
+    
+    zxAnEthIfPerfCurrMinGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfCMinTimeElapsed,
+            zxAnEthIfCMinInOctets,
+            zxAnEthIfCMinInPkts,
+            zxAnEthIfCMinInUcastPkts,
+            zxAnEthIfCMinInMcastPkts,
+            zxAnEthIfCMinInBcastPkts,
+            zxAnEthIfCMinInOversizedPkts,
+            zxAnEthIfCMinInUndersizedPkts,
+            zxAnEthIfCMinOutOctets,
+            zxAnEthIfCMinOutPkts,
+            zxAnEthIfCMinOutUcastPkts,
+            zxAnEthIfCMinOutMcastPkts,
+            zxAnEthIfCMinOutBcastPkts,
+            zxAnEthIfCMinOutPausePkts,
+            zxAnEthIfCMinOutCollisions,
+            zxAnEthIfCMinOutDiscardPkts,
+            zxAnEthIfCMinSingleCollisions,
+            zxAnEthIfCMinMultipleCollisions,
+            zxAnEthIfCMinFcsErrors,
+            zxAnEthIfCMinAlignmentErrors,
+            zxAnEthIfCMinInCrcErrPkts,
+            zxAnEthIfCMinInDiscardPkts,
+            zxAnEthIfCMinInErrPkts,
+            zxAnEthIfCMinOutErrPkts,
+            zxAnEthIfCMinInDropEvents,
+            zxAnEthIfCMinOutDropEvents,
+            zxAnEthIfCMinOutCrcErrPkts,
+            zxAnEthIfCMinOutOversizedPkts,
+            zxAnEthIfCMinOutUndersizedPkts,
+            zxAnEthIfCMinInFragments,
+            zxAnEthIfCMinOutFragments,
+            zxAnEthIfCMinInJabbers,
+            zxAnEthIfCMinOutJabbers,
+            zxAnEthIfCMinInPkts64Octets,
+            zxAnEthIfCMinOutPkts64Octets,
+            zxAnEthIfCMinInPkts65to127Octs,
+            zxAnEthIfCMinOutPkts65to127Octs,
+            zxAnEthIfCMinInPkts128to255Octs,
+            zxAnEthIfCMinOutPkts128to255Octs,
+            zxAnEthIfCMinInPkts256to511Octs,
+            zxAnEthIfCMinOutPkts256to511Octs,
+            zxAnEthIfCMinInPkts512to1023,
+            zxAnEthIfCMinOutPkts512to1023,
+            zxAnEthIfCMinInPkts1024to1518,
+            zxAnEthIfCMinOutPkts1024to1518,     
+            zxAnEthIfCMinLinkStatusChanges,
+            zxAnEthIfCMinInBwUsingRatio,
+            zxAnEthIfCMinOutBwUsingRatio, 
+            zxAnEthIfCMinReset 
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing for minutes interval 
+             performance data of interfaces."
+        ::= { zxAnEthIfPerfGroups 8 }
+         
+        zxAnEthIfPerfHisMinGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnEthIfHMinIntervalValidData,
+            zxAnEthIfHMinDateTime,
+            zxAnEthIfHMinInOctets,
+            zxAnEthIfHMinInPkts,
+            zxAnEthIfHMinInUcastPkts,
+            zxAnEthIfHMinInMcastPkts,
+            zxAnEthIfHMinInBcastPkts,
+            zxAnEthIfHMinInOversizedPkts,
+            zxAnEthIfHMinInUndersizedPkts,
+            zxAnEthIfHMinOutOctets,
+            zxAnEthIfHMinOutPkts,
+            zxAnEthIfHMinOutUcastPkts,
+            zxAnEthIfHMinOutMcastPkts,
+            zxAnEthIfHMinOutBcastPkts,
+            zxAnEthIfHMinOutPausePkts,
+            zxAnEthIfHMinOutCollisions,
+            zxAnEthIfHMinOutDiscardPkts,
+            zxAnEthIfHMinSingleCollisions,
+            zxAnEthIfHMinMultipleCollisions,
+            zxAnEthIfHMinFcsErrors,
+            zxAnEthIfHMinAlignmentErrors,
+      zxAnEthIfHMinInCrcErrPkts,
+            zxAnEthIfHMinInDiscardPkts,
+            zxAnEthIfHMinInErrPkts,
+            zxAnEthIfHMinOutErrPkts,
+            zxAnEthIfHMinInDropEvents,
+            zxAnEthIfHMinOutDropEvents,
+            zxAnEthIfHMinOutCrcErrPkts,
+            zxAnEthIfHMinOutOversizedPkts,
+            zxAnEthIfHMinOutUndersizedPkts,
+            zxAnEthIfHMinInFragments,
+            zxAnEthIfHMinOutFragments,
+            zxAnEthIfHMinInJabbers,
+            zxAnEthIfHMinOutJabbers,
+            zxAnEthIfHMinInPkts64Octets,
+            zxAnEthIfHMinOutPkts64Octets,
+            zxAnEthIfHMinInPkts65to127Octs,
+            zxAnEthIfHMinOutPkts65to127Octs,
+            zxAnEthIfHMinInPkts128to255Octs,
+            zxAnEthIfHMinOutPkts128to255Octs,
+            zxAnEthIfHMinInPkts256to511Octs,
+            zxAnEthIfHMinOutPkts256to511Octs,
+            zxAnEthIfHMinInPkts512to1023,
+            zxAnEthIfHMinOutPkts512to1023,
+            zxAnEthIfHMinInPkts1024to1518,
+            zxAnEthIfHMinOutPkts1024to1518,
+            zxAnEthIfHMinLinkStatusChanges,     
+            zxAnEthIfHMinInBwUsingRatio,
+            zxAnEthIfHMinOutBwUsingRatio
+        }
+        STATUS  current
+        DESCRIPTION 
+            "A collection of objects providing for minutes interval 
+             performance data of interfaces."
+        ::= { zxAnEthIfPerfGroups 9 }    
+                             
+END

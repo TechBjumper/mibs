@@ -1,0 +1,731 @@
+ZTE-AN-MDI-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, Integer32,IpAddress     FROM SNMPv2-SMI
+        DisplayString, RowStatus, DateAndTime                 FROM SNMPv2-TC
+        InterfaceIndex                                        FROM IF-MIB
+        InetAddressType, InetAddress                          FROM INET-ADDRESS-MIB
+        VlanId, ZxAnSubIfIndex                                FROM ZTE-AN-TC-MIB
+        zxAnVideo                                             FROM ZTE-AN-SMI;
+
+    zxAnMdiMib MODULE-IDENTITY   
+        LAST-UPDATED    "201610080000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "liao yongjun
+                         Mail: liao.yongjun@zte.com.cn
+                         Tel : +86-021-68897222"
+        DESCRIPTION  
+            "The MIB module for the management of MDI."
+         ::= { zxAnVideo 1}
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. MDI Global Objects
+-- 2. MDI Objects
+-- 2.1 MDI Monitoring Objects
+-- 2.1.1 MDI Monitoring Configuration Table
+-- 2.1.2 MDI Monitoring Statistic Table
+-- 2.1.3 MDI Monitoring Video Profile Table
+--------------------------------------------------------------------------------
+
+    zxAnMdiGlobalObjects            OBJECT IDENTIFIER ::= { zxAnMdiMib 1 }
+    zxAnMdiObjects                  OBJECT IDENTIFIER ::= { zxAnMdiMib 2 }
+    zxAnMdiMonitorObjects           OBJECT IDENTIFIER ::= { zxAnMdiObjects 2 }
+    
+--------------------------------------------------------------------------------
+-- 1. MDI Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnMdiCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            supportMonitorVideoProfile(0),
+            supportStartTimeAsDateAndTime(1),
+            supportSrcIpAndDirection(2),
+            supportDestUdpPort(3),
+            supportGemPort(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The management capabilities of MDI (Media Delivery Index).
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             bit 0: value 1 means supporting zxAnMdiMonitorVideoPrfTable, and
+                    zxAnMdiMonitorVideoPrf in zxAnMdiMonitorConfTable.
+             bit 1: value 1 means the syntax of zxAnMdiMonitorStartTime is 
+                    DateAndTime, otherwise the syntax is TimeTicks.
+             bit 2: value 1 means supporting zxAnMdiMonitorSrcIpAddressType,
+                    zxAnMdiMonitorSrcIpAddress and zxAnMdiMonitorDirection in
+                    zxAnMdiMonitorConfTable.
+             bit 3: value 1 means supporting zxAnMdiMonitorDestUdpPort in
+                    zxAnMdiMonitorConfTable.
+             bit 4: value 1 means supporting zxAnMdiMonitorGemPort in
+                    zxAnMdiMonitorConfTable.
+
+             NOTE: No recommended to display it in NMS."
+        ::=  { zxAnMdiGlobalObjects  1 }
+
+    zxAnMdiDiagLogEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enable(1),
+            disable(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "Enable or disable MDI diaglog function." 
+        DEFVAL  { disable }
+        ::=  { zxAnMdiGlobalObjects  10 }
+
+    zxAnMdiDiagLogFtmEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enable(1),
+            disable(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "Enable or disable MDI ftm diaglog function." 
+        DEFVAL  { disable }
+        ::=  { zxAnMdiGlobalObjects  11 }    
+    
+    zxAnMdiDiagLogFileType OBJECT-TYPE
+        SYNTAX      INTEGER {
+            mp(1),
+            np(2),
+            slave(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "MDI diaglog file type." 
+        ::=  { zxAnMdiGlobalObjects  12 }
+
+    zxAnMdiClearStatistics OBJECT-TYPE
+        SYNTAX  Integer32(1..256)
+        MAX-ACCESS  read-create
+        STATUS current
+        DESCRIPTION 
+        "Clear MDI Statistics session." 
+        ::=  { zxAnMdiGlobalObjects  13 }        
+--------------------------------------------------------------------------------
+-- 2. MDI Objects
+--------------------------------------------------------------------------------
+    
+--------------------------------------------------------------------------------
+-- 2.1 MDI Monitoring Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.1.1 MDI Monitoring Configuration Table
+--------------------------------------------------------------------------------
+    zxAnMdiMonitorConfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMdiMonitorConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Media delivery index monitoring table."
+        ::= { zxAnMdiMonitorObjects 2 }
+
+    zxAnMdiMonitorConfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMdiMonitorConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Media delivery index monitoring entry."
+        INDEX  { zxAnMdiMonitorSessionId }
+        ::= { zxAnMdiMonitorConfTable 1 }
+
+    ZxAnMdiMonitorConfEntry ::= SEQUENCE {
+        zxAnMdiMonitorSessionId                         Integer32,
+        zxAnMdiMonitorIfIndex                           InterfaceIndex,
+        zxAnMdiMonitorSubIfIndex                        ZxAnSubIfIndex,
+        zxAnMdiMonitorVlan                              VlanId,
+        zxAnMdiMonitorDestIpAddressType                 InetAddressType,
+        zxAnMdiMonitorDestIpAddress                     InetAddress,
+        zxAnMdiMonitorBitRate                           Integer32,
+        zxAnMdiMonitorCalculatePeriod                   Integer32,
+        zxAnMdiMonitorStatisticPeriod                   Integer32,
+        zxAnMdiMonitorDuration                          Integer32,
+        zxAnMdiMonitorStatus                            INTEGER,
+        zxAnMdiMonitorStartTime                         DateAndTime,
+        zxAnMdiMonitorVideoPrf                          DisplayString,
+        zxAnMdiMonitorSrcIpAddressType                  InetAddressType,
+        zxAnMdiMonitorSrcIpAddress                      InetAddress,
+        zxAnMdiMonitorDirection                         INTEGER,
+        zxAnMdiMonitorDestUdpPort                       Integer32,
+        zxAnMdiMonitorGemPort                           Integer32,
+        zxAnMdiMonitorIfName                            DisplayString,    
+        zxAnMdiMonitorRowStatus                         RowStatus,
+        zxAnMdiMonitorCliIpAddress                      IpAddress,
+        zxAnMdiMonitorCliSourceIpAddress                IpAddress
+        }
+
+    zxAnMdiMonitorSessionId OBJECT-TYPE
+        SYNTAX      Integer32(1..256)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The session ID of MDI monitoring."
+        ::= {  zxAnMdiMonitorConfEntry 1 }
+
+    zxAnMdiMonitorIfIndex  OBJECT-TYPE
+        SYNTAX      InterfaceIndex
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The index of NNI/UNI port." 
+        ::={  zxAnMdiMonitorConfEntry 2 }
+
+    zxAnMdiMonitorSubIfIndex  OBJECT-TYPE
+        SYNTAX      ZxAnSubIfIndex
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The sub-interface of NNI/UNI port." 
+        ::={  zxAnMdiMonitorConfEntry 3 }
+
+    zxAnMdiMonitorVlan  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION  
+            "The VLAN of the monitoring packets."
+        ::={  zxAnMdiMonitorConfEntry 4 }
+
+    zxAnMdiMonitorDestIpAddressType  OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The destination IP address type of the monitoring packets."
+        ::= { zxAnMdiMonitorConfEntry 5 }
+
+    zxAnMdiMonitorDestIpAddress  OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The destination IP address of the monitoring packets."
+        ::= { zxAnMdiMonitorConfEntry 6 }
+
+    zxAnMdiMonitorBitRate   OBJECT-TYPE
+        SYNTAX      Integer32(0..2147483647)
+        UNITS       "bps"
+        MAX-ACCESS  read-create
+        STATUS    current
+        DESCRIPTION 
+            "The bit rate of MDI monitoring. Value 0 means VBR (Variable Bit 
+             Rate), otherwise CBR (Constants Bit Rate)." 
+        DEFVAL  { 0 }     
+        ::={ zxAnMdiMonitorConfEntry 7 }
+
+    zxAnMdiMonitorCalculatePeriod  OBJECT-TYPE
+        SYNTAX      Integer32(100..2000)
+        UNITS       "Milliseconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The calculation period of MDI monitoring. A primary record of MDI 
+             monitoring will be created when arriving the end of the period."
+        DEFVAL  { 1000 }
+        ::={ zxAnMdiMonitorConfEntry 8 }
+
+    zxAnMdiMonitorStatisticPeriod  OBJECT-TYPE
+        SYNTAX      Integer32(1..300)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The statistic period of MDI monitoring. A statistic record of MDI 
+             monitoring will be created when arriving the end of the period, 
+             based on the primary records that created in the period."
+        DEFVAL  { 10 }
+        ::={  zxAnMdiMonitorConfEntry 9 }
+
+    zxAnMdiMonitorDuration  OBJECT-TYPE
+        SYNTAX      Integer32(5..525600)
+        UNITS       "Minutes"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The duration of MDI monitoring."
+        DEFVAL  { 15 }
+        ::={  zxAnMdiMonitorConfEntry 10 }
+
+    zxAnMdiMonitorStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            monitoring(1),
+            stopped(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The status of MDI monitoring. The status will be 'monitoring' when
+             the monitoring session is created, and 'stopped' when arriving the 
+             end of monitoring duration."
+        ::={  zxAnMdiMonitorConfEntry 11 } 
+
+    zxAnMdiMonitorStartTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION 
+            "The starting time of MDI monitoring."
+        ::={  zxAnMdiMonitorConfEntry 12 } 
+
+    zxAnMdiMonitorVideoPrf  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The video profile of MDI monitoring."               
+        ::={  zxAnMdiMonitorConfEntry 13 }
+
+    zxAnMdiMonitorSrcIpAddressType  OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The source IP address type of the monitoring packets."
+        ::= { zxAnMdiMonitorConfEntry 14 }
+
+    zxAnMdiMonitorSrcIpAddress  OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The source IP address of the monitoring packets."
+        ::= { zxAnMdiMonitorConfEntry 15 }
+
+    zxAnMdiMonitorDirection  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            ingress(1),
+            egress(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The direction of MDI monitoring."
+        DEFVAL { ingress }
+        ::= { zxAnMdiMonitorConfEntry 16 }
+                
+    zxAnMdiMonitorDestUdpPort  OBJECT-TYPE
+        SYNTAX      Integer32(0..65535)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The destination UDP port of MDI monitoring.
+             Value 0 means not configured."
+        ::={ zxAnMdiMonitorConfEntry 17 }
+
+    zxAnMdiMonitorGemPort  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The GEM port of MDI monitoring.
+             Value 0 means not configured."
+        ::={ zxAnMdiMonitorConfEntry 45 }
+                             
+    zxAnMdiMonitorIfName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The video profile of MDI monitoring."
+        ::={  zxAnMdiMonitorConfEntry 66 }
+
+    zxAnMdiMonitorRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+             
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the multi-variables binding 
+             rule described in zxAnMdiMonitorConfEntry.
+             
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnMdiMonitorConfEntry 50 }
+
+    zxAnMdiMonitorCliIpAddress OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The CLI IP address of the monitoring packets."
+        ::= { zxAnMdiMonitorConfEntry 21 }
+
+    zxAnMdiMonitorCliSourceIpAddress OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "The CLI source IP address of the monitoring packets."
+        ::= { zxAnMdiMonitorConfEntry 22 }
+
+--------------------------------------------------------------------------------
+-- 2.1.2 MDI Monitoring Statistic Table
+--------------------------------------------------------------------------------
+
+    zxAnMdiMonitorStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMdiMonitorStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "MDI monitoring statistic table."
+        ::= { zxAnMdiMonitorObjects 3 }
+
+    zxAnMdiMonitorStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnMdiMonitorStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MDI monitoring statistic entry."
+        INDEX { zxAnMdiMonitorSessionId, zxAnMdiMonitorStatsSequenceId }
+        ::= { zxAnMdiMonitorStatsTable 1 }
+        
+    ZxAnMdiMonitorStatsEntry ::= SEQUENCE {
+        zxAnMdiMonitorStatsSequenceId                    Integer32,
+        zxAnMdiMonitorStatsMaxDf                         Integer32,
+        zxAnMdiMonitorStatsMinDf                         Integer32,
+        zxAnMdiMonitorStatsAvgDf                         Integer32,
+        zxAnMdiMonitorStatsMaxMlr                        Integer32,
+        zxAnMdiMonitorStatsMinMlr                        Integer32,
+        zxAnMdiMonitorStatsAvgMlr                        Integer32,
+        zxAnMdiMonitorStatsMltLast15M                    Integer32,
+        zxAnMdiMonitorStatsMltLast24H                    Integer32,
+        zxAnMdiMonitorStatsMaxVideoMos                   Integer32,
+        zxAnMdiMonitorStatsMinVideoMos                   Integer32,
+        zxAnMdiMonitorStatsAvgVideoMos                   Integer32,
+        zxAnMdiMonitorStatsMaxPlr                        Integer32,
+        zxAnMdiMonitorStatsMinPlr                        Integer32,
+        zxAnMdiMonitorStatsAvgPlr                        Integer32,
+        zxAnMdiMonitorStatsStartPktSeqId                 Integer32,
+        zxAnMdiMonitorStatsEndPktSeqId                   Integer32,
+        zxAnMdiMonitorStatsLossPkts                      Integer32,
+        zxAnMdiMonitorStatsErrorPkts                     Integer32,
+        zxAnMdiMonitorStatsDuplicatePkts                 Integer32
+    }
+
+    zxAnMdiMonitorStatsSequenceId OBJECT-TYPE
+        SYNTAX      Integer32(1..2147483647)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The sequence ID of MDI monitoring statistic record."
+        ::= {  zxAnMdiMonitorStatsEntry 1 }
+            
+    zxAnMdiMonitorStatsMaxDf   OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Milliseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum delay factor of the records in the statistic period."
+        ::= { zxAnMdiMonitorStatsEntry 2 }
+        
+    zxAnMdiMonitorStatsMinDf   OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Milliseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum delay factor of the records in the statistic period."
+        ::= { zxAnMdiMonitorStatsEntry 3 }
+        
+    zxAnMdiMonitorStatsAvgDf   OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Milliseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average delay factor of the records in the statistic period."
+        ::= { zxAnMdiMonitorStatsEntry 4 }
+        
+    zxAnMdiMonitorStatsMaxMlr   OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum media loss rate of the records in the statistic 
+             period."
+        ::= { zxAnMdiMonitorStatsEntry 5 }
+        
+    zxAnMdiMonitorStatsMinMlr   OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum media loss rate of the records in the statistic 
+             period."
+        ::= { zxAnMdiMonitorStatsEntry 6 }
+        
+    zxAnMdiMonitorStatsAvgMlr   OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average media loss rate of the records in the statistic 
+             period."
+        ::= { zxAnMdiMonitorStatsEntry 7 }
+        
+    zxAnMdiMonitorStatsMltLast15M   OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of media packets lost in last 15 minutes."
+        ::= { zxAnMdiMonitorStatsEntry 8 }
+
+    zxAnMdiMonitorStatsMltLast24H   OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+             "The total number of media packets lost in last 24 hours."
+        ::= { zxAnMdiMonitorStatsEntry 9 }
+
+    zxAnMdiMonitorStatsMaxVideoMos   OBJECT-TYPE
+        SYNTAX      Integer32(0..50)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum video mean opinion score of the records in the 
+             statistic period.
+             This data format supports a range from 0 to 5.0 with granularity 
+             of 0.1."
+        ::= { zxAnMdiMonitorStatsEntry 10 }
+        
+    zxAnMdiMonitorStatsMinVideoMos   OBJECT-TYPE
+        SYNTAX      Integer32(0..50)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum video mean opinion score of the records in the 
+             statistic period.
+             This data format supports a range from 0 to 5.0 with granularity 
+             of 0.1."
+        ::= { zxAnMdiMonitorStatsEntry 11 }
+        
+    zxAnMdiMonitorStatsAvgVideoMos   OBJECT-TYPE
+        SYNTAX      Integer32(0..50)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average video mean opinion score of the records in the 
+             statistic period.
+             This data format supports a range from 0 to 5.0 with granularity 
+             of 0.1."
+        ::= { zxAnMdiMonitorStatsEntry 12 }
+
+    zxAnMdiMonitorStatsMaxPlr  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum PLR (Packet Loss Rate) of the records in the statistic
+             period."
+        ::= { zxAnMdiMonitorStatsEntry 13 }
+        
+    zxAnMdiMonitorStatsMinPlr  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum PLR (Packet Loss Rate) of the records in the statistic
+             period."
+        ::= { zxAnMdiMonitorStatsEntry 14 }
+        
+    zxAnMdiMonitorStatsAvgPlr  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average PLR (Packet Loss Rate) of the records in the statistic
+             period."
+        ::= { zxAnMdiMonitorStatsEntry 15 }
+
+    zxAnMdiMonitorStatsStartPktSeqId  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The sequence ID of the starting packet in the statistic period."
+        ::= { zxAnMdiMonitorStatsEntry 16 }
+
+    zxAnMdiMonitorStatsEndPktSeqId  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The sequence ID of the ending packet in the statistic period."
+        ::= { zxAnMdiMonitorStatsEntry 17 }
+
+    zxAnMdiMonitorStatsLossPkts  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of lost media packets in the statistic period."
+        ::= { zxAnMdiMonitorStatsEntry 18 }
+
+    zxAnMdiMonitorStatsErrorPkts  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of errored media packets in the statistic
+             period."
+        ::= { zxAnMdiMonitorStatsEntry 19 }
+
+    zxAnMdiMonitorStatsDuplicatePkts  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of duplicated media packets in the statistic
+             period."
+        ::= { zxAnMdiMonitorStatsEntry 20 }
+
+--------------------------------------------------------------------------------
+-- 2.1.3 MDI Monitoring Video Profile Table
+--------------------------------------------------------------------------------
+
+    zxAnMdiMonitorVideoPrfTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMdiMonitorVideoPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MDI monitoring video profile table."
+        ::= { zxAnMdiMonitorObjects 4 }
+
+    zxAnMdiMonitorVideoPrfEntry OBJECT-TYPE
+        SYNTAX      ZxAnMdiMonitorVideoPrfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MDI monitoring video profile entry."
+        INDEX { zxAnMdiMonVideoPrfName }
+        ::= { zxAnMdiMonitorVideoPrfTable 1 }
+
+    ZxAnMdiMonitorVideoPrfEntry ::=        SEQUENCE {
+        zxAnMdiMonVideoPrfName                             DisplayString,
+        zxAnMdiMonVideoCodec                               INTEGER,
+        zxAnMdiMonVideoResolution                          INTEGER,
+        zxAnMdiMonVideoFrameRate                           Integer32,
+        zxAnMdiMonVideoPlc                                 INTEGER,
+        zxAnMdiMonVideoRtpPayloadType                      Integer32,
+        zxAnMdiMonVideoBufferDuration                      Integer32,
+        zxAnMdiMonVideoPrfRowStatus                        RowStatus
+        }
+
+    zxAnMdiMonVideoPrfName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The video profile name."
+        ::= {  zxAnMdiMonitorVideoPrfEntry 1 }
+
+    zxAnMdiMonVideoCodec  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            mpeg4(1),
+            h264(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The video codec."
+        DEFVAL  { mpeg4 }
+        ::= {  zxAnMdiMonitorVideoPrfEntry 2 }
+
+    zxAnMdiMonVideoResolution  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            qcif(1),
+            qvga(2),
+            hvga(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The video resolution."
+        DEFVAL  { qcif }
+        ::= {  zxAnMdiMonitorVideoPrfEntry 3 }
+
+    zxAnMdiMonVideoFrameRate   OBJECT-TYPE
+        SYNTAX      Integer32(10..300)
+        UNITS       "0.1 frame/second"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The video frame rate."
+        DEFVAL  { 250 }
+        ::= {  zxAnMdiMonitorVideoPrfEntry 4 }
+
+    zxAnMdiMonVideoPlc  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            slicing(1),
+            freezing(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The video PLC (Packet Loss Concealment)."
+        DEFVAL  { slicing }
+        ::= {  zxAnMdiMonitorVideoPrfEntry 5 }
+
+    zxAnMdiMonVideoRtpPayloadType   OBJECT-TYPE
+        SYNTAX      Integer32(1..127)
+        MAX-ACCESS  read-create
+        STATUS    current
+        DESCRIPTION
+            "The payload type of RTP (Real-time Transport Protocol) packet."
+        DEFVAL  { 33 }
+        ::= {  zxAnMdiMonitorVideoPrfEntry 6 }
+
+    zxAnMdiMonVideoBufferDuration   OBJECT-TYPE
+        SYNTAX      Integer32(10..100)
+        UNITS       "Milliseconds"
+        MAX-ACCESS  read-create
+        STATUS    current
+        DESCRIPTION
+            "The buffering duration."
+        DEFVAL  { 10 }
+        ::= {  zxAnMdiMonitorVideoPrfEntry 7 }
+
+    zxAnMdiMonVideoPrfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnMdiMonitorVideoPrfEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnMdiMonitorVideoPrfEntry 50 }
+
+END

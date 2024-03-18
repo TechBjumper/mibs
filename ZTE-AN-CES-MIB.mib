@@ -1,0 +1,499 @@
+ZTE-AN-CES-MIB DEFINITIONS ::= BEGIN 
+IMPORTS 
+
+    Integer32                        FROM SNMPv2-SMI
+    MODULE-IDENTITY                  FROM SNMPv2-SMI
+    NOTIFICATION-TYPE                FROM SNMPv2-SMI
+    OBJECT-TYPE                      FROM SNMPv2-SMI
+
+    OBJECT-GROUP                     FROM SNMPv2-CONF
+    MODULE-COMPLIANCE                FROM SNMPv2-CONF
+
+    RowStatus                        FROM SNMPv2-TC
+    TruthValue                       FROM SNMPv2-TC
+    DisplayString                    FROM SNMPv2-TC
+    MacAddress                       FROM SNMPv2-TC
+
+    InetAddress                      FROM INET-ADDRESS-MIB    
+    InetAddressType                  FROM INET-ADDRESS-MIB 
+    InetAddressPrefixLength          FROM INET-ADDRESS-MIB    
+    
+    VlanId                           FROM ZTE-AN-TC-MIB      
+
+    zxAnCes                          FROM ZTE-AN-SMI;
+
+    zxAnCesMib MODULE-IDENTITY
+        LAST-UPDATED "201612250000Z"
+        ORGANIZATION "ZTE Corporation"
+        CONTACT-INFO "
+                      Mail: xx@zte.com.cn 
+                      Tel : 021-68897214"
+        DESCRIPTION  "The MIB module for the management of CES."
+        
+        --  Revision history
+        REVISION        "201612250000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."        
+
+        ::= {zxAnCes 15}
+        
+
+-------------------------------------------------------------------------------
+-- Following management objects are defined.
+--  1. zxAnCesGlobalObjects
+    
+--  2. zxAnCesObjects
+--      2.1 zxAnCesSlotObjects
+--          2.1.1 zxAnCesTdmSlotMacIpTable
+--          2.1.2 zxAnCesSdhLoopbackTable
+--      2.2 zxAnCesPWObjects
+--          2.2.1 zxAnCesMef8PWTable
+--      2.3 zxAnCesTdmSeriveObjects
+--          2.3.1 zxAnCesTdmServiceTable
+   
+--  3. zxAnCesNotifications
+
+
+-------------------------------------------------------------------------------
+    
+    zxAnCesGlobalObjects        OBJECT IDENTIFIER ::= {zxAnCesMib 1}
+    zxAnCesObjects              OBJECT IDENTIFIER ::= {zxAnCesMib 2}
+    zxAnCesNotifications        OBJECT IDENTIFIER ::= {zxAnCesMib 3}    
+
+    zxAnCesSlotObjects          OBJECT IDENTIFIER ::= {zxAnCesObjects 1}  
+    zxAnCesPWObjects            OBJECT IDENTIFIER ::= {zxAnCesObjects 15} 
+    zxAnCesTdmSeriveObjects     OBJECT IDENTIFIER ::= {zxAnCesObjects 17}       
+
+
+-------------------------------------------------------------------------------
+-- 1. Global Objects
+-------------------------------------------------------------------------------
+                
+-------------------------------------------------------------------------------
+--          2.1.1 zxAnCesTdmSlotMacIpTable
+-------------------------------------------------------------------------------
+
+zxAnCesTdmSlotMacIpTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE  OF  ZxAnCesTdmSlotMacIpEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "" 
+    ::=  { zxAnCesSlotObjects 1 }
+
+zxAnCesTdmSlotMacIpEntry   OBJECT-TYPE
+    SYNTAX      ZxAnCesTdmSlotMacIpEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "ClockSource entry. 
+             Entries in the zxClkSrcTable are created and
+             deleted using the zxClkSrcEntryStatus object."
+    INDEX   {zxAnCesTdmSlot,zxAnCesTdmPort}
+
+    ::=  { zxAnCesTdmSlotMacIpTable 1 }    
+
+ZxAnCesTdmSlotMacIpEntry  ::=  
+    SEQUENCE {
+          zxAnCesTdmSlot                  Integer32,  
+        zxAnCesTdmPort                  Integer32,
+        zxAnCesTdmMac                  MacAddress,  
+        zxAnCesTdmIpType          InetAddressType,
+        zxAnCesTdmIpAddress         InetAddress,                                
+        zxAnCesTdmRowStatus             RowStatus   
+        }
+
+zxAnCesTdmSlot  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This object indicates the slot number."
+    ::= { zxAnCesTdmSlotMacIpEntry 1}
+        
+zxAnCesTdmPort OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This object indicates the port number on one card within the slot.
+        0: means all port"
+    ::= { zxAnCesTdmSlotMacIpEntry 2}
+
+zxAnCesTdmMac  OBJECT-TYPE
+    SYNTAX      MacAddress        
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object indicates mac address for the slot & port."
+    ::= { zxAnCesTdmSlotMacIpEntry 3} 
+
+zxAnCesTdmIpType  OBJECT-TYPE
+    SYNTAX        InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object indicates the type of IP address denoted
+        in zxAnPtpProtocolIpAddress object."
+    DEFVAL { ipv4 }        
+    ::= { zxAnCesTdmSlotMacIpEntry 4 } 
+
+zxAnCesTdmIpAddress  OBJECT-TYPE
+    SYNTAX      InetAddress 
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object indicates Ip address of the slot & port."
+    ::= { zxAnCesTdmSlotMacIpEntry 5 } 
+
+zxAnCesTdmRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status of this conceptual row.
+         To create a row in this table, a manager must
+         set this object to createAndGo(4).
+         To delete a row in this table, a manager must
+         set this object to destroy(6).
+         To query this object, always return 1."
+    ::= { zxAnCesTdmSlotMacIpEntry 50 }    
+	
+	
+	
+-------------------------------------------------------------------------------
+--          2.1.2 zxAnCesSdhLoopbackTable
+-------------------------------------------------------------------------------
+
+zxAnCesSdhLoopbackTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE  OF  ZxAnCesSdhLoopBackEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION "" 
+    ::=  { zxAnCesSlotObjects 2 }
+
+zxAnCesSdhLoopBackEntry   OBJECT-TYPE
+    SYNTAX      ZxAnCesSdhLoopBackEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "LOOP back test. 
+             first to creat mib, this postion is temp"
+    INDEX   {zxAnCesSdhLoopBackSlot,zxAnCesSdhLoopBackPort}
+
+    ::=  { zxAnCesSdhLoopbackTable 1 }    
+
+ZxAnCesSdhLoopBackEntry  ::=  
+    SEQUENCE {
+        zxAnCesSdhLoopBackSlot                  Integer32,  
+        zxAnCesSdhLoopBackPort                  Integer32,
+        zxAnCesSdhLoopBackMode                 	INTEGER,  
+        zxAnCesSdhLoopBackRowStatus             RowStatus   
+        }
+
+zxAnCesSdhLoopBackSlot  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This object indicates the slot number."
+    ::= { zxAnCesSdhLoopBackEntry 1}
+        
+zxAnCesSdhLoopBackPort OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This object indicates the port number on one card within the slot.
+        0: means all port"
+    ::= { zxAnCesSdhLoopBackEntry 2}
+
+zxAnCesSdhLoopBackMode  OBJECT-TYPE
+    SYNTAX      INTEGER
+	{
+                    loopback-cancel(1),
+                    loopback-outer(2),
+                    loopback-inner(3)
+    }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object indicates the loopback mode."
+    ::= { zxAnCesSdhLoopBackEntry 3} 
+
+
+zxAnCesSdhLoopBackRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status of this conceptual row.
+         To create a row in this table, a manager must
+         set this object to createAndGo(4).
+         To delete a row in this table, a manager must
+         set this object to destroy(6).
+         To query this object, always return 1."
+    ::= { zxAnCesSdhLoopBackEntry 50 }   	
+
+-------------------------------------------------------------------------------
+--          2.2.1 zxAnCesMef8PWTable
+-------------------------------------------------------------------------------
+zxAnCesMef8PWTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE  OF  ZxAnCesMef8PWEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION ""
+    ::=  { zxAnCesPWObjects 1 }
+
+zxAnCesMef8PWEntry   OBJECT-TYPE
+    SYNTAX      ZxAnCesMef8PWEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION 
+            ""
+    INDEX   {zxAnCesMef8PWId}
+    ::=  { zxAnCesMef8PWTable 1 }
+
+ZxAnCesMef8PWEntry  ::=  SEQUENCE {
+    zxAnCesMef8PWId                  Integer32, 
+    zxAnCesMef8PWName                DisplayString,    
+    zxAnCesMef8PWVlanId              VlanId,    
+    zxAnCesMef8PWPriority            Integer32,
+    zxAnCesMef8PWDestMac             MacAddress,
+    zxAnCesMef8PWEcIdSend            Integer32,
+    zxAnCesMef8PWEcIdExpt            Integer32,
+    zxAnCesMef8PWPayloadSize         Integer32,
+    zxAnCesMef8PWJitterBufferSize    Integer32,
+    zxAnCesMef8PWRtpUsed             TruthValue,
+    zxAnCesMef8PWRtpSsrc             OCTET STRING, 
+    zxAnCesMef8PWRowStatus           RowStatus        
+        }                                            
+
+zxAnCesMef8PWId  OBJECT-TYPE
+    SYNTAX      Integer32      
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesMef8PWEntry 1 } 
+        
+zxAnCesMef8PWName  OBJECT-TYPE
+    SYNTAX      DisplayString(SIZE(1..32))      
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesMef8PWEntry 2 } 
+
+zxAnCesMef8PWVlanId  OBJECT-TYPE
+    SYNTAX      VlanId     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       ""
+    ::= { zxAnCesMef8PWEntry 3 }     
+
+zxAnCesMef8PWPriority  OBJECT-TYPE
+    SYNTAX      Integer32     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesMef8PWEntry 4 }           
+         
+zxAnCesMef8PWDestMac  OBJECT-TYPE
+    SYNTAX      MacAddress     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesMef8PWEntry 5 }    
+
+zxAnCesMef8PWEcIdSend  OBJECT-TYPE
+    SYNTAX      Integer32     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       ""
+    ::= { zxAnCesMef8PWEntry 6 }    
+
+zxAnCesMef8PWEcIdExpt  OBJECT-TYPE
+    SYNTAX      Integer32     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesMef8PWEntry 7 }      
+       
+zxAnCesMef8PWPayloadSize  OBJECT-TYPE
+    SYNTAX      Integer32     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesMef8PWEntry 8 }       
+
+zxAnCesMef8PWJitterBufferSize  OBJECT-TYPE
+    SYNTAX      Integer32     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesMef8PWEntry 9 }          
+        
+zxAnCesMef8PWRtpUsed  OBJECT-TYPE
+    SYNTAX      TruthValue     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    DEFVAL { true }
+    ::= { zxAnCesMef8PWEntry 10 }    
+        
+zxAnCesMef8PWRtpSsrc  OBJECT-TYPE
+    SYNTAX      OCTET STRING(SIZE (8))    
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesMef8PWEntry 11 }  
+
+zxAnCesMef8PWRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status of this conceptual row.
+         To create a row in this table, a manager must
+         set this object to createAndGo(4).
+         To delete a row in this table, a manager must
+         set this object to destroy(6).
+         To query this object, always return 1."
+    ::= { zxAnCesMef8PWEntry 50 }      
+    
+
+    zxAnCesControllerTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnCesControllerEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            ""
+        ::= { zxAnCesPWObjects 2 }
+
+    
+    zxAnCesControllerEntry OBJECT-TYPE
+        SYNTAX ZxAnCesControllerEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            " "
+        INDEX { zxAnCesControllID }
+        ::= { zxAnCesControllerTable 1 }
+
+    
+    ZxAnCesControllerEntry ::=
+        SEQUENCE { 
+            zxAnCesControllID     DisplayString,
+            zxAnCesControllRowStatus      RowStatus
+         }
+
+
+    zxAnCesControllID OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..32))
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            ""
+        ::= { zxAnCesControllerEntry 1 }
+
+    
+    zxAnCesControllRowStatus OBJECT-TYPE
+        SYNTAX RowStatus
+        MAX-ACCESS read-create
+        STATUS current
+        DESCRIPTION
+            "."
+        ::= { zxAnCesControllerEntry 50 }	
+-------------------------------------------------------------------------------
+--          2.3.1 zxAnCesTdmServiceTable
+-------------------------------------------------------------------------------
+zxAnCesTdmServiceTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE  OF  ZxAnCesTdmServiceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION ""
+    ::=  { zxAnCesTdmSeriveObjects 1 }
+
+zxAnCesTdmServiceEntry   OBJECT-TYPE
+    SYNTAX      ZxAnCesTdmServiceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION 
+            ""
+    INDEX   {zxAnCesTdmServiceId,zxAnCesTdmServiceChannelGroupId}
+    ::=  { zxAnCesTdmServiceTable 1 }
+
+ZxAnCesTdmServiceEntry  ::=  SEQUENCE {
+    zxAnCesTdmServiceId              Integer32, 
+    zxAnCesTdmServiceChannelGroupId  Integer32,
+    zxAnCesTdmServicePWType          INTEGER,
+    zxAnCesTdmServicePWId            Integer32, 
+    zxAnCesTdmServiceRowStatus       RowStatus        
+        }                                            
+
+zxAnCesTdmServiceId  OBJECT-TYPE
+    SYNTAX      Integer32      
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "type(2:<1 pdh, 2 sdh>), slot(5:<0~?>),port(6:<0~?>),maptype(1:<0 AU4, 1 AU3>),
+                AU4(4:<0~3>),TUG3(2:<0~2>),TUG2(3:<0~6>),TU12(2:<0~2>)
+                AU3(6:<0~16>),TUG2(3:<0~6>,TU11(2:<0~3>)"
+    ::= { zxAnCesTdmServiceEntry 1 } 
+    
+zxAnCesTdmServiceChannelGroupId  OBJECT-TYPE
+    SYNTAX      Integer32     
+    MAX-ACCESS    not-accessible
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesTdmServiceEntry 2 }   
+
+zxAnCesTdmServicePWType  OBJECT-TYPE
+    SYNTAX        INTEGER
+    {   
+        mef8(1),                
+        static-mpls-single(2),        
+        static-mpls-double(3),        
+        udp-ip(4)
+    }     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    DEFVAL {mef8}
+    ::= { zxAnCesTdmServiceEntry 3 }     
+
+
+zxAnCesTdmServicePWId  OBJECT-TYPE
+    SYNTAX      Integer32     
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        ""
+    ::= { zxAnCesTdmServiceEntry 4 }                
+
+zxAnCesTdmServiceRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status of this conceptual row.
+         To create a row in this table, a manager must
+         set this object to createAndGo(4).
+         To delete a row in this table, a manager must
+         set this object to destroy(6).
+         To query this object, always return 1."
+    ::= { zxAnCesTdmServiceEntry 50 }   
+
+
+END

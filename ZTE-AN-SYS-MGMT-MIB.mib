@@ -1,0 +1,472 @@
+
+ZTE-AN-SYS-MGMT-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, 
+        Integer32,   NOTIFICATION-TYPE             FROM SNMPv2-SMI
+        DisplayString, DateAndTime,
+        MacAddress                                 FROM SNMPv2-TC  
+        MODULE-COMPLIANCE, OBJECT-GROUP            FROM SNMPv2-CONF  
+        zxAnSystem                                 FROM ZTE-AN-SMI;
+    
+    zxAnSysMgmtMib MODULE-IDENTITY
+        LAST-UPDATED    "201406040000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Zhang JianJun ZTE Corporation  
+                         Mail: zhang.jianjun@zte.com.cn
+                         Tel : +86-21-68897226"
+        DESCRIPTION     "This MIB defines managed objects of zte system 
+                         management."
+
+        REVISION        "201406040000Z"
+        DESCRIPTION     "Add out of band MAC address and in-band MAC address."
+        
+        REVISION        "201310310000Z"
+        DESCRIPTION     "Add automatic saving configuration MIB."
+
+        REVISION        "201108290000Z"
+        DESCRIPTION     "Modify the description of this MIB."
+        
+        REVISION        "201012060000Z"
+        DESCRIPTION     "Initial version of this MIB module." 
+        ::= {zxAnSystem 1}
+         
+------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 2.10. zxAnSysConfigSaveObjects   
+-- 2.20. zxAnSysConfLockObjects
+-- 2.30. zxAnSysMgmtPlaneObjects   
+-- 2.40. zxAnSysProfileOperObjects  
+-- 2.50. zxAnSysConfigChangedObjects 
+
+-- Following notification objects is defined.
+-- 3. zxAnSysMgmtNotifications
+
+-- Following conformance information is defined.
+-- 4. zxAnSysMgmtConformance
+
+------------------------------------------------------------------------------
+
+    zxAnSysMgmtObjects            OBJECT IDENTIFIER  ::=  { zxAnSysMgmtMib 2 }
+    zxAnSysMgmtNotifications      OBJECT IDENTIFIER  ::=  { zxAnSysMgmtMib 3 }
+    zxAnSysMgmtConformance        OBJECT IDENTIFIER  ::=  { zxAnSysMgmtMib 4 }
+    
+    zxAnSysConfigSaveObjects      
+        OBJECT IDENTIFIER  ::=  { zxAnSysMgmtObjects 10 }
+    zxAnSysConfLockObjects        
+        OBJECT IDENTIFIER  ::=  { zxAnSysMgmtObjects 20 }
+    zxAnSysMgmtPlaneObjects       
+        OBJECT IDENTIFIER  ::=  { zxAnSysMgmtObjects 30 }
+    zxAnSysProfileOperObjects
+        OBJECT IDENTIFIER  ::=  { zxAnSysMgmtObjects 40 }
+    zxAnSysConfigChangedObjects 
+        OBJECT IDENTIFIER  ::=  { zxAnSysMgmtObjects 50 }      
+------------------------------------------------------------------------------
+-- 2.10.Config Save management
+------------------------------------------------------------------------------  
+    zxAnSysConfigSaveGlobalObjects 
+        OBJECT IDENTIFIER  ::=  { zxAnSysConfigSaveObjects 1 }
+    
+    zxAnSysConfigSavingAction    OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                  saveFlash(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "Save device configuration data to flash media.
+             The configuration information  is saved to startrun.dat." 
+        ::=  {  zxAnSysConfigSaveGlobalObjects  1  }
+
+    zxAnSysConfigAutoSaveObjects   
+        OBJECT IDENTIFIER  ::=  { zxAnSysConfigSaveGlobalObjects 2 }     
+        
+    zxAnSysConfigAutoSaveMode   OBJECT-TYPE     
+        SYNTAX      INTEGER
+        {
+            disabled(1),
+            daily(2), 
+            once(3),
+            configChanged(4)
+        }      
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "Automatic saving flash mode."
+        DEFVAL     { disabled }            
+        ::=  { zxAnSysConfigAutoSaveObjects 2 }
+
+    zxAnSysConfigAutoSaveDailyTime   OBJECT-TYPE     
+        SYNTAX      DisplayString( SIZE(8))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The time of automatic saving flash daily.
+            For example:HH:MM:SS.(02:22:33).
+            This variable is valid if zxAnSysConfigAutoSaveMode is set to 
+            daily(2)." 
+        DEFVAL     { "00:00:00" }
+        ::=  { zxAnSysConfigAutoSaveObjects 4 }      
+               
+    zxAnSysConfigAutoSaveOnceTime   OBJECT-TYPE     
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The time of automatic saving flash once.
+            This variable is valid if zxAnSysConfigAutoSaveMode is set to 
+            once(3).
+            The default time is 2000-01-01 00:00:00." 
+        DEFVAL     { '07D0010100000000'H }
+        ::=  { zxAnSysConfigAutoSaveObjects 5 }        
+    
+    zxAnSysConfigAutoSaveHoldOffTime   OBJECT-TYPE 
+        SYNTAX      Integer32( 1..86400 ) 
+        UNITS       "Seconds"   
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "The hold off time of automatic saving flash when configuration data 
+             is changed.  
+             This variable is valid if zxAnSysConfigAutoSaveMode is set to 
+             configChanged(4)" 
+        DEFVAL { 3600 }      
+        ::=  {  zxAnSysConfigAutoSaveObjects  6  } 
+         
+    zxAnSysConfigSaveStatus OBJECT-TYPE 
+        SYNTAX           INTEGER  
+            { 
+                success ( 1 ), 
+                failed  ( 2 ), 
+                saving  ( 3 ), 
+                noOperation( 4 ) 
+            } 
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "The status of save flash operation. 
+                         - success(1): The save flash operation is completed.
+                         - failed(2): The save flash operation is failed.
+                         - saving(3): The save flash is still in progress.
+                         - noOperation(4): No operation is executed."
+                         
+        ::=  {  zxAnSysConfigSaveGlobalObjects  3  }
+        
+    zxAnSysConfigSaveProgress   OBJECT-TYPE
+        SYNTAX          Integer32(0..100) 
+        UNITS           "percents"         
+        MAX-ACCESS      read-only
+        STATUS          current 
+        DESCRIPTION
+            "The percentage of the progess when saving flash is executed ."       
+        ::= {zxAnSysConfigSaveGlobalObjects 4 }
+        
+    zxAnSysConfigSaveFailedReason    OBJECT-TYPE
+        SYNTAX      INTEGER 
+            { 
+              noError(1),
+              flashMediaFull(2),
+              createConfigFilesFailed(3),
+              openConfigFilesFailed(4),
+              standbyCardCopyConfigFilesFailed(5),
+              unknown(99)
+            } 
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION      
+            "The reason of saving flash operation failed. 
+             Possible values are:
+             - noError(1): No error, saving flash successfully 
+                           or no saving flash operation is excuted.
+             - flashMediaFull(2): The save flash operation is failed
+                               because flash media is full.                  
+             - createConfigFilesFailed(3): The save flash operation is 
+                               failed because configuration file is created 
+                               unsuccessfully. 
+             - openConfigFilesFailed(4):  The save flash operation is 
+                               failed because configuration file can't be 
+                               opened successfully. 
+             - standbyCardCopyConfigFilesFailed(5) : The save flash operation 
+                               is failed because configuration file can't be 
+                               copied to the standby board.                            
+             - unknown(99): The save flash operation is failed for some 
+                               unknown error."
+        DEFVAL { noError }
+        ::= { zxAnSysConfigSaveGlobalObjects 5 } 
+          
+------------------------------------------------------------------------------
+-- 2.20.config lock objects
+------------------------------------------------------------------------------
+    zxAnSysConfLockGlobalObjects    
+        OBJECT IDENTIFIER  ::=  { zxAnSysConfLockObjects 1 }
+    
+    zxAnSysConfLockOwner OBJECT-TYPE
+        SYNTAX      INTEGER 
+        {
+            none(1),
+            snmp(2),
+            console(3),
+            telnet(4)
+        } 
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "Current configuration lock owner of the system.
+             - none(1): The configuration right is unlocked.
+             - snmp(2): The configuration right is locked by 
+                        snmp manager.
+             - console(3): The configuration right is locked by
+                        console user.
+             - telnet(4):  The configuration right is locked by  
+                        telnet user. "
+        ::= { zxAnSysConfLockGlobalObjects 1 } 
+         
+                
+    zxAnSysConfLockSnmp OBJECT-TYPE
+        SYNTAX  INTEGER 
+        {
+            lock(1),
+            unlock(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Lock or unlock the configuration right of the system.
+             When it is set to lock(1) by snmp manager, 
+             only SNMP manager has configuration right."
+        DEFVAL      { unlock }
+        ::= { zxAnSysConfLockGlobalObjects 2 }
+        
+------------------------------------------------------------------------------
+-- 2.30.Plane Global Objects
+------------------------------------------------------------------------------
+    zxAnSysMgmtPlaneGlobalObjects     
+        OBJECT IDENTIFIER  ::=  { zxAnSysMgmtPlaneObjects 1 }
+    
+    zxAnSysMgmtPlaneInbandEnable   OBJECT-TYPE     
+        SYNTAX      INTEGER
+        {
+                enable(1),
+                disable(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+             "Enable or disable inband management channel of the system."            
+        DEFVAL { enable }    
+        ::=  {  zxAnSysMgmtPlaneGlobalObjects  3  }
+        
+    zxAnSysMgmtPlaneOutOfBandMacAddr  OBJECT-TYPE
+        SYNTAX      MacAddress   
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Out of band MAC address of the NE."
+        ::=  {  zxAnSysMgmtPlaneGlobalObjects  4  }
+        
+    zxAnSysMgmtPlaneInBandMacAddr  OBJECT-TYPE 
+        SYNTAX      MacAddress   
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "In-band MAC address of the NE."
+        ::=  {  zxAnSysMgmtPlaneGlobalObjects  5  }
+   
+--------------------------------------------------------------------------------
+-- 2.40.Profile Operation Management
+--------------------------------------------------------------------------------
+    zxAnSysProfileOperGlobalObjects  
+        OBJECT IDENTIFIER ::= { zxAnSysProfileOperObjects 1 }
+    
+    zxAnSysProfileCategory OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "This object indicates the category of profile."
+        ::= { zxAnSysProfileOperGlobalObjects 1 }
+    
+    zxAnSysProfileName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "This object is used to indicate the profile name.
+             Empty string means that the profile does not support profile name.
+            "
+        ::= { zxAnSysProfileOperGlobalObjects 2 }
+        
+    zxAnSysProfileId OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "This object is used to indicate the profile ID.
+             Value 0 means that the profile does not support ID.
+            "
+        ::= { zxAnSysProfileOperGlobalObjects 3 }
+        
+    zxAnSysProfileInfo OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..32))
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "This object is used to indicate the profile information, such as
+             showing the port list that the profile has been applied.
+            "
+        ::= { zxAnSysProfileOperGlobalObjects 4 }
+
+--------------------------------------------------------------------------------
+-- 2.50. zxAnSysConfigChangedObjects 
+--------------------------------------------------------------------------------
+    zxAnSysConfigChangedGlbObjects  
+        OBJECT IDENTIFIER ::= { zxAnSysConfigChangedObjects  1 }
+        
+    zxAnSysLastConfManagerType  OBJECT-TYPE
+        SYNTAX      INTEGER 
+        {
+            snmp(1),
+            console(2),
+            telnet(3)
+        } 
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION     
+            "Current configuration owner of the system.             
+             - snmp(1): The configuration changed by 
+                        snmp manager.
+             - console(2): The configuration changed by
+                        console user.
+             - telnet(3):  The configuration changed by  
+                        virtual teletype terminal user. "
+        ::= { zxAnSysConfigChangedGlbObjects 1 }
+        
+    zxAnSysLastConfManagerLocation OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..40))
+        MAX-ACCESS  accessible-for-notify
+        STATUS      current
+        DESCRIPTION
+            "If the zxAnSysLastConfManagerType is snmp(1),
+             the zxAnSysLastConfManagerLocation is the user's IP address.
+             If the zxAnSysLastConfManagerType is console(2), 
+             the zxAnSysLastConfManagerLocation is empty string.
+             If the zxAnSysLastConfManagerType is telnet(3),
+             the zxAnSysLastConfManagerLocation is the user's IP address."
+        ::= { zxAnSysConfigChangedGlbObjects 2 }
+        
+        
+------------------------------------------------------------------------------
+-- 3. Notifications
+------------------------------------------------------------------------------
+    zxAnSysConfigSaveTraps  OBJECT IDENTIFIER ::= {zxAnSysMgmtNotifications  1}           
+    zxAnSysConfigSaveFinished     NOTIFICATION-TYPE
+        OBJECTS { zxAnSysConfigSaveStatus,
+                  zxAnSysConfigSaveFailedReason  }
+        STATUS  current
+        DESCRIPTION
+            "Notifications when save configuration data operation finish."
+        ::= { zxAnSysConfigSaveTraps 1 }
+          
+
+    zxAnSysProfileOperTraps OBJECT IDENTIFIER  ::= {zxAnSysMgmtNotifications  2}    
+    zxAnSysDelAppliedPrfFailed    NOTIFICATION-TYPE
+        OBJECTS 
+            { 
+                zxAnSysProfileCategory,
+                zxAnSysProfileName, 
+                zxAnSysProfileId, 
+                zxAnSysProfileInfo
+            }
+        STATUS  current
+        DESCRIPTION
+            "This notification will be sent to managemet system when a profile
+             that has been applied is deleted.
+             
+             If profile supports name, zxAnSysProfileName must be filled first.
+             
+             If profile supports ID, zxAnSysProfileId should be filled 
+             with profile ID."
+        ::= { zxAnSysProfileOperTraps 1 }
+    
+    
+    zxAnSysConfigChangedTraps  OBJECT IDENTIFIER ::= {zxAnSysMgmtNotifications 3}    
+    
+    zxAnSysConfigChanged    NOTIFICATION-TYPE
+        OBJECTS 
+            { 
+                zxAnSysLastConfManagerType,
+                zxAnSysLastConfManagerLocation
+            }
+        STATUS  current
+        DESCRIPTION
+            "This notification will be sent to managemet system
+             when the configuration is changed."        
+             
+        ::= { zxAnSysConfigChangedTraps 1 }   
+------------------------------------------------------------------------------
+--  4 Conformance
+------------------------------------------------------------------------------
+    zxAnSysMgmtCompliances    OBJECT IDENTIFIER ::= {zxAnSysMgmtConformance  1}
+    zxAnSysMgmtGroups         OBJECT IDENTIFIER ::= {zxAnSysMgmtConformance  2}
+    
+    zxAnSysMgmtCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-SYS-MGMT-MIB."
+        MODULE
+            MANDATORY-GROUPS 
+                {
+                    zxAnSysConfGroup,
+                    zxAnSysMgmtGroup,
+                    zxAnSysMgmtTrapGroup
+                }
+        ::= { zxAnSysMgmtCompliances 1 }
+         
+    zxAnSysConfGroup OBJECT-GROUP
+        OBJECTS 
+            {
+                zxAnSysConfigSavingAction,
+                zxAnSysConfigSaveStatus,
+                zxAnSysConfigSaveProgress,
+                zxAnSysConfigSaveFailedReason,
+                zxAnSysConfigAutoSaveMode,
+                zxAnSysConfigAutoSaveDailyTime,
+                zxAnSysConfigAutoSaveOnceTime,
+                zxAnSysConfigAutoSaveHoldOffTime,
+                zxAnSysConfLockOwner,
+                zxAnSysConfLockSnmp
+            }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects which are used to provide system 
+             configuration information." 
+        ::= { zxAnSysMgmtGroups 1 } 
+            
+    zxAnSysMgmtGroup OBJECT-GROUP
+        OBJECTS 
+            {
+                zxAnSysMgmtPlaneInbandEnable,
+                zxAnSysProfileCategory,
+                zxAnSysProfileName,
+                zxAnSysProfileId,
+                zxAnSysProfileInfo
+                
+            }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects which are used to provide system 
+             management information."
+        ::= { zxAnSysMgmtGroups 2 } 
+        
+    zxAnSysMgmtTrapGroup NOTIFICATION-TYPE
+        OBJECTS 
+		   {            
+				zxAnSysConfigSaveFinished,
+				zxAnSysDelAppliedPrfFailed,
+				zxAnSysConfigChanged
+           }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects which are used to 
+             provide trap information."
+        ::= { zxAnSysMgmtGroups 3 }
+END

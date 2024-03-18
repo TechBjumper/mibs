@@ -1,0 +1,835 @@
+ZTE-AN-PON-PROTECTION-MIB DEFINITIONS ::= BEGIN 
+    IMPORTS 
+        MODULE-IDENTITY, OBJECT-TYPE,NOTIFICATION-TYPE,
+        Integer32, Unsigned32            FROM SNMPv2-SMI
+        OBJECT-GROUP,NOTIFICATION-GROUP  FROM SNMPv2-CONF
+        MODULE-COMPLIANCE                FROM SNMPv2-CONF
+        enterprises                      FROM SNMPv2-SMI
+        RowStatus                        FROM SNMPv2-TC
+        InetAddress,InetAddressType      FROM INET-ADDRESS-MIB
+        zxAnPon                          FROM ZTE-AN-SMI
+        DisplayString                    FROM SNMPv2-TC
+        ifIndex,InterfaceIndex           FROM IF-MIB
+        zxAnSubIfIndex                   FROM ZTE-AN-IF-MIB
+        ZxAnPonOnuIndex                  FROM ZTE-AN-PON-TC-MIB
+        zxAnPonOnuIndex                  FROM ZTE-AN-PON-BASE-MIB;
+
+zxAnPonProtectionMib        MODULE-IDENTITY
+    LAST-UPDATED    "201201191000Z"
+    ORGANIZATION    "ZTE Corporation"
+    CONTACT-INFO    "OuYang HaiMing      ZTE Corporation
+                    Mail: ouyang.haiming@zte.com.cn
+                    Tel : +86-21-68897417"
+    DESCRIPTION     
+        "The MIB module for the management of PON protection."
+        
+    REVISION        "201201191000Z"
+    DESCRIPTION
+        "New oid assignments for zxAnPonProtectGroupTable:
+         zxAnPonProtectSystemMode         
+         zxAnPonProtectPeerAddrType        
+         zxAnPonProtectPeerIpAddr         
+        "                 
+              
+    REVISION        "201110110000Z"
+    DESCRIPTION
+        "The following are the modification of this mib file:
+        - modify multi-variables usage rules for typeB protection group 
+          configuration
+        - modify the type of zxAnPonProtectionSubType
+        - modify multi-variables usage rules for typeC/D protection group 
+          configuration"
+          
+    REVISION        "201110090000Z"
+    DESCRIPTION
+        "Add multi-variables usage rules for variables of protection 
+        configuration."
+        
+    REVISION        "201105260000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { zxAnPon 5 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- zxAnPonProtectionGlobalObjects
+    -- zxAnPonProtectGroupNextIndex
+    -- zxAnPonProtectDataSyncProgress
+    -- zxAnPonProtectCapabilities
+-- zxAnPonProtectionObjects
+    -- zxAnPonProtectGroupTable
+    -- zxAnPonProtectGroupPropTable
+    -- zxAnPonProtectActionTable
+    -- zxAnPonProtectGroupExtPropTable
+-- zxAnPonProtectionNotifications
+
+-- Following conformance information is defined.
+-- zxAnPonProtectionConformance
+    -- zxAnPonProtectionCompliances
+    -- zxAnPonProtectionGroups
+        -- zxAnPonProtectionMgmtGroup
+        -- zxAnPonProtectionTrapGroup
+--------------------------------------------------------------------------------
+
+zxAnPonProtectionGlobalObjects  OBJECT IDENTIFIER ::= { zxAnPonProtectionMib 1}
+zxAnPonProtectionObjects        OBJECT IDENTIFIER ::= { zxAnPonProtectionMib 2}
+zxAnPonProtectionNotifications  OBJECT IDENTIFIER ::= { zxAnPonProtectionMib 3}
+
+
+--------------------------------------------------------------------------------
+-- PON Protection Global Objects 
+--------------------------------------------------------------------------------
+    zxAnPonProtectGroupNextIndex OBJECT-TYPE           
+        SYNTAX            Unsigned32                     
+        MAX-ACCESS        read-only                      
+        STATUS            current                        
+        DESCRIPTION                                      
+          "This object contains the value to be used for 
+           zxAnPonProtectGroupId when creating entries in the
+           zxAnPonProtectGroupTable. The value 0 indicates that no
+           unassigned entries are available.  To obtain the
+           value of zxAnPonProtectGroupNextIndex for a new entry in the
+           zxAnPonProtectGroupTable, the manager issues a management
+           protocol retrieval operation. The agent will  
+           determine through its local policy when this  
+           index value will be made available for reuse."
+        ::= { zxAnPonProtectionGlobalObjects 1 }         
+                                                         
+    zxAnPonProtectDataSyncProgress     OBJECT-TYPE            
+        SYNTAX         Integer32
+        UNITS          "percent"
+        MAX-ACCESS     read-only                         
+        STATUS         current                           
+        DESCRIPTION                                      
+           "This object indicates the executing percentage of the 
+            data synchronizing procedure."                                                        
+        ::= { zxAnPonProtectionGlobalObjects 2 }                                               
+
+    zxAnPonProtectSpanNeUdpPort     OBJECT-TYPE            
+        SYNTAX         Integer32(1024..65535)
+        MAX-ACCESS     read-write
+        STATUS         current                           
+        DESCRIPTION                                      
+           "The UDP port, this port is used for span NE protection  
+            communication." 
+        DEFVAL { 12345 }
+        ::= { zxAnPonProtectionGlobalObjects 3 }
+        
+    zxAnPonProtectCapabilities     OBJECT-TYPE 
+       SYNTAX   BITS{
+           spanNeEncryptKey(0)
+       }
+       MAX-ACCESS       read-only
+       STATUS           current
+       DESCRIPTION      
+           "The PON capabilities of this equipment.
+            The bit value 1 means the function represented by this bit is
+            supported by this equipment.
+            bit 0: value 1 means support span NE protection encryption key.
+            NOTE: No recommended to display it in NMS."
+       ::=  {  zxAnPonProtectionGlobalObjects 100  }                                             
+        
+--------------------------------------------------------------------------------
+-- zxAnPonProtectGroupTable          
+--------------------------------------------------------------------------------
+    zxAnPonProtectGroupTable      OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnPonProtectGroupEntry
+        MAX-ACCESS      not-accessible 
+        STATUS          current        
+        DESCRIPTION                    
+            "Protection group configuration."
+        ::= { zxAnPonProtectionObjects 1 }
+                                       
+    zxAnPonProtectGroupEntry     OBJECT-TYPE
+        SYNTAX         ZxAnPonProtectGroupEntry
+        MAX-ACCESS     not-accessible  
+        STATUS         current         
+        DESCRIPTION                    
+            "Pon protection group entry.
+                                       
+            Entries in the zxAnPonProtectGroupTable are created and
+            deleted using the zxAnPonProtectGroupRowStatus object,
+            modify is prohibited.
+            
+            The multi-variables binding rule should be complied with 
+            when a manager configures protection group. According to this rule, 
+            all the related mib variables must be included in one SNMP 
+            set operation. 
+            
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP
+            set operation. Optional variables may be included in one 
+            SNMP set operation with the mandatory variables, but must 
+            not be used alone. 
+            
+            To create protection group, the mandatory and optional variables 
+            are as follows:
+            mandatoty: zxAnPonProtectGroupName,
+                       zxAnPonProtectGroupWorkPort,
+                       zxAnPonProtectGroupProtectPort,
+                       zxAnPonProtectType
+            optional:none"
+        INDEX     { zxAnPonProtectGroupId }
+        ::= { zxAnPonProtectGroupTable 1 }
+        
+    ZxAnPonProtectGroupEntry ::= SEQUENCE {
+            zxAnPonProtectGroupId              Unsigned32,
+            zxAnPonProtectGroupName            DisplayString,
+            zxAnPonProtectGroupWorkPort        InterfaceIndex,
+            zxAnPonProtectGroupProtectPort     InterfaceIndex,
+            zxAnPonProtectType                 INTEGER,
+            zxAnPonProtectSubType              INTEGER,
+            zxAnPonProtectSystemMode           INTEGER,
+            zxAnPonProtectPeerAddrType         InetAddressType, 
+            zxAnPonProtectPeerIpAddr           InetAddress,
+            zxAnPonProtectSpanNeEncryptKey     DisplayString,       
+            zxAnPonProtectGroupRowStatus       RowStatus
+      }
+
+    zxAnPonProtectGroupId    OBJECT-TYPE
+        SYNTAX                 Unsigned32 (1..65535)
+        MAX-ACCESS             not-accessible
+        STATUS                 current
+        DESCRIPTION
+            "Identifier of a PON protection group.
+            The available group id can be derived from 
+            'zxAnPonProtectGroupNextIndex'."
+         ::= {zxAnPonProtectGroupEntry 1}
+         
+    zxAnPonProtectGroupName  OBJECT-TYPE
+        SYNTAX         DisplayString( SIZE(1..32) )
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+          "Name of a PON protection group. "
+        ::= { zxAnPonProtectGroupEntry 2 }
+           
+    zxAnPonProtectGroupWorkPort      OBJECT-TYPE
+        SYNTAX         InterfaceIndex
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+        "Same as ifIndex:
+        |-------------+----------|------------|---------|---------|
+        |InterfaceType| Rack No. |  Shelf No. | Slot No.| Port No.|
+        |  1 (4bits)  | (4bits)  |  (8bits)   | (8bits) | (8bits) |
+        +-------------+----------+------------+---------+---------+"   
+        ::= {zxAnPonProtectGroupEntry 3}
+
+    zxAnPonProtectGroupProtectPort      OBJECT-TYPE
+        SYNTAX         InterfaceIndex
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+        "Same as ifIndex:
+        |-------------+----------|------------|---------|---------|
+        |InterfaceType| Rack No. |  Shelf No. | Slot No.| Port No.|
+        |  1 (4bits)  | (4bits)  |  (8bits)   | (8bits) | (8bits) |
+        +-------------+----------+------------+---------+---------+"   
+        ::= {zxAnPonProtectGroupEntry 4}
+
+    zxAnPonProtectType      OBJECT-TYPE
+        SYNTAX        INTEGER{
+                      typeA(1), 
+                      typeB(2),
+                      typeC(3),
+                      typeD(4)
+                      }
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+            " PON protection type.
+            1   -   TYPE A protection
+            2   -   TYPE B protection
+            3   -   TYPE C protection
+            4   -   TYPE D protection
+            "                   
+        ::= {zxAnPonProtectGroupEntry 5}
+        
+    zxAnPonProtectSubType      OBJECT-TYPE
+        SYNTAX        INTEGER{
+                      subType1(1), 
+                      subType2(2),
+                      subType3(3)
+                      }   
+        MAX-ACCESS     read-create
+        STATUS         deprecated
+        DESCRIPTION
+            "Not supported.
+             PON protection structure type.
+             subType1    -   1+1 protection
+             subType2    -   1:1 proteciton
+             subType3    -   protection supportting load balance. 
+            "                   
+        ::= {zxAnPonProtectGroupEntry 6}        
+        
+    zxAnPonProtectSystemMode    OBJECT-TYPE
+        SYNTAX  INTEGER {
+                sameNe(1),          
+                spanNeAsWorkPort(2), 
+                spanNeAsProtectionPort(3)                                  
+                }
+        MAX-ACCESS      read-create
+        STATUS          current 
+        DESCRIPTION
+            "The system mode of PON protection."
+        ::= {zxAnPonProtectGroupEntry 7 }    
+
+    zxAnPonProtectPeerAddrType OBJECT-TYPE
+        SYNTAX       InetAddressType
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+            "IP address type to be used by a peer IP host.
+             When 'zxAnPonProtectSystemMode' is 'spanNeAsWorkPort' or 
+             'spanNeAsProtectionPort', then this attribute is valid."
+        DEFVAL { ipv4 }            
+        ::= { zxAnPonProtectGroupEntry 8 }         
+        
+    zxAnPonProtectPeerIpAddr     OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "IP address to be used by a peer IP host.
+             When 'zxAnPonProtectSystemMode' is 'spanNeAsWorkPort' or 
+             'spanNeAsProtectionPort' then this attribute is valid."
+        ::= { zxAnPonProtectGroupEntry 9 } 
+
+    zxAnPonProtectSpanNeEncryptKey     OBJECT-TYPE
+        SYNTAX      DisplayString ( SIZE(0..16) )
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The encryption key, this attribute is used for span NE protection  
+             communication and it is valid when zxAnPonProtectSystemMode is 
+             'spanNeAsWorkPort' or 'spanNeAsProtectionPort'.
+             The empty string indicates no configuration."
+        DEFVAL { "" }     
+        ::= { zxAnPonProtectGroupEntry 10 } 
+                
+    zxAnPonProtectGroupRowStatus      OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+             
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+             
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             In particular, a newly created row cannot be created
+             until the corresponding 
+              zxAnPonProtectGroupId
+              zxAnPonProtectGroupName
+              zxAnPonProtectGroupWorkPort
+              zxAnPonProtectGroupProtectPort
+              zxAnPonProtectType
+             have been set.
+
+             To delete a row in this table, a manager must
+             set this object to destroy(6).  
+             
+             To get this object, the agent always returns active(1)."
+        ::= {zxAnPonProtectGroupEntry 50}    
+
+--------------------------------------------------------------------------------
+-- zxAnPonProtectGroupPropTable
+--------------------------------------------------------------------------------
+    zxAnPonProtectGroupPropTable      OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnPonProtectGroupPropEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "Protection group property."
+        ::= { zxAnPonProtectionObjects 2 }
+
+    zxAnPonProtectGroupPropEntry     OBJECT-TYPE
+        SYNTAX         ZxAnPonProtectGroupPropEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "Property of a PON protection group."
+        INDEX     { zxAnPonProtectGroupId }
+        ::= { zxAnPonProtectGroupPropTable 1 }
+        
+    ZxAnPonProtectGroupPropEntry ::= SEQUENCE {
+        zxAnPonProtectActiveChannel           INTEGER,
+        zxAnPonProtectRevertMode              INTEGER,
+        zxAnPonProtectWtrInterval             Integer32,
+        zxAnPonProtectLastApsRequest          INTEGER,
+        zxAnPonProtectWorkLinkStatus          INTEGER,
+        zxAnPonProtectPrtcLinkStatus          INTEGER,
+        zxAnPonProtectPonAlmDuration          Integer32
+      }
+
+    zxAnPonProtectActiveChannel    OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    none(1),
+                    workChannel(2),
+                    protectChannel(3)
+                    }
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The channel activated. "
+         ::= { zxAnPonProtectGroupPropEntry 1 }
+         
+    zxAnPonProtectRevertMode  OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    revertive(1),
+                    nonRevertive(2)
+                    }
+        MAX-ACCESS     read-write
+        STATUS         current
+        DESCRIPTION
+            "Protection revertive mode. "
+        ::= { zxAnPonProtectGroupPropEntry 2 }
+           
+    zxAnPonProtectWtrInterval      OBJECT-TYPE
+        SYNTAX         Integer32(0..86400)
+        UNITS          "Seconds"
+        MAX-ACCESS     read-write
+        STATUS         current
+        DESCRIPTION
+            "Wait retrieve time."
+        ::= {zxAnPonProtectGroupPropEntry 3 }
+
+    zxAnPonProtectLastApsRequest      OBJECT-TYPE
+         SYNTAX        INTEGER {
+            noRequest(1),
+            doNotRevert(2),
+            reverseRequest(3),
+            exercise(4),
+            waitToRestore(5),
+            manualSwitchToProtection(6),
+            manualSwitchToWork(7),
+            workSignalDegrade(8),
+            protectionSignalDegrade(9),
+            workSignalFail(10),
+            protectionSignalFail(11),
+            forcedSwitchToProtection(12),
+            forcedSwitchToWork (13),
+            lockoutOfProtection(14)
+        }
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The last automatic protection switch request status."                   
+        ::= { zxAnPonProtectGroupPropEntry 4 }
+        
+    zxAnPonProtectWorkLinkStatus       OBJECT-TYPE
+        SYNTAX        INTEGER {
+            na(1),
+            noAlarm(2),
+            signalDegraded(3),
+            signalFailed(4)
+        }
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The working link status of PON protection group.
+             na(1):             the working link of PON protection group is in 
+                                not available status.
+             noAlarm(2):        the working link of PON protection group is in
+                                no alarm status.
+             signalDegraded(3): the working link of PON protection group is in
+                                signal degraded status.
+             signalFailed(4):   the working link of PON protection group is in
+                                signal failed status."                   
+        ::= { zxAnPonProtectGroupPropEntry 5 }
+
+    zxAnPonProtectPrtcLinkStatus       OBJECT-TYPE
+        SYNTAX        INTEGER {
+            na(1),
+            noAlarm(2),
+            signalDegraded(3),
+            signalFailed(4)
+        }
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The protected link status of PON protection group.
+             na(1):             the working link of PON protection group is in 
+                                not available status.
+             noAlarm(2):        the working link of PON protection group is in
+                                no alarm status.
+             signalDegraded(3): the working link of PON protection group is in
+                                signal degraded status.
+             signalFailed(4):   the working link of PON protection group is in
+                                signal failed status."
+        ::= { zxAnPonProtectGroupPropEntry 6 }
+        
+    zxAnPonProtectPonAlmDuration       OBJECT-TYPE
+        SYNTAX         Integer32
+        UNITS          "Seconds"
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The zxAnPonProtectPonLinkFaultAlm trap duration."                   
+        ::= { zxAnPonProtectGroupPropEntry 7 }
+        
+--------------------------------------------------------------------------------
+-- zxAnPonProtectActionTable
+--------------------------------------------------------------------------------
+    zxAnPonProtectActionTable      OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnPonProtectActionEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "Protection action."
+        ::= { zxAnPonProtectionObjects 3 }
+
+    zxAnPonProtectActionEntry     OBJECT-TYPE
+        SYNTAX         ZxAnPonProtectActionEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "Action of a PON protection group."
+        INDEX     { zxAnPonProtectGroupId }
+        ::= { zxAnPonProtectActionTable 1 }
+        
+    ZxAnPonProtectActionEntry ::= SEQUENCE {
+      zxAnPonProtectSwitchCommand         INTEGER,
+      zxAnPonProtectSwitchOnuList         OCTET STRING
+      }
+         
+    zxAnPonProtectSwitchCommand  OBJECT-TYPE
+        SYNTAX         INTEGER{
+                       forceP2w(1),
+                       forceW2p(2),
+                       manualP2w(3),
+                       manualW2p(4),
+                       clearAll(5),
+                       lockoutProtection (6)                                             
+                       }
+        MAX-ACCESS     read-write
+        STATUS         current
+        DESCRIPTION
+            "Switch command. "
+        ::= { zxAnPonProtectActionEntry 1 } 
+
+    zxAnPonProtectSwitchOnuList   OBJECT-TYPE 
+        SYNTAX    OCTET STRING (SIZE(32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION " ONU list, in order to switch ONU protection.
+                      First to find out the work PON port by 
+                      'zxAnPonProtectGroupId',then the ONUs all 
+                      belong to the work PON port.
+                      The use of 32-octet specifies 256 ONU. Each octet
+                      within this field specifies a set of eight ONUs, 
+                      with the first octet specifying ONU 1 through 8,
+                      the second octet specifying ONU 9 through 16, etc.
+                      If that bit has a value of '1' then indicates
+                      ONU exists. Reading operation is prohibited.
+                      "
+        ::= { zxAnPonProtectActionEntry 2}             
+
+--------------------------------------------------------------------------------
+-- zxAnPonProtectGroupExtPropTable
+--------------------------------------------------------------------------------
+    zxAnPonProtectGroupExtPropTable      OBJECT-TYPE
+        SYNTAX          SEQUENCE OF ZxAnPonProtectGroupExtPropEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "PON protection group extended property table,
+             only for type C and type D protection."
+        ::= { zxAnPonProtectionObjects 4 }
+
+    zxAnPonProtectGroupExtPropEntry     OBJECT-TYPE
+        SYNTAX         ZxAnPonProtectGroupExtPropEntry
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "PON protection group extend property entry,
+            only for type C and type D protection.
+            
+            Entries in the zxAnPonProtectGroupExtPropTable are created and
+            deleted using the zxAnPonProtectExtPropRowStatus object.
+            modify is prohibited.
+
+            The multi-variables binding rule should be complied with 
+            when a manager configures protection group. According to this rule, 
+            all the related mib variables must be included in one SNMP 
+            set operation. 
+            
+            There are two types of variables: mandatory and optional.
+            All of the mandatory variables must be included in one SNMP
+            set operation. Optional variables may be included in one 
+            SNMP set operation with the mandatory variables, but must 
+            not be used alone. 
+            
+            To create protection group extend property, the mandatory and 
+            optional variables are as follows:
+            mandatoty: zxAnPonProtectProtectChannelOnuId
+            optional:none"
+        INDEX     { zxAnPonProtectGroupId,zxAnPonProtectWorkChannelOnuId }
+        ::= { zxAnPonProtectGroupExtPropTable 1 }
+        
+    ZxAnPonProtectGroupExtPropEntry ::= SEQUENCE {
+        zxAnPonProtectWorkChannelOnuId        Integer32,
+        zxAnPonProtectChannelOnuId            Integer32,
+        zxAnPonProtectOnuActiveChannel        INTEGER,
+        zxAnPonProtectOnuLastApsRequest       INTEGER,
+        zxAnPonProtectOnuWorkLinkStatus       INTEGER,
+        zxAnPonProtectOnuPrtcLinkStatus       INTEGER,
+        zxAnPonProtectOnuLinkAlmDuration      Integer32,
+        zxAnPonProtectExtPropRowStatus        RowStatus
+      }
+
+    zxAnPonProtectWorkChannelOnuId    OBJECT-TYPE
+        SYNTAX         Integer32(1..128)
+        MAX-ACCESS     not-accessible
+        STATUS         current
+        DESCRIPTION
+            "Master ONU ID.
+             The ONU must has been configured at the work port before."
+         ::= {zxAnPonProtectGroupExtPropEntry 1}
+         
+    zxAnPonProtectChannelOnuId    OBJECT-TYPE
+        SYNTAX         Integer32(1..128)
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+            "Slave ONU ID.
+             The ONU must has been configured at the protect port before."
+         ::= {zxAnPonProtectGroupExtPropEntry 2}
+         
+    zxAnPonProtectOnuActiveChannel    OBJECT-TYPE
+        SYNTAX         INTEGER{
+                       none(1),
+                       workChannel(2),
+                       protectChannel(3)                                             
+                       }
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "Active channel."
+         ::= {zxAnPonProtectGroupExtPropEntry 3}            
+         
+    zxAnPonProtectOnuLastApsRequest    OBJECT-TYPE
+        SYNTAX        INTEGER {
+                      noRequest(1),
+                      doNotRevert(2),
+                      reverseRequest(3),
+                      exercise(4),
+                      waitToRestore(5),
+                      manualSwitchToProtection(6),
+                      manualSwitchToWork(7),
+                      workSignalDegrade(8),
+                      protectionSignalDegrade(9),
+                      workSignalFail(10),
+                      protectionSignalFail(11),
+                      forcedSwitchToProtection(12),
+                      forcedSwitchToWork (13),
+                      lockoutOfProtection(14)
+                      }
+        MAX-ACCESS    read-only
+        STATUS        current
+        DESCRIPTION
+            "ONU last automatic protection switch request status."
+         ::= {zxAnPonProtectGroupExtPropEntry 4}
+         
+    zxAnPonProtectOnuWorkLinkStatus       OBJECT-TYPE
+        SYNTAX        INTEGER {
+            na(1),
+            noAlarm(2),
+            signalDegraded(3),
+            signalFailed(4)
+        }
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The working ONU link status.
+             na(1):             the working link of PON protection group is in 
+                                not available status.
+             noAlarm(2):        the working link of PON protection group is in
+                                no alarm status.
+             signalDegraded(3): the working link of PON protection group is in
+                                signal degraded status.
+             signalFailed(4):   the working link of PON protection group is in
+                                signal failed status."                   
+        ::= { zxAnPonProtectGroupExtPropEntry 5 }
+
+    zxAnPonProtectOnuPrtcLinkStatus       OBJECT-TYPE
+        SYNTAX        INTEGER {
+            na(1),
+            noAlarm(2),
+            signalDegraded(3),
+            signalFailed(4)
+        }
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The protection ONU link status.
+             na(1):             the working link of PON protection group is in 
+                                not available status.
+             noAlarm(2):        the working link of PON protection group is in
+                                no alarm status.
+             signalDegraded(3): the working link of PON protection group is in
+                                signal degraded status.
+             signalFailed(4):   the working link of PON protection group is in
+                                signal failed status."                   
+        ::= { zxAnPonProtectGroupExtPropEntry 6 }     
+        
+    zxAnPonProtectOnuLinkAlmDuration       OBJECT-TYPE
+        SYNTAX         Integer32
+        UNITS          "Seconds"
+        MAX-ACCESS     read-only
+        STATUS         current
+        DESCRIPTION
+            "The trap zxAnPonProtectOnuLinkFaultAlm duration."                   
+        ::= { zxAnPonProtectGroupExtPropEntry 7 } 
+        
+    zxAnPonProtectExtPropRowStatus    OBJECT-TYPE
+        SYNTAX         RowStatus
+        MAX-ACCESS     read-create
+        STATUS         current
+        DESCRIPTION
+            "The status of this conceptual row.
+             
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+             
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             In particular, a newly created row cannot be created
+             until the corresponding zxAnPonProtectWorkChannelOnuId 
+             and zxAnPonProtectChannelOnuId have been set.
+
+             To delete a row in this table, a manager must
+             set this object to destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+         ::= {zxAnPonProtectGroupExtPropEntry 50}                
+
+--------------------------------------------------------------------------------
+-- zxAnPonProtectionNotifications
+--------------------------------------------------------------------------------
+     zxAnPonProtectSwitchEvent        NOTIFICATION-TYPE
+        OBJECTS {
+                zxAnPonProtectGroupName,zxAnPonProtectActiveChannel
+                }
+        STATUS  current
+        DESCRIPTION 
+            "Switch event."
+        ::={zxAnPonProtectionNotifications 1}
+        
+     zxAnPonProtectPonLinkFaultAlm        NOTIFICATION-TYPE
+        OBJECTS {    
+            zxAnPonProtectGroupName
+        }
+        STATUS  current
+        DESCRIPTION 
+            "The alarm occured when the working channel or protection
+             channel is in alarm status."
+        ::={zxAnPonProtectionNotifications 2}    
+        
+    zxAnPonProtectPonLinkFaultClr        NOTIFICATION-TYPE
+        OBJECTS {   
+            zxAnPonProtectGroupName
+        }
+        STATUS  current
+        DESCRIPTION 
+            "The alarm cleared when the working channel and protection 
+             channel are in no-alarm status."
+        ::={zxAnPonProtectionNotifications 3} 
+                 
+   zxAnPonProtectOnuLinkFaultAlm        NOTIFICATION-TYPE
+      OBJECTS {    
+          zxAnPonProtectGroupName
+      }
+      STATUS  current
+      DESCRIPTION 
+          "The alarm occured when the ONU working channel or ONU protection 
+           channel is in alarm status."
+      ::={zxAnPonProtectionNotifications 4}    
+      
+  zxAnPonProtectOnuLinkFaultClr        NOTIFICATION-TYPE
+      OBJECTS {   
+          zxAnPonProtectGroupName
+      }
+      STATUS  current
+      DESCRIPTION 
+          "The alarm cleared when the ONU working channel and ONU protection
+           channel are in no-alarm status."
+      ::={zxAnPonProtectionNotifications 5} 
+     
+--------------------------------------------------------------------------------
+-- zxAnPonProtectionConformance
+--------------------------------------------------------------------------------
+zxAnPonProtectionConformance     OBJECT IDENTIFIER ::= { zxAnPonProtectionMib 4}
+
+zxAnPonProtectionCompliances     
+OBJECT IDENTIFIER ::= {zxAnPonProtectionConformance 1}
+zxAnPonProtectionGroups          
+OBJECT IDENTIFIER ::= {zxAnPonProtectionConformance 2}
+
+zxAnPonProtectionCompliance MODULE-COMPLIANCE
+    STATUS current
+    DESCRIPTION
+        "The compliance statement for entities which implement the
+         ZTE-AN-PONPROTECTION-MIB."
+    MODULE
+    MANDATORY-GROUPS{
+                    zxAnPonProtectionMgmtGroup,
+                    zxAnPonProtectionTrapGroup
+                    }
+    ::= { zxAnPonProtectionCompliances 1 }
+    
+--------------------------------------------------------------------------------
+-- Units of Conformance
+--------------------------------------------------------------------------------
+zxAnPonProtectionMgmtGroup OBJECT-GROUP
+    OBJECTS         {
+                    zxAnPonProtectGroupNextIndex,
+                    zxAnPonProtectDataSyncProgress,
+                    zxAnPonProtectGroupName,
+                    zxAnPonProtectGroupWorkPort,
+                    zxAnPonProtectGroupProtectPort,
+                    zxAnPonProtectType,
+                    zxAnPonProtectSubType,
+                    zxAnPonProtectGroupRowStatus,
+                    zxAnPonProtectActiveChannel,
+                    zxAnPonProtectRevertMode,
+                    zxAnPonProtectWtrInterval,
+                    zxAnPonProtectLastApsRequest,
+                    zxAnPonProtectWorkLinkStatus,
+                    zxAnPonProtectPrtcLinkStatus,
+                    zxAnPonProtectPonAlmDuration,
+                    zxAnPonProtectSwitchCommand,
+                    zxAnPonProtectSwitchOnuList,
+                    zxAnPonProtectChannelOnuId,
+                    zxAnPonProtectOnuActiveChannel,
+                    zxAnPonProtectOnuLastApsRequest,
+                    zxAnPonProtectOnuWorkLinkStatus,
+                    zxAnPonProtectOnuPrtcLinkStatus,
+                    zxAnPonProtectOnuLinkAlmDuration,
+                    zxAnPonProtectExtPropRowStatus
+                    }
+    STATUS          current
+    DESCRIPTION
+        "A collection of objects for PON protection
+        configuration."
+    ::= { zxAnPonProtectionGroups 1 }
+
+zxAnPonProtectionTrapGroup NOTIFICATION-GROUP
+    NOTIFICATIONS   {
+                    zxAnPonProtectSwitchEvent,
+                    zxAnPonProtectPonLinkFaultAlm,
+                    zxAnPonProtectPonLinkFaultClr,
+                    zxAnPonProtectOnuLinkFaultAlm,
+                    zxAnPonProtectOnuLinkFaultClr
+                    }
+    STATUS          current
+    DESCRIPTION
+        "A collection of notifications."
+    ::= { zxAnPonProtectionGroups 2 }
+    
+END

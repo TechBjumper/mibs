@@ -1,0 +1,257 @@
+ZTE-AN-LST-MIB  DEFINITIONS ::= BEGIN
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, Integer32         FROM SNMPv2-SMI 
+        RowStatus, DisplayString                        FROM SNMPv2-TC
+        InetAddressType, InetAddress                    FROM INET-ADDRESS-MIB 
+        ifIndex                                         FROM IF-MIB
+        zxAnBridge                                      FROM ZTE-AN-SMI; 
+
+    zxAnLstMib  MODULE-IDENTITY
+        LAST-UPDATED    "201912201530Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "xujinlin
+                         Mail: xu.jinlin1@zte.com.cn
+                         Tel : 021-68896292"
+        DESCRIPTION     "The MIB module for the management of link status 
+                         transmission function."
+        ::=  {  zxAnBridge 85  }
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 2.Lst Group Table
+--------------------------------------------------------------------------------
+
+
+    zxAnLstObjects             OBJECT IDENTIFIER ::= { zxAnLstMib 2 }
+--------------------------------------------------------------------------------
+-- 2.Lst Group Table
+--------------------------------------------------------------------------------
+
+    zxAnLstGroupTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnLstGroupEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the managed objects of the link status 
+             transmission group."
+        ::=  { zxAnLstObjects  1 }
+
+    zxAnLstGroupEntry   OBJECT-TYPE
+        SYNTAX      ZxAnLstGroupEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnLstGroupTable."
+        INDEX       { zxAnLstGroupIndex  }
+        ::=  { zxAnLstGroupTable 1 }
+
+    ZxAnLstGroupEntry  ::=  SEQUENCE {
+        zxAnLstGroupIndex                  Integer32,
+        zxAnLstGroupName                   DisplayString,
+        zxAnLstGroupWorkingStatus          INTEGER,
+        zxAnLstNextHopIpType               InetAddressType,
+        zxAnLstNextHopIp                   InetAddress,
+        zxAnLstLinkDetectRetries           Integer32,
+        zxAnLstLinkDetectInterval          Integer32,  
+        zxAnLstIpLinkStatus                INTEGER,
+        zxAnLstSwapReason                  INTEGER,
+        zxAnLstGroupRowStatus              RowStatus
+        } 
+
+    zxAnLstGroupIndex OBJECT-TYPE
+        SYNTAX      Integer32(1..4)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The index of LST group."
+        ::= { zxAnLstGroupEntry 1}
+
+     zxAnLstGroupName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The name of LST group."
+        ::= { zxAnLstGroupEntry 2}
+        
+    zxAnLstGroupWorkingStatus OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    working(1),
+                    nonworking(2),
+                    unknown(11)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The working status of LST group."
+        ::= { zxAnLstGroupEntry 3}   
+       
+    zxAnLstNextHopIpType OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The next hop IP type."
+          ::= { zxAnLstGroupEntry 4 }
+
+    zxAnLstNextHopIp OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The next hop IP. Only IPv4 is supported now. If it is 0.0.0.0, 
+             LST will not check the link of next hop."
+        ::= { zxAnLstGroupEntry 5 }
+
+    zxAnLstLinkDetectRetries OBJECT-TYPE
+        SYNTAX      Integer32(1..10)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The retries of link detection."
+        DEFVAL  { 3 }
+        ::= { zxAnLstGroupEntry 6}
+        
+    zxAnLstLinkDetectInterval OBJECT-TYPE
+        SYNTAX      Integer32(1..10)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interval of link detection."
+        DEFVAL  { 3 }
+        ::= { zxAnLstGroupEntry 7}
+        
+
+    zxAnLstIpLinkStatus OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    up(1),
+                    down(2),
+                    detecting(3),
+                    unknown(11)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The status of IP link."
+          ::= { zxAnLstGroupEntry 8}
+             
+
+    zxAnLstSwapReason OBJECT-TYPE
+        SYNTAX      INTEGER{
+                    noSwapping(1),
+                    failback(2),
+                    failoverByPhyLinkDown(3),
+                    failoverByIpLinkDown(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The swap reason. 
+             failback: uplink port is recovered.
+             failoverByPhyLinkDown: uplink port is in fault of physical layer.
+             failoverByIpLinkDown: uplink port is in fault of IP layer."
+        ::= { zxAnLstGroupEntry 9}
+                     
+    
+    zxAnLstGroupRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             To delete a row in this table, a manager must
+             set this object to destroy(6).
+
+             To query this object, always return 1."
+        ::= { zxAnLstGroupEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.LST Smartgroup Interface Table
+--------------------------------------------------------------------------------
+
+    zxAnLstSmartgroupIfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnLstSmartgroupIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the smartgroup interface of the link status 
+             transmission group."
+        ::=  { zxAnLstObjects  2 }
+        
+    zxAnLstSmartgroupIfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnLstSmartgroupIfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnLstSmartgroupIfTable."
+        INDEX       { zxAnLstGroupIndex, ifIndex }
+        ::=  { zxAnLstSmartgroupIfTable 1 }
+        
+    ZxAnLstSmartgroupIfEntry  ::=  SEQUENCE {
+        zxAnLstSmartgroupIfRowStatus          RowStatus
+        }
+
+    zxAnLstSmartgroupIfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             To delete a row in this table, a manager must
+             set this object to destroy(6).
+
+             To query this object, always return 1."
+        ::= { zxAnLstSmartgroupIfEntry 50 }
+        
+------------------------------------------------------------------------------
+-- 3.Lst User Ports Table
+------------------------------------------------------------------------------
+
+    zxAnLstUserPortsTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE  OF  ZxAnLstUserPortsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "This table includes the user ports of the link status 
+             transmission group."
+        ::=  { zxAnLstObjects  3 }
+        
+    zxAnLstUserPortsEntry   OBJECT-TYPE
+        SYNTAX      ZxAnLstUserPortsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry in zxAnLstUserPortsTable."
+        INDEX       { zxAnLstGroupIndex, ifIndex }
+        ::=  { zxAnLstUserPortsTable 1 }
+        
+    ZxAnLstUserPortsEntry  ::=  SEQUENCE {
+        zxAnLstUserPortsRowStatus          RowStatus
+        }
+
+    zxAnLstUserPortsRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             To create a row in this table, a manager must
+             set this object to createAndGo(4).
+             
+             To delete a row in this table, a manager must
+             set this object to destroy(6). 
+
+             To query this object, always return 1."
+        ::= { zxAnLstUserPortsEntry 50 }
+      
+END

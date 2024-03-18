@@ -1,0 +1,1468 @@
+ZXR10-SYSTEM-SOFTWARE-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+       MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY, 
+       enterprises, Integer32, Unsigned32               FROM SNMPv2-SMI
+       DisplayString, DateAndTime, RowStatus            FROM SNMPv2-TC
+       InetAddressType, InetAddress                     FROM INET-ADDRESS-MIB 
+       zxUPN                                            FROM ZXR10-PROJECT-MIB;
+           
+    zxr10SystemSoftwareMIB MODULE-IDENTITY
+        LAST-UPDATED    "201708310000Z"  
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "ZTE Corporation 
+                         Nanjing Institute of ZTE Corporation         
+                         No.68 Zijinghua Rd. Yuhuatai District, Nanjing, China
+                         Tel: +86-25-52870000"
+        DESCRIPTION     
+            "This MIB defines R10 software managed objects."            
+        REVISION        "201708310000Z"
+        DESCRIPTION
+           "Added two new tables: zxr10FirmwareUpdateTable, 
+            zxr10FirmwareBatchUpdateTable."            
+        REVISION        "201706130000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+    ::= { zxUPN 8 }
+    
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxr10SwActivePackageInfoTable
+-- 2. zxr10SwInstallPackageInfoTable
+-- 3. zxr10SwInstallSetInfoTable
+-- 4. zxr10SoftwareInstallAdd
+-- 5. zxr10SoftwareInstallCommit
+-- 6. zxr10FirmwareUpdateTable
+-- 7. zxr10FirmwareBatchUpdateTable
+-- 8. zxr10SoftwarePatchInfoTable
+-- 9. zxr10SoftwarePatchPkgInfoTable
+-- 10.zxr10SwPatchEffectiveInfoTable
+
+--------------------------------------------------------------------------------
+
+    zxr10SoftwareObjects OBJECT IDENTIFIER ::= { zxr10SystemSoftwareMIB 2 }
+    zxr10SoftwareInfoObjects OBJECT IDENTIFIER ::= { zxr10SoftwareObjects 1 }
+               
+--------------------------------------------------------------------------------
+-- 1. zxr10SwActivePackageInfoTable
+--------------------------------------------------------------------------------
+    zxr10SwActivePackageInfoTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF Zxr10SwActivePackageInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The activated package information table."
+        ::= { zxr10SoftwareInfoObjects 2 }        
+
+   zxr10SwActivePackageInfoEntry  OBJECT-TYPE
+        SYNTAX      Zxr10SwActivePackageInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The activated package information entry."
+        INDEX  { zxr10SwActivePackageRackNo, zxr10SwActivePackageShelfNo,
+                 zxr10SwActivePackageSlotNo, zxr10SwActivePackageCpuNo,
+                 zxr10SwActivePackageDisplayName }
+        ::= { zxr10SwActivePackageInfoTable 1 } 
+
+   Zxr10SwActivePackageInfoEntry ::= SEQUENCE {
+        zxr10SwActivePackageRackNo        Integer32,
+        zxr10SwActivePackageShelfNo       Integer32,
+        zxr10SwActivePackageSlotNo        Integer32,
+        zxr10SwActivePackageCpuNo         Integer32,
+        zxr10SwActivePackageDisplayName   DisplayString,
+        zxr10SwActivePackageName          DisplayString,
+        zxr10SwActivePackageVersion       DisplayString,
+        zxr10SwActivePackageVndName       DisplayString,
+        zxr10SwActivePackageBelongTo      DisplayString
+        }
+
+    zxr10SwActivePackageRackNo  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Rack number of the system unit."
+        ::= { zxr10SwActivePackageInfoEntry 1 }     
+        
+    zxr10SwActivePackageShelfNo  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Shelf number of the system unit."
+        ::= { zxr10SwActivePackageInfoEntry 2 }
+
+    zxr10SwActivePackageSlotNo  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Slot number of the system unit."
+        ::= { zxr10SwActivePackageInfoEntry 3 }
+
+    zxr10SwActivePackageCpuNo  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "CPU number of the system unit."
+        ::= { zxr10SwActivePackageInfoEntry 4 }             
+
+    zxr10SwActivePackageDisplayName  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Full name of the activated package."
+        ::= { zxr10SwActivePackageInfoEntry 5 }         
+
+    zxr10SwActivePackageName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32)) 
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Name of the activated package."
+        ::= { zxr10SwActivePackageInfoEntry 6 }   
+
+    zxr10SwActivePackageVersion  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32)) 
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Version of the activated package."
+        ::= { zxr10SwActivePackageInfoEntry 7 }   
+
+    zxr10SwActivePackageVndName  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Virtual network device name of the activated package."
+        ::= { zxr10SwActivePackageInfoEntry 8 }   
+
+    zxr10SwActivePackageBelongTo  OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(0..52))
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Package name of the patch package belonging to."
+        ::= { zxr10SwActivePackageInfoEntry 9 } 
+
+--------------------------------------------------------------------------------
+-- 2. zxr10SwInstallPackageInfoTable
+--------------------------------------------------------------------------------
+    zxr10SwInstallPackageInfoTable OBJECT-TYPE
+        SYNTAX  SEQUENCE OF Zxr10SwInstallPackageInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "The installed package information table."
+        ::= { zxr10SoftwareInfoObjects 3 }
+
+   zxr10SwInstallPackageInfoEntry  OBJECT-TYPE
+        SYNTAX  Zxr10SwInstallPackageInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS  current
+        DESCRIPTION
+            "The installed package information entry."
+        INDEX  { zxr10SwInstallPackageDisplayName }
+        ::= { zxr10SwInstallPackageInfoTable 1 } 
+
+   Zxr10SwInstallPackageInfoEntry ::=    SEQUENCE {
+        zxr10SwInstallPackageDisplayName   DisplayString,
+        zxr10SwInstallPackageStatus        INTEGER,
+        zxr10SwInstallPackageName          DisplayString,            
+        zxr10SwInstallPackageVersion       DisplayString,
+        zxr10SwInstallPackageSource        DisplayString,
+        zxr10SwInstallPackageBuildTime     DateAndTime,
+        zxr10SwInstallPackageBelongTo      DisplayString,
+        zxr10SwInstallPackageAddTime       DateAndTime,
+        zxr10SwInstallPackageOperation     INTEGER,
+        zxr10SwInstallPackageActiveType    INTEGER,
+        zxr10SwInstallPackageVndName       DisplayString,
+        zxr10SwInstallPackageOperStatus    INTEGER,
+        zxr10SwInstallPackageFailReason    INTEGER,
+        zxr10SwInstallPackageSize          Unsigned32,
+        zxr10SwInstallPackageRowStatus     RowStatus
+        }     
+        
+    zxr10SwInstallPackageDisplayName  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Full name of the installed package."
+        ::= { zxr10SwInstallPackageInfoEntry 1 }
+
+    zxr10SwInstallPackageStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            added(1),
+            committed(2),
+            activated(3),
+            deactivated(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Status of the installed package."
+        ::= { zxr10SwInstallPackageInfoEntry 2 }
+
+    zxr10SwInstallPackageName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..32))
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Name of the installed package."
+        ::= { zxr10SwInstallPackageInfoEntry 3 }    
+
+    zxr10SwInstallPackageVersion  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..32))
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Version of the installed package."
+        ::= { zxr10SwInstallPackageInfoEntry 4 }             
+        
+    zxr10SwInstallPackageSource  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..160))
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Source set name of the installed package."
+        ::= { zxr10SwInstallPackageInfoEntry 5 }   
+
+    zxr10SwInstallPackageBuildTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Building time of the installed package."
+        ::= { zxr10SwInstallPackageInfoEntry 6 }   
+        
+    zxr10SwInstallPackageBelongTo  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(0..52))
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Package name of the patch package belonging to."
+        ::= { zxr10SwInstallPackageInfoEntry 7 }  
+        
+    zxr10SwInstallPackageAddTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Installed time of the installed package."
+        ::= { zxr10SwInstallPackageInfoEntry 8 }   
+
+    zxr10SwInstallPackageOperation  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            activate(1), 
+            deactivate(2)
+            }
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "Operation of the installed package.
+             To activate a package, zxr10SwInstallPackageOperation and 
+             zxr10SwInstallPackageActiveType are mandatory,  
+             zxr10SwInstallPackageVndName is optional.
+             To deactive a package, zxr10SwInstallPackageOperation is 
+             mandatory, zxr10SwInstallPackageVndName is optional."
+        ::= { zxr10SwInstallPackageInfoEntry 9 }  
+
+    zxr10SwInstallPackageActiveType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            normal(1)
+            }
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "Activation type of the installed package, description as follows:
+             normal: Normal upgrade.
+             parallelReload: The system units will be reloading at the same 
+             time." 
+        ::= { zxr10SwInstallPackageInfoEntry 10 }       
+        
+    zxr10SwInstallPackageVndName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..32))
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "The name of the virtual network device on that the package to be 
+             activated or deactivated.
+             If this object does not be set with zxr10SwInstallPackageOperation,
+             the package will be activated or deactivated on all the virtual 
+             network devices."
+        ::= { zxr10SwInstallPackageInfoEntry 11 }  
+                
+    zxr10SwInstallPackageOperStatus  OBJECT-TYPE
+        SYNTAX      INTEGER  {
+            ready(1),
+            doing(2),
+            success(3),
+            failed(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Status of operating package."
+        ::= { zxr10SwInstallPackageInfoEntry 12 }
+        
+    zxr10SwInstallPackageFailReason  OBJECT-TYPE
+        SYNTAX      INTEGER  {   
+            success(1),
+            unknownErr(2),
+            noMem(3),
+            pending(4),
+            executing(5),
+            cmdNotFinish(6),
+            notSupport(7),
+            cancel(8),
+            pkgNotExist(9),
+            pkgActivated(10),
+            pkgNotActivated(11),
+            unmatchMajorVer(12),
+            runVerSyn(13),
+            cannotDeactBase(14),
+            isolateSscFailed(15),
+            reloadPkgDeactFailed(16),
+            notMeetDepend(17),
+            actConflict(18),
+            leNotReady(19),
+            noActByVnd(20),
+            issuNotSupport(21),
+            needCommit(50),
+            needDeactive(51),
+            needDeactiveAndCommit(52),
+            parentPackageExists(53)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Failure reason of opterating package, description as follows:
+             success: Success.
+             unknownErr: Unknown error.
+             noMem: No enough memory.
+             pending: Pending.
+             executing: Executing.
+             cmdNotFinish: Can not process this command because other command 
+             is conflicted.
+             notSupport: The function does not support.
+             cancel: Cancel.
+             pkgNotExist: The package does not exist.
+             pkgActivated: The package has been activated.
+             pkgNotActivated: The package has not been activated.
+             unmatchMajorVer: Unmatched major version.
+             runVerSyn: Version file(s) synchronization is being executed.
+             cannotDeactBase: Base package can not be deactivated.
+             isolateSscFailed: Isolating SSC failed.
+             reloadPkgDeactFailed: The package only can be deactivated in 
+             parallel-reload mode.
+             notMeetDepend: The package does not meet the dependence.
+             actConflict: The package conflicted with the packages which have 
+             been activated.
+             leNotReady: The operation is not allowed while any master LE is on 
+             the SSC, please switch LE first and try again.
+             noActByVnd: Firmware or base package can not be activated or 
+             deactivated by assigning VND.
+             issuNotSupport: SSC does not exist or package activation mode is 
+             parallel-reload.
+             needCommit: Can not be deleted before being committed.
+             needDeactive:  Can not be deleted before being deactivated.
+             needDeactiveAndCommit: Can not be deleted before being deactivated 
+             and committed. 
+             parentPackageExists: Can not be deleted when parent package 
+             exists."
+        ::= { zxr10SwInstallPackageInfoEntry 13 }
+    
+    zxr10SwInstallPackageSize  OBJECT-TYPE
+        SYNTAX      Unsigned32 (1..4294967295)
+        UNITS       "Bytes"
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Size of the installed package."
+        ::= { zxr10SwInstallPackageInfoEntry 14 } 
+
+    zxr10SwInstallPackageRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'destroy'.
+   
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxr10SwInstallPackageInfoEntry 50 }        
+
+--------------------------------------------------------------------------------
+-- 3. zxr10SwInstallSetInfoTable
+--------------------------------------------------------------------------------
+   zxr10SwInstallSetInfoTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF Zxr10SwInstallSetInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The installed set information table."
+        ::= { zxr10SoftwareInfoObjects 4 }
+
+   zxr10SwInstallSetInfoEntry  OBJECT-TYPE
+        SYNTAX      Zxr10SwInstallSetInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+             "The installed set information entry."
+        INDEX  { zxr10SwInstallSetName }
+        ::= { zxr10SwInstallSetInfoTable 1 } 
+
+   Zxr10SwInstallSetInfoEntry ::= SEQUENCE {
+        zxr10SwInstallSetName             DisplayString,
+        zxr10SwInstallSetStatus           INTEGER,
+        zxr10SwInstallSetSize             Unsigned32,
+        zxr10SwInstallSetBuildTime        DateAndTime,
+        zxr10SwInstallSetAddTime          DateAndTime,
+        zxr10SwInstallSetOperation        INTEGER,
+        zxr10SwInstallSetActivationType   INTEGER,
+        zxr10SwInstallSetOperationStatus  INTEGER,
+        zxr10SwInstallSetFailedReason     INTEGER,
+        zxr10SwInstallSetRowStatus        RowStatus
+        }   
+        
+    zxr10SwInstallSetName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..160))
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Full name of the installed set."
+        ::= { zxr10SwInstallSetInfoEntry 1 }             
+
+    zxr10SwInstallSetStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            added(1),
+            committed(2),
+            activated(3),
+            deactivated(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS  current
+        DESCRIPTION
+            "Status of the installed set."
+        ::= { zxr10SwInstallSetInfoEntry 2 }
+                
+    zxr10SwInstallSetSize  OBJECT-TYPE
+        SYNTAX      Unsigned32 (1..4294967295)
+        UNITS       "Bytes"
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Size of the installed set."
+        ::= { zxr10SwInstallSetInfoEntry 3 }   
+
+    zxr10SwInstallSetBuildTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Building time of the installed set."
+        ::= { zxr10SwInstallSetInfoEntry 4 }  
+        
+    zxr10SwInstallSetAddTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Installed time of the installed set."
+        ::= { zxr10SwInstallSetInfoEntry 5 }   
+
+    zxr10SwInstallSetOperation  OBJECT-TYPE
+        SYNTAX      INTEGER    {
+            activate(1)
+            }
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "Operation of the installed set."
+        ::= { zxr10SwInstallSetInfoEntry 6 }  
+
+    zxr10SwInstallSetActivationType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            normal(1),
+            parallelReload(3),
+            parallelReloadGrace(5),
+            issuGrace(6)
+            }
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "Activation type of the installed set, description as follows:
+             normal: Normal upgrade.
+             parallelReload: The system units will be reloaded at the same 
+             time.
+             parallelReloadGrace: The system units will be reset gracefully
+             and reloaded at the same time.
+             issuGrace: In-service software upgrade, the system units will be 
+             reset gracefully and reloaded one by one."
+        ::= { zxr10SwInstallSetInfoEntry 7 } 
+                
+    zxr10SwInstallSetOperationStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            ready(1),
+            doing(2),
+            success(3),
+            failed(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Status of operating set."
+        ::= { zxr10SwInstallSetInfoEntry 8 }
+        
+    zxr10SwInstallSetFailedReason  OBJECT-TYPE
+        SYNTAX      INTEGER  {   
+            success(1),
+            unknownErr(2),
+            noMem(3),
+            pending(4),
+            executing(5),
+            cmdNotFinish(6),
+            notSupport(7),
+            cancel(8),
+            pkgNotExist(9),
+            pkgActivated(10),
+            pkgNotActivated(11),
+            unmatchMajorVer(12),
+            runVerSyn(13),
+            cannotDeactBase(14),
+            isolateSscFailed(15),
+            reloadPkgDeactFailed(16),
+            notMeetDepend(17),
+            actConflict(18),
+            leNotReady(19),
+            noActByVnd(20),
+            issuNotSupport(21),
+            needCommit(50),
+            needDeactive(51),
+            needDeactiveAndCommit(52),
+            parentPackageExists(53)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Failure reason of the install actived a set, description as 
+             follows:
+             success: Success.
+             unknownErr: Unknown error.
+             noMem: No enough memory.
+             pending: Pending.
+             executing: Executing.
+             cmdNotFinish: Can not process this command because other command 
+             is conflicted.
+             notSupport: The function does not support.
+             cancel: Cancel.
+             pkgNotExist: The package does not exist.
+             pkgActivated: The package has been activated.
+             pkgNotActivated: The package has not been activated.
+             unmatchMajorVer: Unmatched major version.
+             runVerSyn: Version file(s) synchronization is being executed.
+             cannotDeactBase: Base package can not be deactivated.
+             isolateSscFailed: Isolating SSC failed.
+             reloadPkgDeactFailed: The package only can be deactivated in 
+             parallel-reload mode.
+             notMeetDepend: The package does not meet the dependence.
+             actConflict: The package conflicted with the packages which have 
+             been activated.
+             leNotReady: The operation is not allowed while any master LE is on 
+             the SSC, please switch LE first and try again.
+             noActByVnd: Firmware or base package can not be activated or 
+             deactivated by assigning VND.
+             issuNotSupport: SSC does not exist or package activation mode is 
+             parallel-reload.
+             needCommit: Can not be deleted before being committed.
+             needDeactive:  Can not be deleted before being deactivated.
+             needDeactiveAndCommit: Can not be deleted before being deactivated 
+             and committed. 
+             parentPackageExists: Can not be deleted when parent package 
+             exists."
+        ::= { zxr10SwInstallSetInfoEntry 9 }
+        
+    zxr10SwInstallSetRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'destroy'.
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxr10SwInstallSetInfoEntry 50 } 
+        
+--------------------------------------------------------------------------------
+-- 4. zxr10SoftwareInstallAdd
+--------------------------------------------------------------------------------
+                
+    zxr10SoftwareInstallObjects 
+                              OBJECT IDENTIFIER ::= { zxr10SoftwareObjects 2 }
+               
+    zxr10SoftwareInstallAdd 
+                       OBJECT IDENTIFIER ::= { zxr10SoftwareInstallObjects 1 } 
+        
+    zxr10SwInstallAddTransferType  OBJECT-TYPE
+        SYNTAX      INTEGER  {
+            ftp(1), 
+            storage(2), 
+            sftp(3)
+            }
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "Transfer type."
+        ::= { zxr10SoftwareInstallAdd 1 }
+        
+    zxr10SwInstallAddServiceType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            vrf(1), 
+            dcn(2)
+            }
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "Service type."
+        ::= { zxr10SoftwareInstallAdd 2 }        
+        
+    zxr10SwInstallAddVrfName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..32))
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "VPN routing or forwarding instance, used when service tyep is VRF."
+        ::= { zxr10SoftwareInstallAdd 3 }              
+
+    zxr10SwInstallAddFtpUserName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..64))
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "FTP user name for downloading set or package."
+        ::= { zxr10SoftwareInstallAdd 4 }        
+
+    zxr10SwInstallAddFtpPassword  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..64))
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "FTP password for downloading set or package."
+        ::= { zxr10SoftwareInstallAdd 5 }
+
+    zxr10SwInstallAddFtpAddressType  OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "FTP IP address type for downloading set or package."
+            
+        ::= { zxr10SoftwareInstallAdd 6 }
+        
+    zxr10SwInstallAddFtpAddress  OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "FTP IP address for downloading set or package."
+        ::= { zxr10SoftwareInstallAdd 7 }
+
+    zxr10SwInstallAddFilePath  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..160))
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "FTP file path for downloading set or package."
+        ::= { zxr10SoftwareInstallAdd 8 }
+
+    zxr10SwInstallAddFileName  OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE(1..160))
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "FTP file name for downloading set or package."
+        ::= { zxr10SoftwareInstallAdd 9 }
+
+    zxr10SwInstallAddStatus  OBJECT-TYPE
+        SYNTAX      INTEGER  {
+            ready(1), 
+            downloading(2), 
+            decompressing(3), 
+            success(4), 
+            failed(5)
+            }    
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Status of installing a set or package."
+        ::= { zxr10SoftwareInstallAdd 10 }  
+        
+    zxr10SwInstallAddFailedReason  OBJECT-TYPE
+        SYNTAX      INTEGER    {   
+            success(1),
+            unknownErr(2),
+            noMem(3),
+            pending(4),
+            executing(5),
+            cmdNotFinish(6),
+            noSpace(7),
+            notFound(8),
+            pkgExist(9),
+            pkgNameConflict(10),
+            inputError(11),
+            urlError(12),
+            usrpwdError(13),
+            pkgHandleError(14),
+            fileFormatError(15),
+            downloadFailed(16),
+            fileExist(17),
+            fileNotExist(18),
+            vrfError(19),
+            ipOrPortError(20),
+            noMatchPlatform(21),
+            nameLong(22),
+            copyFailed(23),
+            abort(24),
+            noMoreSqu(25),
+            existSameVersionPackage(31),
+            waitingFileSyncTimeout(32),
+            digitalCertificateInvalid(35),
+            digitalSignNotExist(36),
+            digitalSignVerificationFailed(37)
+            } 
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Failure reason of installing a set or package, description as 
+             follows:
+             success: Success.
+             unknownErr: Unknown error.
+             noMem: No enough memory.
+             pending: Pending.
+             executing: Executing.
+             cmdNotFinish: Can not process this command because other command 
+             is conflicted.
+             noSpace: No enough free space on system disk.
+             notFound: The file does not exist.
+             pkgExist: The file already exists.
+             pkgNameConflict: Can not operate packages with the same name.
+             inputError: The string of input is wrong.
+             urlError: The format of parameter is error.
+             usrpwdError: User name or password is incorrect.
+             pkgHandleError: Invalid package handle.
+             fileFormatError: Invalid file format.
+             downloadFailed: Download file failed.
+             fileExist: The file already exists.
+             fileNotExist: The file does not exist.
+             vrfError: Invalid VRF name.
+             ipOrPortError: Destination IP or port is unreachable.
+             noMatchPlatform: The package cannot be applied to the current 
+             platform.
+             nameLong: The path or file name is too long.
+             copyFailed: Copying file failed.
+             abort: Abort.
+             noMoreSqu: Can not add more than 7 SQUASH packages or sets.
+             existSameVersionPackage: There is a same version of package in the 
+             system.
+             waitingFileSyncTimeout: Waiting for file synchronization timeout.
+             digitalCertificateInvalid: Invalid digital certificate.
+             digitalSignNotExist: No digital signature.
+             digitalSignVerificationFailed: Digital signature verification failed."
+        ::= { zxr10SoftwareInstallAdd 11 }    
+        
+    zxr10SwInstallAddFtpProgress  OBJECT-TYPE
+        SYNTAX      Integer32 (0..100|-1)  
+        UNITS       "percent"   
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "FTP download progress of installing a set or package.
+             -1 will be returned when zxr10SwInstallAddTransferType is 
+             storage(2)."
+        ::= { zxr10SoftwareInstallAdd 12 }
+
+     zxr10SwInstallAddFtpPort  OBJECT-TYPE
+        SYNTAX      Integer32 (1..65535)
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "FTP port for downloading set or package."
+        ::= { zxr10SoftwareInstallAdd 13 }        
+        
+--------------------------------------------------------------------------------
+-- 5. zxr10SoftwareInstallCommit                                                
+--------------------------------------------------------------------------------
+                                                                                
+    zxr10SoftwareInstallCommit 
+                        OBJECT IDENTIFIER ::= { zxr10SoftwareInstallObjects 2}  
+                               
+    zxr10SwInstallCommit  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            commit(1)
+            }
+        MAX-ACCESS  read-write  
+        STATUS      current         
+        DESCRIPTION
+            "Committing the current version."
+        ::= { zxr10SoftwareInstallCommit 1 }
+          
+    zxr10SwInstallCommitStatus  OBJECT-TYPE
+        SYNTAX      INTEGER    {
+            ready(1),
+            doing(2),
+            success(3),
+            failed(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Status of install committing."
+        ::= { zxr10SoftwareInstallCommit 2}  
+        
+   zxr10SwInstallCommitFailedReason  OBJECT-TYPE
+        SYNTAX  INTEGER  {   
+            success(1),
+            unknownErr(2),
+            noMem(3),
+            pending(4),
+            executing(5),
+            cmdNotFinish(6),
+            sysBusy(7),
+            writeBootFailed(8),
+            wrongState(9),
+            preparingSync(10)
+            }  
+        MAX-ACCESS  read-only 
+        STATUS  current
+        DESCRIPTION
+            "Failure reason of install committed, description as follows:
+             success: Success.
+             unknownErr: Unknown error.
+             noMem: No enough memory.
+             pending: Pending.
+             executing: Executing.
+             cmdNotFinish: Can not process this command because other command 
+             is conflicted.
+             sysBusy: System busy.
+             WriteBootFailed: Writing boot file(s) failed.
+             wrongState: This operation is not allowed in this state.
+             preparingSync: The operation is forbidden while preparing for 
+             synchronization."
+        ::= { zxr10SoftwareInstallCommit 3 }        
+
+--------------------------------------------------------------------------------
+-- 6. zxr10FirmwareUpdateTable                                                  
+--------------------------------------------------------------------------------
+    zxr10FirmwareUpdateObjects 
+                           OBJECT IDENTIFIER ::= { zxr10SoftwareObjects 3 }  
+
+    zxr10FirmwareUpdateTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF Zxr10FirmwareUpdateEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The firmware updating operation table."
+        ::= { zxr10FirmwareUpdateObjects 2 }        
+
+    zxr10FirmwareUpdateEntry  OBJECT-TYPE
+        SYNTAX      Zxr10FirmwareUpdateEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The firmware updating operation entry."
+        INDEX  { zxr10FirmwareUpdateType, zxr10FirmwareUpdateRack, 
+                 zxr10FirmwareUpdateShelf, zxr10FirmwareUpdateSlot, 
+                 zxr10FirmwareUpdateCpu }
+        ::= { zxr10FirmwareUpdateTable 1 } 
+
+    Zxr10FirmwareUpdateEntry ::= SEQUENCE {
+        zxr10FirmwareUpdateType       INTEGER,
+        zxr10FirmwareUpdateRack       Integer32,
+        zxr10FirmwareUpdateShelf      Integer32,
+        zxr10FirmwareUpdateSlot       Integer32,
+        zxr10FirmwareUpdateCpu        Integer32,
+        zxr10FirmwareUpdateOperation  INTEGER,
+        zxr10FirmwareUpdateStatus     INTEGER
+        }
+        
+    zxr10FirmwareUpdateType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            epld(1), 
+            boot(2), 
+            mcu(3)
+            }
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Type of firmware to be upgraged."
+        ::= { zxr10FirmwareUpdateEntry 1 }
+         
+    zxr10FirmwareUpdateRack  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Rack number of system unit."
+        ::= { zxr10FirmwareUpdateEntry 2 }     
+        
+    zxr10FirmwareUpdateShelf  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Shelf number of system unit."
+        ::= { zxr10FirmwareUpdateEntry 3 }
+
+    zxr10FirmwareUpdateSlot  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Slot number of system unit."
+        ::= { zxr10FirmwareUpdateEntry 4 }
+
+    zxr10FirmwareUpdateCpu  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "CPU number of system unit."
+        ::= { zxr10FirmwareUpdateEntry 5 } 
+                 
+    zxr10FirmwareUpdateOperation  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            update(1)
+            }
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "Operation of updating."
+        ::= { zxr10FirmwareUpdateEntry 6 }
+          
+    zxr10FirmwareUpdateStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            notStart(1),
+            success(2),
+            updating(3),
+            notSupport(4),
+            fileNotExist(5),
+            sameVersion(6),
+            loadFailed(7),
+            verifyFailed(8),
+            otherErrors(9),
+            needReset(10)
+            }
+        MAX-ACCESS  read-only  
+        STATUS      current
+        DESCRIPTION
+            "Status of updating."
+        ::= { zxr10FirmwareUpdateEntry 7 }
+
+--------------------------------------------------------------------------------
+-- 7. zxr10FirmwareBatchUpdateTable                                             
+--------------------------------------------------------------------------------
+
+    zxr10FirmwareBatchUpdateTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF Zxr10FirmwareBatchUpdateEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The firmware batch updating operation table."
+        ::= { zxr10FirmwareUpdateObjects 3 }        
+
+    zxr10FirmwareBatchUpdateEntry  OBJECT-TYPE
+        SYNTAX      Zxr10FirmwareBatchUpdateEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The firmware batch updating operation entry."
+        INDEX  { zxr10FirmwareBatchUpdateType }
+        ::= { zxr10FirmwareBatchUpdateTable 1 } 
+
+    Zxr10FirmwareBatchUpdateEntry ::= SEQUENCE {
+        zxr10FirmwareBatchUpdateType       INTEGER,
+        zxr10FirmwareBatchUpdateOperate    INTEGER
+        }
+        
+    zxr10FirmwareBatchUpdateType  OBJECT-TYPE
+        SYNTAX  INTEGER {
+            epld(1), 
+            boot(2)
+            }
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Type of firmware to be updated."
+        ::= { zxr10FirmwareBatchUpdateEntry 1 }
+                 
+    zxr10FirmwareBatchUpdateOperate  OBJECT-TYPE
+        SYNTAX  INTEGER {
+             update(1)
+             }
+        MAX-ACCESS  read-write 
+        STATUS      current
+        DESCRIPTION
+            "Operation of updating."
+        ::= { zxr10FirmwareBatchUpdateEntry 2 }
+
+--------------------------------------------------------------------------------
+-- 8. zxr10SoftwarePatchInfoTable
+--------------------------------------------------------------------------------
+    zxr10SoftwarePatchInfoObjects 
+                           OBJECT IDENTIFIER ::= { zxr10SoftwareObjects 4 }
+
+    zxr10SoftwarePatchInfoTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF Zxr10SoftwarePatchInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The patch information table."
+        ::= { zxr10SoftwarePatchInfoObjects 2 }
+
+    zxr10SoftwarePatchInfoEntry  OBJECT-TYPE
+        SYNTAX      Zxr10SoftwarePatchInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The patch information entry."
+        INDEX  { zxr10SoftwarePatchDisplayName, zxr10SoftwarePatchBelongTo}
+        ::= { zxr10SoftwarePatchInfoTable 1 }
+
+    Zxr10SoftwarePatchInfoEntry ::= SEQUENCE {
+        zxr10SoftwarePatchDisplayName      DisplayString,
+        zxr10SoftwarePatchBelongTo         DisplayString,
+        zxr10SoftwarePatchType             INTEGER,
+        zxr10SoftwarePatchVersion          DisplayString,
+        zxr10SoftwarePatchStatus           INTEGER,
+        zxr10SoftwarePatchAddTime          DateAndTime,
+        zxr10SoftwarePatchOperation        INTEGER,
+        zxr10SoftwarePatchSize             Unsigned32,
+        zxr10SoftwarePatchBuildTime        DateAndTime,
+        zxr10SoftwarePatchMatch            INTEGER,
+        zxr10SoftwarePatchOperStatus       INTEGER,
+        zxr10SoftwarePatchFailReason       INTEGER,
+        zxr10SoftwarePatchRowStatus        RowStatus
+        }
+
+    zxr10SoftwarePatchDisplayName  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "The full name of the patch."
+        ::= { zxr10SoftwarePatchInfoEntry 1 }
+
+    zxr10SoftwarePatchBelongTo  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "The patch package name of the patch belonging to."
+        ::= { zxr10SoftwarePatchInfoEntry 2 }
+
+    zxr10SoftwarePatchType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            hotPatch(1),
+            coldPatch(2)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "The type of the patch."
+        ::= { zxr10SoftwarePatchInfoEntry 3 }
+
+    zxr10SoftwarePatchVersion  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "The version of the patch."
+        ::= { zxr10SoftwarePatchInfoEntry 4 }
+
+    zxr10SoftwarePatchStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            added(1),
+            committed(2),
+            activated(3),
+            deactivated(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "The status of the patch."
+        ::= { zxr10SoftwarePatchInfoEntry 5 }
+
+    zxr10SoftwarePatchAddTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "The added time of the patch."
+        ::= { zxr10SoftwarePatchInfoEntry 6 } 
+
+    zxr10SoftwarePatchOperation  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            activate(1),
+            deactivate(2)
+            }
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "Operation of the patch."
+        ::= { zxr10SoftwarePatchInfoEntry 7 } 
+
+    zxr10SoftwarePatchSize  OBJECT-TYPE
+        SYNTAX      Unsigned32 (1..4294967295)
+        UNITS       "Bytes"
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Size of the patch."
+        ::= { zxr10SoftwarePatchInfoEntry 8 }
+
+    zxr10SoftwarePatchBuildTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Building time of the patch."
+        ::= { zxr10SoftwarePatchInfoEntry 9 }
+
+    zxr10SoftwarePatchMatch  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            yes(1),
+            no(2)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Whether the patch and the version match."
+        ::= { zxr10SoftwarePatchInfoEntry 10 }
+
+    zxr10SoftwarePatchOperStatus  OBJECT-TYPE
+        SYNTAX      INTEGER  {
+            ready(1),
+            doing(2),
+            success(3),
+            failed(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Status of operating patch ."
+        ::= { zxr10SoftwarePatchInfoEntry 11 }
+
+    zxr10SoftwarePatchFailReason    OBJECT-TYPE
+        SYNTAX      INTEGER  {
+            success(1),
+            unknownErr(2),
+            noMem(3),
+            pending(4),
+            executing(5),
+            cmdNotFinish(6),
+            notSupport(7),
+            pkgNotExist(8),
+            pkgActivated(9),
+            pkgNotActivated(10),
+            unmatchMajorVer(11),
+            runVerSyn(12),
+            notMeetDepend(13),
+            actConflict(14)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Failure reason of opterating package, description as follows:
+             success: Success.
+             unknownErr: Unknown error.
+             noMem: No enough memory.
+             pending: Pending.
+             executing: Executing.
+             cmdNotFinish: Can not process this command because other command  is conflicted.
+             notSupport: The function does not support.
+             pkgNotExist: The package does not exist.
+             pkgActivated: The package has been activated.
+             pkgNotActivated: The package has not been activated.
+             unmatchMajorVer: Unmatched major version.
+             runVerSyn: Version file(s) synchronization is being executed.
+             notMeetDepend: The package does not meet the dependence.
+             actConflict: The package conflicted with the packages which have been activated."
+        ::= { zxr10SoftwarePatchInfoEntry 12 }
+
+    zxr10SoftwarePatchRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'destroy'.
+
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxr10SoftwarePatchInfoEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 9. zxr10SoftwarePatchPkgInfoTable
+--------------------------------------------------------------------------------
+    zxr10SoftwarePatchPkgInfoTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF Zxr10SoftwarePatchPkgInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The patch package information table."
+        ::= { zxr10SoftwarePatchInfoObjects 3 }
+
+    zxr10SoftwarePatchPkgInfoEntry  OBJECT-TYPE
+        SYNTAX      Zxr10SoftwarePatchPkgInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The patch package information entry."
+        INDEX  { zxr10SoftwarePatchPkgName }
+        ::= { zxr10SoftwarePatchPkgInfoTable 1 }
+
+    Zxr10SoftwarePatchPkgInfoEntry ::= SEQUENCE {
+        zxr10SoftwarePatchPkgName             DisplayString,
+        zxr10SoftwarePatchPkgType             INTEGER,
+        zxr10SoftwarePatchPkgVersion          DisplayString,
+        zxr10SoftwarePatchPkgOperation        INTEGER,
+        zxr10SoftwarePatchPkgSize             Unsigned32,
+        zxr10SoftwarePatchPkgBuildTime        DateAndTime,
+        zxr10SoftwarePatchPkgOperStatus       INTEGER,
+        zxr10SoftwarePatchPkgFailReason       INTEGER,
+        zxr10SoftwarePatchPkgRowStatus        RowStatus
+        }
+
+    zxr10SoftwarePatchPkgName  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Full name of the patch package."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 1 }
+
+    zxr10SoftwarePatchPkgType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            patch(3),
+            patchPkg(7),
+            wholePatchPkg(8)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "The type of patch package."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 2 }
+
+    zxr10SoftwarePatchPkgVersion  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The version of patch package."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 3 }
+
+    zxr10SoftwarePatchPkgOperation  OBJECT-TYPE
+        SYNTAX  INTEGER {
+            activate(1),
+            deactivate(2)
+            }
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "The operation of the patch package."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 4 }
+
+    zxr10SoftwarePatchPkgSize  OBJECT-TYPE
+        SYNTAX      Unsigned32 (1..4294967295)
+        UNITS       "Bytes"
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Size of the patch package."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 5 }
+
+    zxr10SoftwarePatchPkgBuildTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Building time of the patch package."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 6 }
+
+    zxr10SoftwarePatchPkgOperStatus  OBJECT-TYPE
+        SYNTAX      INTEGER  {
+            ready(1),
+            doing(2),
+            success(3),
+            failed(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Status of operating patch package."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 7 }
+
+    zxr10SoftwarePatchPkgFailReason    OBJECT-TYPE
+        SYNTAX      INTEGER  {   
+            success(1),
+            unknownErr(2),
+            noMem(3),
+            pending(4),
+            executing(5),
+            cmdNotFinish(6),
+            notSupport(7),
+            pkgNotExist(8),
+            pkgActivated(9),
+            pkgNotActivated(10),
+            unmatchMajorVer(11),
+            runVerSyn(12),
+            notMeetDepend(13),
+            actConflict(14)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "Failure reason of opterating package, description as follows:
+             success: Success.
+             unknownErr: Unknown error.
+             noMem: No enough memory.
+             pending: Pending.
+             executing: Executing.
+             cmdNotFinish: Can not process this command because other command  is conflicted.
+             notSupport: The function does not support.
+             pkgNotExist: The package does not exist.
+             pkgActivated: The package has been activated.
+             pkgNotActivated: The package has not been activated.
+             unmatchMajorVer: Unmatched major version.
+             runVerSyn: Version file(s) synchronization is being executed.
+             notMeetDepend: The package does not meet the dependence.
+             actConflict: The package conflicted with the packages which have been activated."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 8 }
+
+    zxr10SoftwarePatchPkgRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create 
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'destroy'.
+
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxr10SoftwarePatchPkgInfoEntry 50 }  
+--------------------------------------------------------------------------------
+-- 10. zxr10SwPatchEffectiveInfoTable
+--------------------------------------------------------------------------------
+    zxr10SwPatchEffectiveInfoTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF Zxr10SwPatchEffectiveInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The patch effective information table."
+        ::= { zxr10SoftwarePatchInfoObjects 4 }
+
+    zxr10SwPatchEffectiveInfoEntry  OBJECT-TYPE
+        SYNTAX      Zxr10SwPatchEffectiveInfoEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The patch effective information entry."
+        INDEX  { zxr10SwPatchEffectiveRack, zxr10SwPatchEffectiveShelf, 
+                 zxr10SwPatchEffectiveSlot, zxr10SwPatchEffectiveCpu, 
+                 zxr10SwPatchEffectiveDisplayName}
+        ::= { zxr10SwPatchEffectiveInfoTable 1 }
+
+    Zxr10SwPatchEffectiveInfoEntry ::= SEQUENCE { 
+        zxr10SwPatchEffectiveRack             Integer32,
+        zxr10SwPatchEffectiveShelf            Integer32,
+        zxr10SwPatchEffectiveSlot             Integer32,
+        zxr10SwPatchEffectiveCpu              Integer32,
+        zxr10SwPatchEffectiveDisplayName      DisplayString,
+        zxr10SwPatchEffectiveStatus           INTEGER,
+        zxr10SwPatchEffectiveBelongTo         DisplayString
+        }
+
+    zxr10SwPatchEffectiveRack  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Rack number of the system unit."
+        ::= { zxr10SwPatchEffectiveInfoEntry 1 }
+
+    zxr10SwPatchEffectiveShelf  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Shelf number of the system unit."
+        ::= { zxr10SwPatchEffectiveInfoEntry 2 }
+
+    zxr10SwPatchEffectiveSlot  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "Slot number of the system unit."
+        ::= { zxr10SwPatchEffectiveInfoEntry 3 }
+    
+    zxr10SwPatchEffectiveCpu  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "CPU number of the system unit."
+        ::= { zxr10SwPatchEffectiveInfoEntry 4 }
+    
+     zxr10SwPatchEffectiveDisplayName  OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  not-accessible 
+        STATUS      current
+        DESCRIPTION
+            "The full name of the patch."
+        ::= { zxr10SwPatchEffectiveInfoEntry 5 }
+
+    zxr10SwPatchEffectiveStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            effective(1),
+            executing(2),
+            failed(3),
+            waitingForRestart(4)
+            }
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "The effective status of the patch."
+        ::= { zxr10SwPatchEffectiveInfoEntry 6 }
+
+    zxr10SwPatchEffectiveBelongTo      OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-only 
+        STATUS      current
+        DESCRIPTION
+            "The patch package name of the patch belonging to."
+        ::= { zxr10SwPatchEffectiveInfoEntry 7 }
+END

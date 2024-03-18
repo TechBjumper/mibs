@@ -1,0 +1,677 @@
+ZTE-AN-IPTV-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, 
+    Integer32,IpAddress                                 FROM SNMPv2-SMI
+    OBJECT-GROUP,MODULE-COMPLIANCE                      FROM SNMPv2-CONF
+    InetAddress,InetAddressType                         FROM INET-ADDRESS-MIB
+    DisplayString,RowStatus,DateAndTime                 FROM SNMPv2-TC
+    ZxAnPortList,ZxAnIdList                             FROM ZTE-AN-TC-MIB
+    ifIndex                                             FROM IF-MIB
+    zxAnSubIfIndex                                      FROM ZTE-AN-IF-MIB
+    zxAnMulticast                                       FROM ZTE-AN-SMI;
+
+    zxAnIptvMib MODULE-IDENTITY
+        LAST-UPDATED    "201306081600Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Hu Qiong  ZTE Corporation
+                         Mail: hu.qiong2@zte.com.cn
+                         Tel : +86-21-68897487"
+        DESCRIPTION     
+            "This MIB defines managed objects of zte IPTV service."
+        REVISION        "201306081600Z"
+        DESCRIPTION     
+            "Initial version of this MIB module."
+        ::= {zxAnMulticast 20}   
+
+-------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1. IPTV Global Objects
+-- 1.100 zxAnIptvCapabilities
+-- 2. IPTV Objects
+-- 2.1 zxAnIptvPreviewObjects
+-- 2.1.1 zxAnIptvPrwGlobalObjects
+-- 2.1.2 zxAnIptvPrwProfileConfTable
+-- 2.2 zxAnIptvChannelObjects
+-- 2.2.2 zxAnIptvChannelTable
+-- 2.3 zxAnIptvPackageObjects
+-- 2.3.2 zxAnIptvPkgTable
+-- 2.3.3 zxAnIptvPkgChannelTable
+-- 2.4 zxAnIptvIfObjects
+-- 2.4.1 zxAnIptvIfGlobalObjects
+-- 2.4.2 zxAnIptvIfTable
+-- 2.4.3 zxAnIptvIfPkgTable
+-- 2.5 zxAnIptvCdrObjects
+-- 4. IPTV Conformance Information
+-------------------------------------------------------------------------------
+
+    zxAnIptvGlobalObjects         
+        OBJECT IDENTIFIER ::= {zxAnIptvMib 1}
+    zxAnIptvObjects           
+        OBJECT IDENTIFIER ::= {zxAnIptvMib 2}
+    zxAnIptvConformance           
+        OBJECT IDENTIFIER ::= {zxAnIptvMib 4}
+    
+    zxAnIptvPreviewObjects            
+        OBJECT IDENTIFIER ::= {zxAnIptvObjects 1}
+    zxAnIptvChannelObjects               
+        OBJECT IDENTIFIER ::= {zxAnIptvObjects 2}
+    zxAnIptvPackageObjects               
+        OBJECT IDENTIFIER ::= {zxAnIptvObjects 3}
+    zxAnIptvIfObjects                  
+        OBJECT IDENTIFIER ::= {zxAnIptvObjects 4}
+    zxAnIptvCdrObjects                  
+        OBJECT IDENTIFIER ::= {zxAnIptvObjects 5}
+
+-------------------------------------------------------------------------------
+-- 1. IPTV Global Objects
+-------------------------------------------------------------------------------       
+-------------------------------------------------------------------------------
+-- 1.100 zxAnIptvCapabilities
+-------------------------------------------------------------------------------
+    zxAnIptvCapabilities OBJECT-TYPE
+        SYNTAX      BITS {
+            supportChannelGrpIpSrcIpFixedLen(0)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The IPTV compatibility.
+             The bit value 1 means the function represented by this bit is 
+             supported by this equipment.
+             bit 0: value 1 means supporting zxAnIptvChannelGrpIpAddr and 
+                    zxAnIptvChannelSrcIpAddr are configured by 
+                    OCTET STRING(SIZE(4)) for IPv4.
+             NOTE: No recommended to display it in NMS." 
+        ::= { zxAnIptvGlobalObjects  100 }
+
+-------------------------------------------------------------------------------
+-- 2. IPTV Objects
+-------------------------------------------------------------------------------        
+-------------------------------------------------------------------------------
+-- 2.1 zxAnIptvPreviewObjects
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- 2.1.1 zxAnIptvPrwGlobalObjects
+-------------------------------------------------------------------------------
+
+    zxAnIptvPrwGlobalObjects
+        OBJECT IDENTIFIER ::= {zxAnIptvPreviewObjects 1}
+   
+    zxAnIptvPrwEnable OBJECT-TYPE
+        SYNTAX    INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "Enable/disable IPTV preview service."
+        DEFVAL { enabled }             
+        ::= { zxAnIptvPrwGlobalObjects 1 }
+         
+    zxAnIptvPrwTimesManualReset OBJECT-TYPE
+        SYNTAX    INTEGER {
+            reset(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS current
+        DESCRIPTION
+            "Reset preview times manually.
+            When get this variable, always return 1."
+        ::= { zxAnIptvPrwGlobalObjects 2 }
+
+    zxAnIptvPrwTimesAutoResetTime OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Time to reset preview times automatically every day. 
+            For example:HH:MM:SS.(02:22:33)."
+        ::= { zxAnIptvPrwGlobalObjects 3 }
+
+-------------------------------------------------------------------------------
+-- 2.1.2 zxAnIptvPrwProfileConfTable
+-------------------------------------------------------------------------------
+
+    zxAnIptvPrwProfileConfTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnIptvPrwProfileConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "A table that contains IPTV preview profiles."
+        ::= { zxAnIptvPreviewObjects 2 }
+
+    zxAnIptvPrwProfileConfEntry OBJECT-TYPE
+        SYNTAX ZxAnIptvPrwProfileConfEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "IPTV preview profiles entry."
+        INDEX {zxAnIptvPrwProfileName }
+        ::= { zxAnIptvPrwProfileConfTable 1 }
+
+    ZxAnIptvPrwProfileConfEntry  ::= SEQUENCE {
+        zxAnIptvPrwProfileName              DisplayString,
+        zxAnIptvPrwMaxPrwTimes              Integer32,
+        zxAnIptvPrwMaxPrwDuration           Integer32,
+        zxAnIptvPrwBlackoutInterval         Integer32,
+        zxAnIptvPrwRecognizeTime            Integer32,
+        zxAnIptvPrwProfileRowStatus         RowStatus
+    }
+            
+    zxAnIptvPrwProfileName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Preview profile name."
+        ::= {zxAnIptvPrwProfileConfEntry 1 }      
+        
+    zxAnIptvPrwMaxPrwTimes OBJECT-TYPE
+        SYNTAX      Integer32(1..100)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Maximum preview times for channels."
+        DEFVAL { 3 }
+        ::= {zxAnIptvPrwProfileConfEntry 2 }      
+        
+    zxAnIptvPrwMaxPrwDuration OBJECT-TYPE
+        SYNTAX      Integer32(1..6000)
+        UNITS       "seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Maximum duration for channels per preview."
+        DEFVAL { 120 }
+        ::= {zxAnIptvPrwProfileConfEntry 3 }      
+
+    zxAnIptvPrwBlackoutInterval OBJECT-TYPE
+        SYNTAX      Integer32(1..7200)
+        UNITS       "seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Blackout interval of preview for channels."
+        DEFVAL { 60 }
+        ::= {zxAnIptvPrwProfileConfEntry 4 }
+         
+    zxAnIptvPrwRecognizeTime OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "seconds"
+        MAX-ACCESS  read-create
+        STATUS current
+        DESCRIPTION
+            "Time used to recognize valid previews or view requests."
+        DEFVAL { 20 }
+        ::= { zxAnIptvPrwProfileConfEntry 5 }
+        
+    zxAnIptvPrwProfileRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnIptvPrwProfileConfEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnIptvPrwProfileConfEntry 50 }
+        
+-------------------------------------------------------------------------------
+-- 2.2 zxAnIptvChannelObjects
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- 2.2.2 zxAnIptvChannelTable
+-------------------------------------------------------------------------------
+
+    zxAnIptvChannelTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnIptvChannelEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "A table that contains IPTV channels."
+        ::= { zxAnIptvChannelObjects 2 }
+ 
+    zxAnIptvChannelEntry OBJECT-TYPE
+        SYNTAX          ZxAnIptvChannelEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "IPTV channels entry."
+        INDEX  { zxAnIptvChannelName }
+        ::= { zxAnIptvChannelTable 1 }
+
+    ZxAnIptvChannelEntry  ::= SEQUENCE {
+        zxAnIptvChannelName               DisplayString,
+        zxAnIptvChannelMVid               Integer32,
+        zxAnIptvChannelGrpIpAddrType      InetAddressType,
+        zxAnIptvChannelGrpIpAddr          InetAddress,
+        zxAnIptvChannelSrcIpAddrType      InetAddressType,
+        zxAnIptvChannelSrcIpAddr          InetAddress,
+        zxAnIptvChannelPrwProfile         DisplayString,
+        zxAnIptvChannelCdrEnable          INTEGER,
+        zxAnIptvChannelRowStatus          RowStatus       
+    }
+         
+    zxAnIptvChannelName OBJECT-TYPE
+        SYNTAX          DisplayString(SIZE(1..32))
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "IPTV channel name."
+        ::= { zxAnIptvChannelEntry 1 }   
+             
+    zxAnIptvChannelMVid     OBJECT-TYPE
+        SYNTAX              Integer32(1..4094)
+        MAX-ACCESS          read-create
+        STATUS              current
+        DESCRIPTION
+            "IPTV channel MVLAN ID."
+        ::= { zxAnIptvChannelEntry 2 }
+         
+    zxAnIptvChannelGrpIpAddrType OBJECT-TYPE
+        SYNTAX          InetAddressType
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "IP address type of channel group."            
+        DEFVAL { ipv4 }            
+        ::= { zxAnIptvChannelEntry 3 }
+        
+    zxAnIptvChannelGrpIpAddr     OBJECT-TYPE
+        SYNTAX          InetAddress
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "IP address of channel group."
+        ::= { zxAnIptvChannelEntry 4 }
+         
+    zxAnIptvChannelSrcIpAddrType OBJECT-TYPE
+        SYNTAX          InetAddressType
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "IP address type of of channel source."
+        DEFVAL { ipv4 }            
+        ::= { zxAnIptvChannelEntry 5 }
+
+    zxAnIptvChannelSrcIpAddr     OBJECT-TYPE
+        SYNTAX          InetAddress
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "IP address of channel source.
+            The value 'FFFFFFFF'h means channel source IP address is not 
+            configured in case of IPv4.
+            The value 'FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF'h means channel 
+            source IP address is not configured in case of IPv6."
+        DEFVAL { 'FFFFFFFF'h } 
+        ::= { zxAnIptvChannelEntry 6 }
+         
+    zxAnIptvChannelPrwProfile    OBJECT-TYPE
+        SYNTAX          DisplayString(SIZE(1..32))
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "Preview profile associated with current channel."
+        ::= { zxAnIptvChannelEntry 7}
+        
+    zxAnIptvChannelCdrEnable OBJECT-TYPE
+        SYNTAX    INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS    read-create
+        STATUS        current
+        DESCRIPTION
+            "Enable/disable IPTV channel CDR service."
+        DEFVAL { enabled }             
+        ::= { zxAnIptvChannelEntry 8 }
+         
+    zxAnIptvChannelRowStatus OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnIptvChannelEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnIptvChannelEntry 50 }
+        
+-------------------------------------------------------------------------------
+-- 2.3 zxAnIptvPackageObjects
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- 2.3.2 zxAnIptvPkgTable
+-------------------------------------------------------------------------------
+
+    zxAnIptvPkgTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnIptvPkgEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "A table that contains IPTV packages."
+        ::= { zxAnIptvPackageObjects 2 }
+
+    zxAnIptvPkgEntry OBJECT-TYPE
+        SYNTAX          ZxAnIptvPkgEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "IPTV packages entry."
+        INDEX {zxAnIptvPkgName }
+        ::= { zxAnIptvPkgTable 1 }
+
+    ZxAnIptvPkgEntry  ::= SEQUENCE {
+        zxAnIptvPkgName           DisplayString,
+        zxAnIptvPkgStartTime      DateAndTime,
+        zxAnIptvPkgEndTime        DateAndTime,
+        zxAnIptvPkgRowStatus      RowStatus
+    }
+                 
+    zxAnIptvPkgName OBJECT-TYPE
+        SYNTAX      DisplayString(SIZE(1..32))
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Package name."
+        ::= { zxAnIptvPkgEntry 1 }
+         
+    zxAnIptvPkgStartTime OBJECT-TYPE
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "Package starting time.
+            Note: It means no time limit if the value of this object is empty."
+        DEFVAL { "" }
+        ::= { zxAnIptvPkgEntry 2 }
+         
+    zxAnIptvPkgEndTime OBJECT-TYPE
+        SYNTAX          DateAndTime
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "Package ending time.
+            Note: It means no time limit if the value of this object is empty."
+        DEFVAL { "" }
+        ::= { zxAnIptvPkgEntry 3 }
+
+    zxAnIptvPkgRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnIptvPkgEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnIptvPkgEntry 50 }
+         
+-------------------------------------------------------------------------------
+-- 2.3.3 zxAnIptvPkgChannelTable
+-------------------------------------------------------------------------------
+       
+    zxAnIptvPkgChannelTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnIptvPkgChannelEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "A table that contains list of channels in a package."
+        ::= { zxAnIptvPackageObjects 3 }
+
+    zxAnIptvPkgChannelEntry OBJECT-TYPE
+        SYNTAX ZxAnIptvPkgChannelEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "List of IPTV channels in a package entry."
+        INDEX {zxAnIptvPkgName,zxAnIptvChannelName }
+        ::= { zxAnIptvPkgChannelTable 1 }
+
+    ZxAnIptvPkgChannelEntry  ::= SEQUENCE {
+        zxAnIptvPkgChannelAccessRight    INTEGER,
+        zxAnIptvPkgChannelRowStatus      RowStatus
+    }
+    
+    zxAnIptvPkgChannelAccessRight OBJECT-TYPE
+        SYNTAX      INTEGER {
+            deny(1),
+            view(2),
+            preview(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "IPTV channel access right."
+        DEFVAL { preview }
+        ::= { zxAnIptvPkgChannelEntry 1 }
+
+    zxAnIptvPkgChannelRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnIptvPkgChannelEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnIptvPkgChannelEntry 50 }
+              
+-------------------------------------------------------------------------------
+-- 2.4 zxAnIptvIfObjects
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- 2.4.1 zxAnIptvIfGlobalObjects
+-------------------------------------------------------------------------------
+    zxAnIptvIfGlobalObjects   OBJECT IDENTIFIER ::= {zxAnIptvIfObjects 1}
+
+    zxAnIptvIfGlobalAccessCtrlEnable OBJECT-TYPE
+        SYNTAX    INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION
+            "Enable/disable IPTV service of all ports."
+        DEFVAL { disabled }
+        ::= { zxAnIptvIfGlobalObjects 1 }
+
+-------------------------------------------------------------------------------
+-- 2.4.2 zxAnIptvIfTable
+-------------------------------------------------------------------------------
+      
+    zxAnIptvIfTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnIptvIfEntry 
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION                    
+            "A table that contains IPTV information of a port."
+        ::= { zxAnIptvIfObjects 2 }
+
+    zxAnIptvIfEntry  OBJECT-TYPE
+        SYNTAX          ZxAnIptvIfEntry 
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "A list of entries of zxAnIptvIfTable."
+        INDEX  { ifIndex, zxAnSubIfIndex }
+        ::= { zxAnIptvIfTable 1 }
+
+    ZxAnIptvIfEntry  ::= SEQUENCE {
+        zxAnIptvIfAccessCtrlEnable     INTEGER,
+        zxAnIptvIfAuthenticationEnable INTEGER
+    } 
+
+    zxAnIptvIfAccessCtrlEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable IPTV service of a port."
+        DEFVAL { disabled }
+        ::= { zxAnIptvIfEntry 1 }
+
+    zxAnIptvIfAuthenticationEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable or disable the authentication."
+        DEFVAL { enabled }
+        ::= { zxAnIptvIfEntry 3 }
+        
+-------------------------------------------------------------------------------
+-- 2.4.3 zxAnIptvIfPkgTable
+-------------------------------------------------------------------------------
+         
+    zxAnIptvIfPkgTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF ZxAnIptvIfPkgEntry 
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "A table that contains list of IPTV packages of a port."
+        ::= { zxAnIptvIfObjects 3 }
+
+    zxAnIptvIfPkgEntry  OBJECT-TYPE
+        SYNTAX          ZxAnIptvIfPkgEntry 
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION
+            "List of IPTV packages of a port entry."
+        INDEX  { ifIndex, zxAnSubIfIndex, zxAnIptvPkgName  }
+        ::= { zxAnIptvIfPkgTable 1 }
+
+    ZxAnIptvIfPkgEntry  ::= SEQUENCE {
+        zxAnIptvIfPkgRowStatus      RowStatus
+    }
+    
+    zxAnIptvIfPkgRowStatus OBJECT-TYPE
+        SYNTAX          RowStatus
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnIptvIfPkgEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnIptvIfPkgEntry 50 }
+                    
+-------------------------------------------------------------------------------
+-- 4. IPTV Conformance Information
+-------------------------------------------------------------------------------
+    zxAnIptvCompliances      
+        OBJECT IDENTIFIER ::= {zxAnIptvConformance 1}
+    zxAnIptvGroups           
+        OBJECT IDENTIFIER ::= {zxAnIptvConformance 2}
+
+    zxAnIptvCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities 
+            which implement the ZTE-AN-IPTV-MIB."
+        MODULE
+            MANDATORY-GROUPS {
+                zxAnIptvCacGroup,
+                zxAnIptvUserGroup
+            }
+        ::= { zxAnIptvCompliances 1 }
+        
+
+    zxAnIptvCacGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnIptvPrwEnable,
+            zxAnIptvPrwTimesManualReset,
+            zxAnIptvPrwTimesAutoResetTime,
+            zxAnIptvPrwMaxPrwTimes,
+            zxAnIptvPrwMaxPrwDuration,
+            zxAnIptvPrwBlackoutInterval,
+            zxAnIptvPrwRecognizeTime,
+            zxAnIptvPrwProfileRowStatus,
+            zxAnIptvChannelMVid,
+            zxAnIptvChannelGrpIpAddrType,
+            zxAnIptvChannelGrpIpAddr,
+            zxAnIptvChannelSrcIpAddrType,
+            zxAnIptvChannelSrcIpAddr,
+            zxAnIptvChannelPrwProfile,
+            zxAnIptvChannelCdrEnable,
+            zxAnIptvChannelRowStatus,
+            zxAnIptvPkgStartTime,
+            zxAnIptvPkgEndTime,
+            zxAnIptvPkgRowStatus,
+            zxAnIptvPkgChannelAccessRight,
+            zxAnIptvPkgChannelRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing ctrl IPTV protocol cac 
+            information."
+        ::= { zxAnIptvGroups 2 }
+
+    zxAnIptvUserGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnIptvIfGlobalAccessCtrlEnable,
+            zxAnIptvIfAccessCtrlEnable,
+            zxAnIptvIfPkgRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing ctrl IPTV protocol user 
+            information."
+        ::= { zxAnIptvGroups 3 }
+           
+END

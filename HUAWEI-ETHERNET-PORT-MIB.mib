@@ -1,0 +1,664 @@
+	HUAWEI-ETHERNET-PORT-MIB DEFINITIONS ::= BEGIN
+
+		IMPORTS 
+			huaweiMgmt			
+				FROM HUAWEI-MIB			
+			ifIndex, InterfaceIndex
+				FROM IF-MIB					
+			 TimeTicks,OBJECT-TYPE
+				FROM SNMPv2-SMI			
+			TruthValue, MacAddress,RowStatus,TEXTUAL-CONVENTION			
+				FROM SNMPv2-TC;
+
+		hwEthernet MODULE-IDENTITY
+			LAST-UPDATED "200207080900Z"
+			ORGANIZATION
+				"HAUWEI MIB Standard community
+				 "
+			CONTACT-INFO
+				"
+			
+				"
+			DESCRIPTION
+				"V01-01-200207080900	
+				zengyonggang 26094/huawei, daiyuehua 20365/huawei, tongjian 28021/huawei, yuanminghui 31133/huawei, 
+					   qizhenglin 27958/huawei, liwei 24366/huawei, zhoushiyong 10726/huawei lichangcai 28618/huawei, 
+					   hebo 16103/huawei, xujinsong 19085/huawei, lvzhenfeng 18230/huawei, fuhongxun 29027/huawei, 
+					   dongqing 18889/huawei,lijin 22251/huawei, zhangshilin 28161/huawei, heqingjian 9730/huawei, 
+				          liuchenglong 25279/huawei			
+			        "
+			::= { huaweiMgmt 14 }
+		
+	
+			PortList ::= TEXTUAL-CONVENTION
+  				STATUS      current
+    				DESCRIPTION
+  				"Each octet within this value specifies a set of eight
+ 				       ports, with the first octet specifying ports 1 through
+				       8, the second octet specifying ports 9 through 16, etc.
+				        Within each octet, the most significant bit represents
+ 				       the lowest numbered port, and the least significant bit
+ 				       represents the highest numbered port.  Thus, each port
+ 				       of the bridge is represented by a single bit within the
+				        value of this object.  If that bit has a value of '1'
+				        then that port is included in the set of ports; the port
+				        is not included if its bit has a value of '0'."
+ 			      SYNTAX      OCTET STRING
+
+	
+			
+
+	
+		hwExtInterface OBJECT IDENTIFIER ::= { hwEthernet 2 }
+		
+		hwifXXTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwIfXXEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwExtInterface 1 }
+		
+		hwifXXEntry OBJECT-TYPE
+			SYNTAX HwIfXXEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"   "
+			INDEX { ifIndex }
+			::= { hwifXXTable 1 }
+		
+		HwIfXXEntry ::=
+			SEQUENCE { 				
+				hwifAggregatePort
+					INTEGER,
+				hwifMirrorPort
+					TruthValue,
+				hwifUnknowncastControl
+					INTEGER,
+				hwifMcastControl
+					INTEGER,
+				hwifFlowControl
+					TruthValue,
+				hwifSrcMacControl
+					TruthValue,
+				hwifClearStat
+					INTEGER
+			 }
+		
+		
+		hwifAggregatePort OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				noAggregatePort(1),     	 --
+				masterPort(2),	        	--
+				subPort(3)		        --
+				}
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwifXXEntry 1 }
+		
+		hwifMirrorPort OBJECT-TYPE
+			SYNTAX TruthValue
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwifXXEntry 2 }
+		
+		hwifUnknowncastControl	OBJECT-TYPE
+			SYNTAX INTEGER(5..100)
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwifXXEntry 3 }
+		
+		hwifMcastControl OBJECT-TYPE
+			SYNTAX INTEGER (5..100)
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwifXXEntry 4 }
+		
+		hwifFlowControl OBJECT-TYPE
+			SYNTAX TruthValue
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwifXXEntry 5 }
+		
+		hwifSrcMacControl OBJECT-TYPE
+			SYNTAX TruthValue
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwifXXEntry 6 }
+		
+		hwifClearStat OBJECT-TYPE
+			SYNTAX INTEGER { clear(1) }
+		        MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwifXXEntry 7 }
+		
+		hwifAggregateTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwIfAggregateEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwExtInterface 2 }
+		
+		hwifAggregateEntry OBJECT-TYPE
+			SYNTAX HwIfAggregateEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"   "
+			INDEX { hwifAggregateIndex }
+			::= { hwifAggregateTable 1 }
+		
+		HwIfAggregateEntry ::=
+			SEQUENCE { 
+				hwifAggregateIndex
+					InterfaceIndex,
+				hwifAggregatePortName
+					OCTET STRING,
+				hwifAggregatePortListPorts
+					PortList,
+				hwifAggregateModel
+					INTEGER,
+				hwifAggregateRowStatus
+					RowStatus
+			 }
+
+		hwifAggregateIndex	OBJECT-TYPE
+			SYNTAX InterfaceIndex
+			MAX-ACCESS  read-only
+			STATUS current
+			DESCRIPTION
+				" 
+"
+			::= { hwifAggregateEntry 1 }
+		
+		hwifAggregatePortName OBJECT-TYPE
+			SYNTAX OCTET STRING (SIZE (0..40))
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwifAggregateEntry 2 }
+		
+		hwifAggregatePortListPorts OBJECT-TYPE
+			SYNTAX PortList
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"
+				portlist of a aggregating."
+			::= { hwifAggregateEntry 3 }
+		
+		hwifAggregateModel OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				ingress(1),
+				ingressEgress(2),
+				roundRobin(3),
+				egress(4)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  Ingress(1) Ingress+egress(2) Round-robin(3) "
+			::= { hwifAggregateEntry 4 }
+		
+		hwifAggregateRowStatus OBJECT-TYPE
+			SYNTAX RowStatus
+			MAX-ACCESS read-create
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwifAggregateEntry 5 }
+		
+		hwL2IfMibObject OBJECT IDENTIFIER ::= { hwEthernet 1 }
+		
+		hwSlotPortMax OBJECT-TYPE
+			SYNTAX INTEGER
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"
+				Max ports of the slots"
+			::= { hwL2IfMibObject 1 }
+		
+		hwSwitchPortMax OBJECT-TYPE
+			SYNTAX INTEGER
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				"
+				
+				Max ports that this switch include"
+			::= { hwL2IfMibObject 2 }
+	
+		hwMacExpire OBJECT-TYPE
+			SYNTAX TimeTicks
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION 
+			" 
+			"
+			::= { hwL2IfMibObject 3 }
+			
+			
+		
+		hwEthernetTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwEthernetEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"   "
+			::= { hwL2IfMibObject 4 }
+		
+		hwEthernetEntry OBJECT-TYPE
+			SYNTAX HwEthernetEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				"    "
+			INDEX { ifIndex }
+			::= { hwEthernetTable 1 }
+		
+		HwEthernetEntry ::=
+			SEQUENCE { 
+				hwifEthernetDuplex
+					INTEGER,
+				hwifEthernetMTU
+					INTEGER,
+				hwifEthernetSpeed
+					INTEGER,
+				hwifEthernetLoopback
+					INTEGER,
+				hwifEthernetMdi
+					INTEGER,
+				hwMaxMacLearn
+					INTEGER,
+				hwifMacAddressLearn
+					INTEGER,
+				hwifTag
+					INTEGER,
+				hwifEthernetPeerNegotiate
+					TruthValue,
+				hwifEthernetNegotiate
+					TruthValue,
+				hwifEthernetPauseFrameTag
+					TruthValue,
+				hwifEthernetPauseFrameSending
+					TruthValue,
+				hwifEthernetVlanDefault
+					INTEGER,
+				hwifEthernetOnlineState
+					TruthValue,
+				hwifEthernetLineSelfAdaptMode
+				        INTEGER
+			 }
+
+		hwifEthernetDuplex OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				full(1),
+				half(2),
+				auto(3)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwEthernetEntry 1 }
+		
+		hwifEthernetMTU OBJECT-TYPE
+			SYNTAX INTEGER (0..1600)
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  MTU  "
+			::= { hwEthernetEntry 2 }
+		
+		hwifEthernetSpeed OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				auto(0),
+				s10M(10),
+				s100M(100),
+				s1000M(1000)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwEthernetEntry 3 }
+		
+		hwifEthernetLoopback OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				noloopback(1),
+				internalloopback(2),
+				externalloopback(3)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  Noloopback        0 Internalloopback   1  externalloopback   2 "
+			::= { hwEthernetEntry 4 }
+		
+		hwifEthernetMdi OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				mdiII(1),
+				mdiX(2),
+				mdiAuto(3)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  MDI-II-1  MDI-X-2  MDI-AUTO-3 "
+			::= { hwEthernetEntry 5 }
+		
+		hwMaxMacLearn OBJECT-TYPE
+			SYNTAX INTEGER (0..600 | 65535)
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"  "
+			::= { hwEthernetEntry 6 }
+		
+		hwifMacAddressLearn OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				enabled(1),
+				disabled(2)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				"
+				Status indicates if the interface is
+				allowed to learn mac address. eanbled(1) means the
+				interface can learn mac address, otherwise disabled(2)
+				can be setted. "
+			::= { hwEthernetEntry 7 }
+		
+		hwifTag	OBJECT-TYPE
+			SYNTAX INTEGER { 
+				tag(1),    
+				untag(2),
+				multi(3)}  --
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwEthernetEntry 8 }
+	
+		hwifEthernetNegotiate	OBJECT-TYPE
+			SYNTAX TruthValue
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwEthernetEntry 9 }
+	
+		hwifEthernetPeerNegotiate	OBJECT-TYPE
+			SYNTAX TruthValue
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwEthernetEntry 10 }
+
+		hwifEthernetPauseFrameTag OBJECT-TYPE
+    			SYNTAX      TruthValue 
+    			MAX-ACCESS  read-write
+    			STATUS      current
+    			DESCRIPTION
+				" "
+    			::={ hwEthernetEntry 11 }
+		
+		hwifEthernetPauseFrameSending OBJECT-TYPE
+    			SYNTAX      TruthValue 
+    			MAX-ACCESS  read-only
+    			STATUS      current
+    			DESCRIPTION
+				" "
+    			::={ hwEthernetEntry 12 }
+
+
+		hwifEthernetVlanDefault	OBJECT-TYPE
+    			SYNTAX INTEGER
+    			MAX-ACCESS  read-write
+    			STATUS      current
+    			DESCRIPTION
+				" "
+    			::={ hwEthernetEntry 13 }
+    			    			
+		hwifEthernetOnlineState OBJECT-TYPE
+    			SYNTAX TruthValue
+    			MAX-ACCESS  read-only
+    			STATUS      current
+    			DESCRIPTION
+				" "
+    			::={ hwEthernetEntry 14 }
+    	        
+    	        hwifEthernetLineSelfAdaptMode OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				on(1),
+				off(2)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwEthernetEntry 15 }    
+  			
+
+hwifVLANTrunkStatusTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwIfVLANTrunkStatusEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwL2IfMibObject 5 }
+		
+		hwifVLANTrunkStatusEntry OBJECT-TYPE
+			SYNTAX HwIfVLANTrunkStatusEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				" "
+			INDEX { hwifVLANTrunkIndex }
+			::= { hwifVLANTrunkStatusTable 1 }
+		
+		HwIfVLANTrunkStatusEntry ::=
+			SEQUENCE { 
+				hwifVLANTrunkIndex
+					InterfaceIndex,
+				hwifVLANTrunkGvrpRegistration
+					INTEGER,
+				hwifVLANTrunkPassListLow
+					OCTET STRING,
+				hwifVLANTrunkPassListHigh
+					OCTET STRING,
+				hwifVLANTrunkAllowListLow
+					OCTET STRING,
+				hwifVLANTrunkAllowListHigh
+					OCTET STRING
+			 }
+
+		hwifVLANTrunkIndex OBJECT-TYPE
+			SYNTAX InterfaceIndex
+			MAX-ACCESS  read-only
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwifVLANTrunkStatusEntry 1 }
+		
+		hwifVLANTrunkGvrpRegistration OBJECT-TYPE
+			SYNTAX INTEGER
+				{
+				normal(1),
+				fixed(2),
+				forbidden(3)
+				}
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" 
+				Normal:(1)this is the default configration. Allow create, register and unretiser vlans dynamiclly at this port.
+				fixed: (2)allow create and register vlan manully at this port.And prevent from unregistering vlans or registering known vlans of this port at another trunk port.
+				Forbidden:(3)Unregister all vlans but vlan 1, forbid to create or register any other vlans at this port."
+			::= { hwifVLANTrunkStatusEntry 2 }
+		
+		hwifVLANTrunkPassListLow OBJECT-TYPE
+			SYNTAX OCTET STRING
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwifVLANTrunkStatusEntry 3 }
+		
+		hwifVLANTrunkPassListHigh OBJECT-TYPE
+			SYNTAX OCTET STRING
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwifVLANTrunkStatusEntry 4 }
+		
+		hwifVLANTrunkAllowListLow OBJECT-TYPE
+			SYNTAX OCTET STRING
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwifVLANTrunkStatusEntry 5 }
+		
+		hwifVLANTrunkAllowListHigh OBJECT-TYPE
+			SYNTAX OCTET STRING
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwifVLANTrunkStatusEntry 6 }
+
+-- hwMacToVlanTable   
+
+       hwMacToVlanTable   OBJECT-TYPE
+             SYNTAX          SEQUENCE OF HwMacToVlanEntry
+             MAX-ACCESS      not-accessible
+             STATUS          current
+             DESCRIPTION
+				" "
+         ::= { hwExtInterface 3 }
+
+         hwMacToVlanEntry   OBJECT-TYPE
+             SYNTAX          HwMacToVlanEntry
+             MAX-ACCESS      not-accessible
+             STATUS          current
+             DESCRIPTION     "An entry in hwMacToVlanTable."
+             INDEX           { hwMacAddress }
+         ::= { hwMacToVlanTable 1 }
+
+         HwMacToVlanEntry ::= SEQUENCE {
+             hwMacAddress	      MacAddress,
+             hwInterface              INTEGER,
+             hwVlanId		      INTEGER,
+             hwConnectId              INTEGER
+             }
+
+         hwMacAddress OBJECT-TYPE
+             SYNTAX      MacAddress
+             MAX-ACCESS  read-only
+             STATUS      current
+             DESCRIPTION
+				" "
+         ::= { hwMacToVlanEntry 1 }
+
+         hwInterface OBJECT-TYPE
+             SYNTAX      INTEGER
+             MAX-ACCESS  read-only
+             STATUS      current
+             DESCRIPTION
+				" "
+         ::= { hwMacToVlanEntry 2 }
+
+         hwVlanId OBJECT-TYPE
+             SYNTAX      INTEGER
+             MAX-ACCESS  read-only
+             STATUS      current
+             DESCRIPTION
+				" "
+         ::= { hwMacToVlanEntry 3 }
+         
+         hwConnectId OBJECT-TYPE
+             SYNTAX      INTEGER
+             MAX-ACCESS  read-only
+             STATUS      current
+             DESCRIPTION
+				" "
+         ::= { hwMacToVlanEntry 4 }
+	
+	
+-- hwIfEthernetMirrorTable 
+		hwIfEthernetMirrorTable OBJECT-TYPE
+			SYNTAX SEQUENCE OF HwIfEthernetMirrorEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwExtInterface  4}
+		
+		hwIfEthernetMirrorEntry OBJECT-TYPE
+			SYNTAX HwIfEthernetMirrorEntry
+			MAX-ACCESS not-accessible
+			STATUS current
+			DESCRIPTION
+				" "
+			INDEX { hwifEthernetMirrorDstPort   }
+			::= { hwIfEthernetMirrorTable 1 }
+		
+		HwIfEthernetMirrorEntry ::=
+			SEQUENCE { 
+				hwifEthernetMirrorDstPort 
+					INTEGER,
+				hwifEthernetMirrorSrcPort 
+					PortList
+			 }
+
+		hwifEthernetMirrorDstPort  OBJECT-TYPE
+			SYNTAX INTEGER
+			MAX-ACCESS read-only
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwIfEthernetMirrorEntry 1 }
+		
+		hwifEthernetMirrorSrcPort  OBJECT-TYPE
+			SYNTAX PortList
+			MAX-ACCESS read-write
+			STATUS current
+			DESCRIPTION
+				" "
+			::= { hwIfEthernetMirrorEntry 2 }
+			
+
+	
+	END
+
+

@@ -1,0 +1,110 @@
+ZTE-AN-VETH-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE,
+        Integer32                                          FROM SNMPv2-SMI
+        RowStatus                                          FROM SNMPv2-TC
+        InterfaceIndex                                     FROM IF-MIB
+        zxAnVnd                                            FROM ZTE-AN-SMI;
+
+    zxAnVEthMib  MODULE-IDENTITY
+        LAST-UPDATED  "201803120000Z"
+        ORGANIZATION  "ZTE Corporation"
+        CONTACT-INFO  "TongTao
+                       Mail: tong.tao@zte.com.cn
+                       Tel : +86-021-68897257"
+        DESCRIPTION   "This MIB defines management objects of virtual ethernet
+                       port configuration."
+        REVISION      "201803120000Z"
+        DESCRIPTION   "Initial version of this MIB module."
+        ::= { zxAnVnd 11 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 2 Virtual Ethernet Interface Objects
+-- 2.1 Virtual Ethernet Interface Mapping Objects
+-- 2.1.1 Virtual Ethernet Interface Mapping Configuration Table
+--------------------------------------------------------------------------------
+
+    zxAnVEthObjects            OBJECT IDENTIFIER ::= { zxAnVEthMib 2 }
+
+--------------------------------------------------------------------------------
+-- 2.1 Virtual Ethernet Interface Mapping Objects
+--------------------------------------------------------------------------------
+
+    zxAnVEthMapObjects         OBJECT IDENTIFIER ::= { zxAnVEthObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2.1.1 Virtual Ethernet Interface Mapping Configuration Table
+--------------------------------------------------------------------------------
+
+    zxAnVEthMapConfTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVEthMapConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table includes the virtual ethernet interface mapping
+             configuration information."
+        ::= { zxAnVEthMapObjects 2 }
+
+    zxAnVEthMapConfEntry   OBJECT-TYPE
+        SYNTAX      ZxAnVEthMapConfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry in zxAnVEthMapConfTable."
+        INDEX { zxAnVEthMapConfId }
+        ::= { zxAnVEthMapConfTable 1 }
+
+    ZxAnVEthMapConfEntry  ::= SEQUENCE {
+        zxAnVEthMapConfId              Integer32,
+        zxAnVEthMapConfVEthXIfIndex    InterfaceIndex,
+        zxAnVEthMapConfVEthIfIndex     InterfaceIndex,
+        zxAnVEthMapConfRowStatus       RowStatus
+    }
+
+    zxAnVEthMapConfId OBJECT-TYPE
+        SYNTAX      Integer32(1..16)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Virtual ethernet interface mapping ID."
+        ::= { zxAnVEthMapConfEntry 1 }
+
+    zxAnVEthMapConfVEthXIfIndex OBJECT-TYPE
+        SYNTAX      InterfaceIndex
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interface index of logical ethernet interface(VETH_X)."
+        ::= { zxAnVEthMapConfEntry 2 }
+
+    zxAnVEthMapConfVEthIfIndex OBJECT-TYPE
+        SYNTAX      InterfaceIndex
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interface index of logical uplink interface(VETH)."
+        ::= { zxAnVEthMapConfEntry 3 }
+
+    zxAnVEthMapConfRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to
+            createAndGo(4), and must comply with the multi-variables binding
+            rule described in zxAnVEthMapConfEntry.
+
+            To delete a row in this table, a manager must set this object to
+            destroy(6).
+
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnVEthMapConfEntry 50 }
+
+END

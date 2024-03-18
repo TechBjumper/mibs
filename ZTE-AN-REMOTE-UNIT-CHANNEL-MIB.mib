@@ -1,0 +1,260 @@
+ZTE-AN-REMOTE-UNIT-CHANNEL-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS 
+        MODULE-IDENTITY, OBJECT-TYPE, 
+        Integer32                           FROM SNMPv2-SMI
+        RowStatus                           FROM SNMPv2-TC
+        OBJECT-GROUP,MODULE-COMPLIANCE      FROM SNMPv2-CONF           
+        ifIndex                             FROM IF-MIB
+        zxAnSystem                          FROM ZTE-AN-SMI
+        zxAnSubIfIndex                      FROM ZTE-AN-IF-MIB;
+
+    zxAnRemoteUnitChannelMib  MODULE-IDENTITY
+        LAST-UPDATED  "201305171651Z"
+        ORGANIZATION  "ZTE Corporation"
+        CONTACT-INFO  "TongTao ZTE Corporation
+                       Mail: tong.tao@zte.com.cn
+                       Tel : +86-021-68897257"
+        DESCRIPTION   "This MIB defines managed objects of Remote Unit channel."
+        REVISION      "201305171651Z"
+        DESCRIPTION   "Initial version of this MIB module."
+        ::= { zxAnSystem 41 }
+    
+    zxAnRuGlobalObjects  OBJECT IDENTIFIER ::= {zxAnRemoteUnitChannelMib 1}
+    zxAnRuChannelObjects    OBJECT IDENTIFIER ::= { zxAnRemoteUnitChannelMib 2 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1.  Remote Unit Channel Global Objects
+-- 2.  Remote Unit Channel TCP Port Allocation Objects
+-- 2.1 Remote Unit Channel TCP Port Allocation Global Ojbects
+-- 2.2 Remote Unit Channel TCP Port Allocation Table
+-- 3.  zxAnRuChannelConformance
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1.  Remote Unit Channel Global Objects
+--------------------------------------------------------------------------------
+    zxAnRuMngGlobalEnable OBJECT-TYPE
+        SYNTAX      INTEGER
+            {
+                enabled(1),
+                disabled(2)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The global switch of remote unit management function.
+             enabled(1) means the global switch is on,
+             disabled(2) means the global switch is off."
+        DEFVAL      { disabled }
+        ::= { zxAnRuGlobalObjects 1 }  
+    
+    zxAnRuMngTransTblAgeTime OBJECT-TYPE
+        SYNTAX      Integer32 (30..600)
+        UNITS       "seconds" 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The aging time of remote unit management transition table."
+        DEFVAL      { 60 }
+        ::= { zxAnRuGlobalObjects 2 }  
+    
+    zxAnRuFtpAgeTime OBJECT-TYPE
+        SYNTAX      Integer32 (1..30)
+        UNITS       "minutes" 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The aging time of remote unit ftp control link."
+        DEFVAL      { 5 }
+        ::= { zxAnRuGlobalObjects 3 } 
+    
+    zxAnRuFtpDataAgeTime OBJECT-TYPE
+        SYNTAX      Integer32 (5..60)
+        UNITS       "seconds" 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The aging time of remote unit ftp data link."
+        DEFVAL      { 5 }
+        ::= { zxAnRuGlobalObjects 4 } 
+    
+    zxAnRuTelnetIdleTimeout OBJECT-TYPE
+        SYNTAX      Integer32 (1..1000)
+        UNITS       "minutes" 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The idle timeout of remote unit telnet link."
+        DEFVAL      { 3 }
+        ::= { zxAnRuGlobalObjects 5 }  
+    
+    zxAnRuMngVid OBJECT-TYPE
+        SYNTAX      Integer32 (1..4094 | 0)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The VLAN ID of the remote unit management interface.
+             A value of '0' means that the VLAN ID is not 
+             configured."
+        DEFVAL      { 0 }
+        ::= { zxAnRuGlobalObjects 6 }
+    
+--------------------------------------------------------------------------------
+-- 2.  Remote Unit Channel TCP Port Allocation Objects
+--------------------------------------------------------------------------------   
+
+    zxAnRuChannelTcpPortAllocObjects  
+                                OBJECT IDENTIFIER ::= { zxAnRuChannelObjects 2 }
+
+--------------------------------------------------------------------------------
+-- 2.1 Remote Unit Channel TCP Port Allocation Global Ojbects
+--------------------------------------------------------------------------------
+
+    zxAnRuChanTcpPortAllocGlbObjects      
+                    OBJECT IDENTIFIER ::= { zxAnRuChannelTcpPortAllocObjects 1 } 
+
+    zxAnRuChannelTcpPortAutoAllocEn  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the remote unit channel TCP port automatic 
+             allocation.
+             The TCP port used for identifying managed unit will be allocated 
+             automatically when zxAnRuChannelTcpPortAutoAllocEn is 
+             set to enabled(1)."
+        DEFVAL  { disabled }
+        ::= { zxAnRuChanTcpPortAllocGlbObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2.2 Remote Unit Channel TCP Port Allocation Table
+--------------------------------------------------------------------------------
+
+    zxAnRuChannelTcpPortTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnRuChannelTcpPortEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "Remote unit channel TCP port allocation table.
+             A row in this table can be create or delete only when 
+             zxAnRuChannelTcpPortAutoAllocEn is enabled(1)."
+        ::= { zxAnRuChannelTcpPortAllocObjects 2 }
+
+    zxAnRuChannelTcpPortEntry   OBJECT-TYPE
+        SYNTAX      ZxAnRuChannelTcpPortEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION 
+            "An entry of zxAnRuChannelTcpPortTable."
+        INDEX
+        {
+            ifIndex,
+            zxAnSubIfIndex,
+            zxAnRuChannelTcpPortProtoType
+        }
+        ::= { zxAnRuChannelTcpPortTable 1 }
+
+    ZxAnRuChannelTcpPortEntry ::= SEQUENCE {
+        zxAnRuChannelTcpPortProtoType   INTEGER,
+        zxAnRuChannelTcpPortNo          Integer32,
+        zxAnRuChannelTcpPortRowStatus   RowStatus
+        }
+
+    zxAnRuChannelTcpPortProtoType  OBJECT-TYPE 
+        SYNTAX      INTEGER
+        {
+            telnet(1),
+            http(2)
+        }
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION     
+            "Remote unit channel protocol type.
+             There are two types:
+             telnet(1) - Manage the remote unit by telnet.
+             http(2)   - Manage the remote unit by http."
+        ::= { zxAnRuChannelTcpPortEntry 1 }
+        
+    zxAnRuChannelTcpPortNo  OBJECT-TYPE 
+        SYNTAX      Integer32(20000..59999)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION     
+            "Remote unit channel TCP port No.."
+        ::= { zxAnRuChannelTcpPortEntry 2 }
+
+    zxAnRuChannelTcpPortRowStatus    OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnRuChannelTcpPortEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnRuChannelTcpPortEntry 50 }          
+
+--------------------------------------------------------------------------------
+-- 3.  zxAnRuChannelConformance
+--------------------------------------------------------------------------------
+
+    zxAnRuChannelConformance  OBJECT IDENTIFIER ::= {zxAnRemoteUnitChannelMib 4}
+
+    zxAnRuChannelCompliances  OBJECT IDENTIFIER ::= {zxAnRuChannelConformance 1}
+    zxAnRuChannelGroups       OBJECT IDENTIFIER ::= {zxAnRuChannelConformance 2}
+
+    zxAnRuChannelCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-REMOTE-UNIT-CHANNEL-MIB."
+             
+        MODULE  -- this module        
+            MANDATORY-GROUPS {
+                zxAnRuChannelGroup,
+                zxAnRuGlobalGroup
+            }
+        ::= { zxAnRuChannelCompliances 1 }
+
+        
+    zxAnRuChannelGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnRuChannelTcpPortAutoAllocEn,
+            zxAnRuChannelTcpPortNo,
+            zxAnRuChannelTcpPortRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing remote unit TCP port allocation."
+        ::= { zxAnRuChannelGroups 1 }
+        
+    zxAnRuGlobalGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnRuMngGlobalEnable,
+            zxAnRuMngTransTblAgeTime,
+            zxAnRuFtpAgeTime,
+            zxAnRuFtpDataAgeTime,
+            zxAnRuTelnetIdleTimeout,
+            zxAnRuMngVid
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing remote unit global information."
+        ::= { zxAnRuChannelGroups 2 } 
+        
+END

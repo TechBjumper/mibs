@@ -1,0 +1,227 @@
+ZTE-AN-MULTICAST-BASE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE,
+    Integer32                         FROM SNMPv2-SMI
+    OBJECT-GROUP, MODULE-COMPLIANCE   FROM SNMPv2-CONF
+    RowStatus                         FROM SNMPv2-TC
+    VlanId                            FROM ZTE-AN-TC-MIB
+    ifIndex                           FROM IF-MIB
+    zxAnSubIfIndex                    FROM ZTE-AN-IF-MIB
+    zxAnMulticast                     FROM ZTE-AN-SMI;
+
+    zxAnMulticastBaseMib MODULE-IDENTITY
+        LAST-UPDATED    "201611080000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "Lu Yongbin
+                         Mail: lu.yongbing1@zte.com.cn
+                         Tel : +86-021-68897487"
+        DESCRIPTION     "The MIB module for the management of ZTE multicast 
+                         base management objects." 
+        REVISION        "201611080000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= { zxAnMulticast 16}
+
+    zxAnMulticastBaseObjects      OBJECT IDENTIFIER ::= {zxAnMulticastBaseMib 2}
+    zxAnMulticastBaseConformance  OBJECT IDENTIFIER ::= {zxAnMulticastBaseMib 4}
+
+    zxAnMulticastBaseGlobalObjects 
+                              OBJECT IDENTIFIER ::= {zxAnMulticastBaseObjects 1}
+
+    zxAnMulticastVlanTransObjects 
+                              OBJECT IDENTIFIER ::= {zxAnMulticastBaseObjects 2}
+    
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. zxAnMulticastBaseGlobalObjects
+-- 2. zxAnMulticastBaseObjects
+    -- 2.2 zxAnMulticastVlanTransObjects
+        -- 2.2.1 zxAnMcastVlanGlobalTransTable
+        -- 2.2.2 zxAnMcastVlanIfTransTable
+    
+-- Following conformance information is defined.
+-- 4. zxAnMulticastBaseConformance
+--------------------------------------------------------------------------------
+------------------------------------------------------------------------------
+-- 1. zxAnMulticastBaseGlobalObjects
+------------------------------------------------------------------------------
+    zxAnMcastDataProtectionEnable OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable multicast data protection."
+        DEFVAL { enabled }
+        ::= { zxAnMulticastBaseGlobalObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2.1 zxAnMcastVlanGlobalTransTable
+--------------------------------------------------------------------------------
+    zxAnMcastVlanGlobalTransTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMcastVlanGlobalTransEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Global MVLAN translation table."
+        ::= { zxAnMulticastVlanTransObjects 2 }
+
+    zxAnMcastVlanGlobalTransEntry OBJECT-TYPE
+        SYNTAX      ZxAnMcastVlanGlobalTransEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Global MVLAN translation entry."
+        INDEX   { zxAnMcastVlanGlbTransMVid }
+        ::= { zxAnMcastVlanGlobalTransTable 1 }
+
+    ZxAnMcastVlanGlobalTransEntry ::= SEQUENCE {
+        zxAnMcastVlanGlbTransMVid           VlanId,
+        zxAnMcastVlanGlbTransCVid           Integer32,
+        zxAnMcastVlanGlbTransRowStatus      RowStatus
+        }
+
+    zxAnMcastVlanGlbTransMVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MVLAN ID of global MVLAN translation."
+        ::= { zxAnMcastVlanGlobalTransEntry 1 }
+
+    zxAnMcastVlanGlbTransCVid OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "C-VID of global MVLAN translation. 
+             Value 0 means translating to untagged packets." 
+        ::= { zxAnMcastVlanGlobalTransEntry 2 }
+
+    zxAnMcastVlanGlbTransRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+            
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the multi-variables binding 
+             rule described in zxAnMcastVlanGlobalTransEntry.
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnMcastVlanGlobalTransEntry 50 }  
+
+--------------------------------------------------------------------------------
+-- 2.2 zxAnMcastVlanIfTransTable
+--------------------------------------------------------------------------------
+    zxAnMcastVlanIfTransTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnMcastVlanIfTransEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MVLAN translation table on the interface."
+        ::= { zxAnMulticastVlanTransObjects 3 }
+
+    zxAnMcastVlanIfTransEntry OBJECT-TYPE
+        SYNTAX      ZxAnMcastVlanIfTransEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MVLAN translation entry on the interface."
+        INDEX   { ifIndex, zxAnSubIfIndex, zxAnMcastVlanIfTransMVid }
+        ::= { zxAnMcastVlanIfTransTable 1 }
+
+    ZxAnMcastVlanIfTransEntry ::= SEQUENCE {
+        zxAnMcastVlanIfTransMVid         VlanId,
+        zxAnMcastVlanIfTransCVid         Integer32,
+        zxAnMcastVlanIfTransRowStatus    RowStatus
+        }
+
+    zxAnMcastVlanIfTransMVid OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "MVLAN ID of MVLAN translation on the interface."
+        ::= { zxAnMcastVlanIfTransEntry 2 }
+
+    zxAnMcastVlanIfTransCVid OBJECT-TYPE
+        SYNTAX      Integer32 (0..4094)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "C-VID of MVLAN translation on the interface.
+             Value 0 means translating to untagged packets." 
+        ::= { zxAnMcastVlanIfTransEntry 3 }
+
+    zxAnMcastVlanIfTransRowStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+            
+             To create a row in this table, a manager must set this object to 
+             createAndGo(4), and must comply with the multi-variables binding 
+             rule described in zxAnMcastVlanIfTransEntry.
+    
+             To delete a row in this table, a manager must set this object to 
+             destroy(6). 
+             
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnMcastVlanIfTransEntry 50 }
+        
+--------------------------------------------------------------------------------
+-- 4. zxAnMulticastBaseConformance
+--------------------------------------------------------------------------------
+zxAnMcastBaseCompliances  
+    OBJECT IDENTIFIER ::= {zxAnMulticastBaseConformance 1}
+zxAnMcastBaseGroups       
+    OBJECT IDENTIFIER ::= {zxAnMulticastBaseConformance 2}
+
+    zxAnMcastMgmtCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for entities which implement the
+             ZTE-AN-MULTICAST-MGMT-MIB."
+        MODULE
+            MANDATORY-GROUPS {
+                zxAnMcastVlanGlobalTransGroup,
+                zxAnMcastVlanIfTransGroup
+            }
+        ::= { zxAnMcastBaseCompliances 1 }
+
+    zxAnMcastVlanGlobalTransGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMcastVlanGlbTransCVid, zxAnMcastVlanGlbTransRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing global MVLAN translation 
+             information."
+        ::= { zxAnMcastBaseGroups 1 }
+        
+    zxAnMcastVlanIfTransGroup OBJECT-GROUP
+        OBJECTS {
+            zxAnMcastVlanIfTransCVid, 
+            zxAnMcastVlanIfTransRowStatus
+        }
+        STATUS current
+        DESCRIPTION
+            "A collection of objects providing MVLAN translation information on
+             interface layer."
+        ::= { zxAnMcastBaseGroups 2 }
+END

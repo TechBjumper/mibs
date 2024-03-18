@@ -1,0 +1,3127 @@
+ZTE-AN-CFM2-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        Dot1agCfmMaintDomainNameType, Dot1agCfmMaintDomainName,
+        Dot1agCfmMDLevel, Dot1agCfmMhfCreation, Dot1agCfmCcmInterval,
+        Dot1agCfmIdPermission, Dot1afCfmIndexIntegerNextFree,
+        Dot1agCfmMaintAssocName, Dot1agCfmLowestAlarmPri,
+        Dot1agCfmHighestDefectPri, Dot1agCfmMpDirection, Dot1agCfmFngState,
+        Dot1agCfmRelayActionFieldValue, Dot1agCfmIngressActionFieldValue,
+        Dot1agCfmEgressActionFieldValue, Dot1agCfmMepDefects,
+        Dot1agCfmMaintAssocNameType, Dot1agCfmMepIdOrZero,
+        Dot1agCfmMepId                                     FROM IEEE8021-CFM-MIB
+        InterfaceIndex                                     FROM IF-MIB
+        Integer32, Unsigned32, Counter32, Counter64,
+        OBJECT-TYPE, MODULE-IDENTITY                       FROM SNMPv2-SMI
+        MacAddress, RowStatus, DateAndTime                 FROM SNMPv2-TC
+        VlanId, ZxAnSubIfIndex                             FROM ZTE-AN-TC-MIB
+        zxAnOam                                            FROM ZTE-AN-SMI;
+
+    zxAnCfm2Mib MODULE-IDENTITY
+        LAST-UPDATED    "201711140000Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "You Liping
+                         Mail: you.liping@zte.com.cn
+                         Tel : 021-68896470"
+        DESCRIPTION     "This MIB defines managed objects of the Connectivity
+                         Fault Management module for managing Y.1731."
+        REVISION        "201711140000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= { zxAnOam 45 }
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1. CFM2 Global Objects
+-- 2. CFM2 Objects
+-- 2.1 CFM2 MD Objects
+-- 2.1.1 CFM2 MD Global Objects
+-- 2.1.2 CFM2 MD Table
+-- 2.2 CFM2 MA Objects
+-- 2.2.2 CFM2 MA Table
+-- 2.3 CFM2 MP Objects
+-- 2.3.2 CFM2 Local MEP Objects
+-- 2.3.2.2 CFM2 Local MEP Table
+-- 2.3.3 CFM2 Remote MEP Objects
+-- 2.3.3.2 CFM2 Remote MEP Table
+-- 2.3.4 CFM2 MIP Objects
+-- 2.3.4.2 CFM2 MIP Table
+-- 2.3.5 CFM2 MEP Connectivity Measurement Objects
+-- 2.3.5.2 CFM2 MEP Loopback Table
+-- 2.3.5.3 CFM2 MEP Multicast Loopback Reply Table
+-- 2.3.5.4 CFM2 MEP Link Trace Table
+-- 2.3.5.5 CFM2 MEP Link Trace Reply Table
+-- 2.3.6 CFM2 MEP Performance Measurement Objects
+-- 2.3.6.2 CFM2 MEP DM Table
+-- 2.3.6.3 CFM2 MEP LM Table
+-- 2.3.7 CFM2 Statistics Objects
+-- 2.3.7.2 CFM2 MEP Statistics Table
+
+--------------------------------------------------------------------------------
+
+    zxAnCfm2GlobalObjects           OBJECT IDENTIFIER ::= {zxAnCfm2Mib 1}
+    zxAnCfm2Objects                 OBJECT IDENTIFIER ::= {zxAnCfm2Mib 2}
+
+    zxAnCfm2MdObjects               OBJECT IDENTIFIER ::= {zxAnCfm2Objects 1}
+    zxAnCfm2MaObjects               OBJECT IDENTIFIER ::= {zxAnCfm2Objects 2}
+    zxAnCfm2MpObjects               OBJECT IDENTIFIER ::= {zxAnCfm2Objects 3}
+
+    zxAnCfm2LocalMepObjects         OBJECT IDENTIFIER ::= {zxAnCfm2MpObjects 2}
+    zxAnCfm2RemoteMepObjects        OBJECT IDENTIFIER ::= {zxAnCfm2MpObjects 3}
+    zxAnCfm2MipObjects              OBJECT IDENTIFIER ::= {zxAnCfm2MpObjects 4}
+    zxAnCfm2ConnectMeasureObjects   OBJECT IDENTIFIER ::= {zxAnCfm2MpObjects 21}
+    zxAnCfm2PerfMeasureObjects      OBJECT IDENTIFIER ::= {zxAnCfm2MpObjects 22}
+    zxAnCfm2StatisticsObjects       OBJECT IDENTIFIER ::= {zxAnCfm2MpObjects 23}
+
+--------------------------------------------------------------------------------
+-- 1. CFM2 Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnCfm2Capabilities OBJECT-TYPE
+        SYNTAX BITS {
+           supportLocalMepDmResultBin(0)
+        }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION
+            "The management capabilities of CFM.
+             The bit value 1 means the function represented by this bit is
+             supported by this equipment.
+             bit 0: value 1 means supporting zxAnCfm2LMepDmTwoWayFdMsrR1Max,
+                    zxAnCfm2LMepDmTwoWayFdMsrR2Max,
+                    zxAnCfm2LMepDmTwoWayFdMsrR3Max,
+                    zxAnCfm2LMepDmOneWayIfdvMsrR1Max,
+                    zxAnCfm2LMepDmOneWayIfdvMsrR2Max and
+                    zxAnCfm2LMepDmOneWayIfdvMsrR3Max in zxAnCfm2LocalMepTable."
+        ::=  { zxAnCfm2GlobalObjects  1 }
+
+    zxAnCfm2Enable   OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the CFM functions."
+        DEFVAL  { disabled }
+        ::= { zxAnCfm2GlobalObjects 2 }
+
+    zxAnCfm2TlvIgnoreEnable   OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable TLV ignoring.
+             enabled(1): The TLV of the packet is ignored from the peer side.
+             disabled(2): The TLV of the packet is not ignored from the peer
+             side."
+        DEFVAL  { disabled }
+        ::= { zxAnCfm2GlobalObjects 3 }
+
+--------------------------------------------------------------------------------
+-- 2. CFM2 Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.1 CFM2 MD Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.1.1 CFM2 MD Global Objects
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MdGlobalObjects   OBJECT IDENTIFIER ::= {zxAnCfm2MdObjects 1}
+
+    zxAnCfm2MdTableNextIndex   OBJECT-TYPE
+        SYNTAX      Dot1afCfmIndexIntegerNextFree
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "An unused value for zxAnCfm2MdIndex in the zxAnCfm2MdTable,
+             or a zero to indicate that none exist."
+        ::= { zxAnCfm2MdGlobalObjects 1 }
+
+--------------------------------------------------------------------------------
+-- 2.1.2 CFM2 MD Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MdTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MdEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Domain table. Each row in the table
+             represents a different Maintenance Domain.
+
+             A Maintenance Domain is described in 802.1ag (3.22) as the
+             network or the part of the network for which faults in
+             connectivity are to be managed. The boundary of a Maintenance
+             Domain is defined by a set of DSAPs, each of which can become
+             a point of connectivity to a service instance."
+        REFERENCE
+            "802.1ag clauses 3.22 and 18.1"
+        ::= { zxAnCfm2MdObjects 2 }
+
+    zxAnCfm2MdEntry   OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MdEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Domain table entry. This entry is not lost
+             upon reboot. It is backed up by stable storage."
+        INDEX   { zxAnCfm2MdIndex }
+        ::= { zxAnCfm2MdTable 1 }
+
+    ZxAnCfm2MdEntry ::= SEQUENCE {
+        zxAnCfm2MdIndex              Unsigned32,
+        zxAnCfm2MdFormat             Dot1agCfmMaintDomainNameType,
+        zxAnCfm2MdName               Dot1agCfmMaintDomainName,
+        zxAnCfm2MdMdLevel            Dot1agCfmMDLevel,
+        zxAnCfm2MdMhfCreation        Dot1agCfmMhfCreation,
+        zxAnCfm2MdMhfIdPermission    Dot1agCfmIdPermission,
+        zxAnCfm2MdMaNextIndex        Dot1afCfmIndexIntegerNextFree,
+        zxAnCfm2MdRowStatus          RowStatus
+        }
+
+    zxAnCfm2MdIndex  OBJECT-TYPE
+        SYNTAX      Unsigned32(1..4294967295)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The index to the Maintenance Domain table.
+
+             zxAnCfm2MdTableNextIndex needs to be inspected to find an
+             available index for row-creation.
+
+             Referential integrity is required, i.e., the index needs to be
+             persistent upon a reboot or restart of a device. The index
+             can never be reused for other Maintenance Domain. The index
+             value SHOULD keep increasing up to the time that they wrap
+             around. This is to facilitate access control based on OID."
+        ::= { zxAnCfm2MdEntry 1 }
+
+    zxAnCfm2MdFormat  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMaintDomainNameType
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The type (and thereby format) of the Maintenance Domain Name."
+        REFERENCE
+            "21.6.5.1"
+        DEFVAL { none }
+        ::= { zxAnCfm2MdEntry 2 }
+
+    zxAnCfm2MdName  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMaintDomainName
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Domain name. The type/format of this object
+             is determined by the value of the zxAnCfm2MdFormat object.
+
+             Each Maintenance Domain has unique name amongst all those
+             used or available to a service provider or operator. It
+             facilitates easy identification of administrative
+             responsibility for each Maintenance Domain."
+        REFERENCE
+            "802.1ag clauses 3.24, 12.14.5, and 21.6.5.3"
+        DEFVAL { "DEFAULT" }
+        ::= { zxAnCfm2MdEntry 3 }
+
+    zxAnCfm2MdMdLevel  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMDLevel
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Domain Level."
+        REFERENCE
+            "12.14.5.1.3:b"
+        DEFVAL { 2 }
+        ::= { zxAnCfm2MdEntry 4 }
+
+    zxAnCfm2MdMhfCreation  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMhfCreation {
+            defMHFnone(1),
+            defMHFdefault(2),
+            defMHFexplicit(3)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enumerated value indicating whether the management entity can
+             create MHFs (MIP Half Function) for this Maintenance Domain.
+             Since, in this variable, there is no encompassing Maintenance
+             Domain, the value defMHFdefer is not allowed."
+        REFERENCE
+            "12.14.5.1.3:c"
+        DEFVAL { defMHFnone }
+        ::= { zxAnCfm2MdEntry 5 }
+
+    zxAnCfm2MdMhfIdPermission  OBJECT-TYPE
+        SYNTAX      Dot1agCfmIdPermission {
+            sendIdNone(1),
+            sendIdChassis(2),
+            sendIdManage(3),
+            sendIdChassisManage(4)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enumerated value indicating what, if anything, is to be
+             included in the Sender ID TLV (21.5.3) transmitted by MPs
+             configured in this Maintenance Domain. Since, in this
+             variable, there is no encompassing Maintenance Domain, the
+             value sendIdDefer is not allowed."
+        REFERENCE
+            "12.14.5.1.3:d"
+        DEFVAL { sendIdNone }
+        ::= { zxAnCfm2MdEntry 6 }
+
+    zxAnCfm2MdMaNextIndex  OBJECT-TYPE
+        SYNTAX      Dot1afCfmIndexIntegerNextFree
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Value to be used as the index of the MA table entries, to
+             the zxAnCfm2MaTable for this Maintenance Domain when the management
+             entity wants to create a new row in those tables."
+        ::= { zxAnCfm2MdEntry 7 }
+
+    zxAnCfm2MdRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnCfm2MdEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnCfm2MdEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.2 CFM2 MA Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.2.2 CFM2 MA Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MaTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MaEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Association table. Each row in the table
+             represents an MA. An MA is a set of MEPs, each configured
+             with a single service instance.
+
+             Creation of a Service Instance establishes a connectionless
+             association among the selected DSAPs. Configuring a
+             Maintenance association End Point (MEP) at each of the
+             DSAPs creates a Maintenance Association (MA) to monitor
+             that connectionless connectivity. The MA is identified by a
+             Short MA Name that is unique within the Maintenance Domain
+             and chosen to facilitate easy identification of the Service
+             Instance. Together, the Maintenance Domain Name and the
+             Short MA Name form the Maintenance Association Identifier
+             (MAID) that is carried in CFM Messages to identify
+             incorrect connectivity among Service Instances. A small
+             integer, the Maintenance association End Point Identifier
+             (MEPID), identifies each MEP among those configured on a
+             single MA (802.1ag clauses 3.19 and 18.2).
+
+             This table uses two indices, first index is the index of the
+             Maintenance Domain table. The second index is the same as the
+             index of the dot1agCfmMaCompEntry for the same MA.
+
+             The writable objects in this table need to be persistent
+             upon reboot or restart of a device."
+        ::= { zxAnCfm2MaObjects 2 }
+
+    zxAnCfm2MaEntry   OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MaEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The MA table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex }
+        ::= { zxAnCfm2MaTable 1 }
+
+    ZxAnCfm2MaEntry ::= SEQUENCE {
+        zxAnCfm2MaIndex                    Integer32,
+        zxAnCfm2MaFormat                   Dot1agCfmMaintAssocNameType,
+        zxAnCfm2MaName                     Dot1agCfmMaintAssocName,
+        zxAnCfm2MaCcmInterval              Dot1agCfmCcmInterval,
+        zxAnCfm2MaPrimarySVid              VlanId,
+        zxAnCfm2MaPrimaryCVid              Integer32,
+        zxAnCfm2MaCcmTimeoutCoefficient    Integer32,
+        zxAnCfm2MaRowStatus                RowStatus
+        }
+
+    zxAnCfm2MaIndex  OBJECT-TYPE
+        SYNTAX      Integer32(1..512)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Index of the MA table zxAnCfm2MdMaNextIndex needs to
+             be inspected to find an available index for row-creation."
+        ::= { zxAnCfm2MaEntry 1 }
+
+    zxAnCfm2MaFormat  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMaintAssocNameType
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The type (and thereby format) of the Maintenance Association Name."
+        REFERENCE
+            "802.1ag clauses 21.6.5.4"
+        ::= { zxAnCfm2MaEntry 2 }
+
+    zxAnCfm2MaName  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMaintAssocName
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The Short Maintenance Association name. The type/format of
+             this object is determined by the value of the
+             zxAnCfm2MaFormat object. This name MUST be unique within
+             a maintenance domain."
+        REFERENCE
+            "802.1ag clauses 21.6.5.6, and Table 21-20"
+        ::= { zxAnCfm2MaEntry 3 }
+
+    zxAnCfm2MaCcmInterval  OBJECT-TYPE
+        SYNTAX      Dot1agCfmCcmInterval
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Interval between CCM (Continuity Check Messages) transmissions
+             to be used by all MEPs in the MA.
+             When set this variable, value 0 is not supported."
+        REFERENCE
+            "12.14.6.1.3:e"
+        DEFVAL { interval1s }
+        ::= { zxAnCfm2MaEntry 4 }
+
+    zxAnCfm2MaPrimarySVid  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Primary SVLAN ID of the MEP."
+        ::= { zxAnCfm2MaEntry 5 }
+
+    zxAnCfm2MaPrimaryCVid  OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Primary CVLAN ID of the MEP.
+             Value 0 means the primary CVLAN is not configured."
+        ::= { zxAnCfm2MaEntry 6 }
+
+    zxAnCfm2MaCcmTimeoutCoefficient  OBJECT-TYPE
+        SYNTAX     Integer32(10..500)
+        MAX-ACCESS read-create
+        STATUS     current
+        DESCRIPTION
+            "CCM check timeout coefficient.
+             The CCM check timeout is the result of
+             zxAnCfm2MaCcmTimeoutCoefficient multiplied by
+             zxAnCfm2MaCcmInterval, and then divided by 10."
+        DEFVAL  { 35 }
+        ::= { zxAnCfm2MaEntry 7 }
+
+    zxAnCfm2MaRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnCfm2MaEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnCfm2MaEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.3 CFM2 MP Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.3.2 CFM2 Local MEP Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.3.2.2 CFM2 Local MEP Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2LocalMepTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2LocalMepEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Association End Point (MEP) table.
+
+             Each row in the table represents a different MEP. An MEP is
+             an actively managed CFM entity, associated with a specific
+             DSAP of a Service Instance, which can generate and receive
+             CFM PDUs and track any responses. It is an end point of a
+             single Maintenance Association, and is an endpoint of a
+             separate Maintenance Entity for each of the other MEPs in
+             the same Maintenance Association (802.1ag clause 3.19).
+
+             This table uses three indices. The first two indices are the
+             indices of the Maintenance Domain and MA tables, the reason
+             being that an MEP is always related to an MA and Maintenance
+             Domain."
+        ::= { zxAnCfm2LocalMepObjects 2 }
+
+    zxAnCfm2LocalMepEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2LocalMepEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The local MEP table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier }
+         ::= { zxAnCfm2LocalMepTable 1 }
+
+    ZxAnCfm2LocalMepEntry ::= SEQUENCE {
+        zxAnCfm2MpIdentifier             Dot1agCfmMepId,
+        zxAnCfm2LMepIfIndex              InterfaceIndex,
+        zxAnCfm2LMepSubIfIndex           ZxAnSubIfIndex,
+        zxAnCfm2LMepDirection            Dot1agCfmMpDirection,
+        zxAnCfm2LMepAdminStatus          INTEGER,
+        zxAnCfm2LMepLowestPriDefect      Dot1agCfmLowestAlarmPri,
+        zxAnCfm2LMepCcmSendEnable        INTEGER,
+        zxAnCfm2LMepCcmLtmPriority       Integer32,
+        zxAnCfm2LMepCcmDestMacType       INTEGER,
+        zxAnCfm2LMepCcmRdiSendEnable     INTEGER,
+        zxAnCfm2LMepCcmRdiTrustEnable    INTEGER,
+        zxAnCfm2LMepCciSentCcms          Counter32,
+        zxAnCfm2LMepFngState             Dot1agCfmFngState,
+        zxAnCfm2LMepHighestPriDefect     INTEGER,
+        zxAnCfm2LMepDefects              Dot1agCfmMepDefects,
+        zxAnCfm2LMepAisEnable            INTEGER,
+        zxAnCfm2LMepAisLckInterval       INTEGER,
+        zxAnCfm2LMepAisPriority          Integer32,
+        zxAnCfm2LMepAisCondition         INTEGER,
+        zxAnCfm2LMepClientMegLevel       OCTET STRING,
+        zxAnCfm2LMepMacAddress           MacAddress,
+        zxAnCfm2LMepDmTwoWayFdMsrR1Max   Integer32,
+        zxAnCfm2LMepDmTwoWayFdMsrR2Max   Integer32,
+        zxAnCfm2LMepDmTwoWayFdMsrR3Max   Integer32,
+        zxAnCfm2LMepDmOneWayIfdvMsrR1Max Integer32,
+        zxAnCfm2LMepDmOneWayIfdvMsrR2Max Integer32,
+        zxAnCfm2LMepDmOneWayIfdvMsrR3Max Integer32,
+        zxAnCfm2LMepRowStatus            RowStatus
+    }
+
+    zxAnCfm2MpIdentifier  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Integer that is unique among all the MEPs in the same MA.
+             Other definition is: a small integer, unique over a given
+             Maintenance Association, identifying a specific Maintenance
+             association End Point (3.19).
+
+             MEP Identifier is also known as the MEPID."
+        ::= { zxAnCfm2LocalMepEntry 1 }
+
+    zxAnCfm2LMepIfIndex  OBJECT-TYPE
+        SYNTAX      InterfaceIndex
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The index of the NNI/UNI ports on the device."
+        ::= { zxAnCfm2LocalMepEntry 2 }
+
+    zxAnCfm2LMepSubIfIndex  OBJECT-TYPE
+        SYNTAX      ZxAnSubIfIndex
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The sub-interface of the NNI/UNI ports on the device."
+        ::= { zxAnCfm2LocalMepEntry 3 }
+
+    zxAnCfm2LMepDirection  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMpDirection
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The direction in which the MEP faces on the Bridge port."
+        ::= { zxAnCfm2LocalMepEntry 4 }
+
+    zxAnCfm2LMepAdminStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of the MEP."
+       DEFVAL { disabled }
+       ::= { zxAnCfm2LocalMepEntry 5 }
+
+    zxAnCfm2LMepLowestPriDefect  OBJECT-TYPE
+        SYNTAX      Dot1agCfmLowestAlarmPri
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "An integer value specifying the lowest priority defect
+             that is allowed to generate fault alarm."
+        DEFVAL { macRemErrXcon }
+        ::= { zxAnCfm2LocalMepEntry 6}
+
+     zxAnCfm2LMepCcmSendEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable sending CCM messages."
+        DEFVAL { disabled }
+        ::= { zxAnCfm2LocalMepEntry 7 }
+
+    zxAnCfm2LMepCcmLtmPriority  OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The priority value for CCMs and LTMs transmitted by the MEP.
+             Default Value is the highest priority value allowed to pass
+             through the bridge port for any of this MEPs VIDs.
+             The management entity can obtain the default value for this
+             variable from the priority regeneration table by extracting the
+             highest priority value in this table on this MEPs bridge port.
+             (1 is lowest, then 2, then 0, then 3-7)."
+        DEFVAL { 6 }
+        ::= { zxAnCfm2LocalMepEntry 8 }
+
+    zxAnCfm2LMepCcmDestMacType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            unicast(1),
+            multicast(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The destination MAC address type of CCM packet."
+        DEFVAL { multicast }
+        ::= { zxAnCfm2LocalMepEntry 9 }
+
+    zxAnCfm2LMepCcmRdiSendEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable RDI sending in CCM packet."
+        DEFVAL { disabled }
+        ::= { zxAnCfm2LocalMepEntry 10 }
+
+    zxAnCfm2LMepCcmRdiTrustEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable trusting the CCM packet from remote MEP with RDI."
+        DEFVAL { disabled }
+        ::= { zxAnCfm2LocalMepEntry 11 }
+
+    zxAnCfm2LMepCciSentCcms  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of CCM packets transmitted."
+        ::= { zxAnCfm2LocalMepEntry 12 }
+
+    zxAnCfm2LMepFngState  OBJECT-TYPE
+        SYNTAX      Dot1agCfmFngState
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Current state of the MEP Fault Notification Generator
+             State Machine."
+        DEFVAL { fngReset }
+        ::= { zxAnCfm2LocalMepEntry 13 }
+
+    zxAnCfm2LMepHighestPriDefect  OBJECT-TYPE
+        SYNTAX     INTEGER{
+            defRdiCcm(1),
+            defMacStatus(2),
+            defRemoteCcm(3),
+            defErrorCcm(4),
+            defUnexpectedPeriod(5),
+            defUnexpectedMac(6),
+            defUnexpectedMepId(7),
+            defXconCcm(8),
+            defUnexpectedMegLevel(9),
+            defAis(10),
+            none(255)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The highest priority defect that has been present since the
+             MEPs Fault Notification Generator State Machine was last in
+             the FNG_RESET state."
+        ::= { zxAnCfm2LocalMepEntry 14 }
+
+    zxAnCfm2LMepDefects  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepDefects
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A vector of Boolean error conditions from Table 20-1, any of
+             which may be true:
+
+             DefRDICCM(0)
+             DefMACstatus(1)
+             DefRemoteCCM(2)
+             DefErrorCCM(3)
+             DefXconCCM(4)"
+        ::= { zxAnCfm2LocalMepEntry 15 }
+
+    zxAnCfm2LMepAisEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the ETH-AIS function."
+        DEFVAL { disabled }
+        ::= { zxAnCfm2LocalMepEntry 16 }
+
+    zxAnCfm2LMepAisLckInterval  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            oneSecond(1),
+            oneMinute(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interval for AISMs and LCKMs transmitted by the MEP."
+        DEFVAL { oneSecond }
+        ::= { zxAnCfm2LocalMepEntry 17 }
+
+    zxAnCfm2LMepAisPriority OBJECT-TYPE
+        SYNTAX     Integer32(0..7)
+        MAX-ACCESS read-create
+        STATUS     current
+        DESCRIPTION
+            "Priority. 3 bit value to be used in the VLAN tag,
+             if present in the AIS frame."
+        DEFVAL { 6 }
+        ::= { zxAnCfm2LocalMepEntry 18 }
+
+    zxAnCfm2LMepAisCondition  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            in(1),
+            notIn(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Whether the MEP is in AIS condition or not."
+        DEFVAL { notIn }
+        ::= { zxAnCfm2LocalMepEntry 19 }
+
+    zxAnCfm2LMepClientMegLevel  OBJECT-TYPE
+        SYNTAX      OCTET STRING(SIZE (7))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "MEG level at which the most immediate client layer MIPs and MEPs
+             exist, zxAnCfm2LMepClientMegLevel, must be higher than the MD
+             level.
+             For example, configure client level list values
+             '01 03 05 FF FF FF FF' to an MEP. It means that in the client level
+             list only level 1, level 3 and level 5 take effect.
+             Please notice: the range of this object is 0~7. Each client level
+             in the list must be larger than the MD level of the MEP.
+             '0xff' means client level not configured.
+             The number of these client level is fixed with 7."
+        ::= { zxAnCfm2LocalMepEntry 20 }
+
+    zxAnCfm2LMepMacAddress  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The MAC address of the MEP."
+        ::= { zxAnCfm2LocalMepEntry 21 }
+
+    zxAnCfm2LMepDmTwoWayFdMsrR1Max    OBJECT-TYPE
+        SYNTAX      Integer32(1..1000000)
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The maximum value of the first two-way frame delay measurements
+             range. The minimum value is 0."
+        DEFVAL { 1000 }
+        ::= { zxAnCfm2LocalMepEntry 22 }
+
+    zxAnCfm2LMepDmTwoWayFdMsrR2Max    OBJECT-TYPE
+        SYNTAX      Integer32(1..1000000)
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The maximum value of the second two-way frame delay measurements
+             range. The minimum value is zxAnCfm2LMepDmTwoWayFdMsrR1Max."
+        DEFVAL { 5000 }
+        ::= { zxAnCfm2LocalMepEntry 23 }
+
+    zxAnCfm2LMepDmTwoWayFdMsrR3Max    OBJECT-TYPE
+        SYNTAX      Integer32(1..1000000)
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The maximum value of the third two-way frame delay measurements
+             range. The minimum value is zxAnCfm2LMepDmTwoWayFdMsrR2Max.
+             This value is also the minimum value of the fourth two-way
+             frame delay measurements range. The maximum value of the fourth
+             range is plus infinity."
+        DEFVAL { 10000 }
+        ::= { zxAnCfm2LocalMepEntry 24 }
+
+    zxAnCfm2LMepDmOneWayIfdvMsrR1Max    OBJECT-TYPE
+        SYNTAX      Integer32(1..1000000000)
+        UNITS       "Nanoseconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The maximum value of the first one-way inter-frame delay variation
+             measurements range. The minimum value is 0."
+        DEFVAL { 100 }    
+        ::= { zxAnCfm2LocalMepEntry 25 }
+
+    zxAnCfm2LMepDmOneWayIfdvMsrR2Max    OBJECT-TYPE
+        SYNTAX      Integer32(1..1000000000)
+        UNITS       "Nanoseconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The maximum value of the second one-way inter-frame delay variation
+             measurements range. 
+             The minimum value is zxAnCfm2LMepDmOneWayIfdvMsrR1Max."
+        DEFVAL { 500 }
+        ::= { zxAnCfm2LocalMepEntry 26 }
+
+    zxAnCfm2LMepDmOneWayIfdvMsrR3Max    OBJECT-TYPE
+        SYNTAX      Integer32(1..1000000000)
+        UNITS       "Nanoseconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The maximum value of the third one-way inter-frame delay variation
+             measurements range.
+             The minimum value is zxAnCfm2LMepDmOneWayIfdvMsrR2Max.
+             This value is also the minimum value of the fourth one-way
+             inter-frame delay variation measurements range.
+             The maximum value of the fourth range is plus infinity."
+        DEFVAL { 1000 }
+        ::= { zxAnCfm2LocalMepEntry 27 }
+
+    zxAnCfm2LMepRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnCfm2LocalMepEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+       ::= { zxAnCfm2LocalMepEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.3.3 CFM2 Remote MEP Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.3.3.2 CFM2 Remote MEP Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2RemoteMepTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2RemoteMepEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table includes remote MEP configuration.
+             A remote MEP is an MEP, it can use in all the CFM tests.
+             It represents the destination of the test when the test uses
+             MEPID as its destination."
+        ::= { zxAnCfm2RemoteMepObjects 2 }
+
+    zxAnCfm2RemoteMepEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2RemoteMepEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The remote MEP table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier }
+        ::= { zxAnCfm2RemoteMepTable 1 }
+
+    ZxAnCfm2RemoteMepEntry ::=SEQUENCE {
+        zxAnCfm2RMepMacAddress    MacAddress,
+        zxAnCfm2RMepAdminStatus   INTEGER,
+        zxAnCfm2RMepRowStatus     RowStatus
+        }
+
+    zxAnCfm2RMepMacAddress  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The MAC address of the remote MEP."
+        REFERENCE
+            "802.1ag clause 12.14.7.6.3:d and 20.19.7"
+        ::= { zxAnCfm2RemoteMepEntry 1 }
+
+    zxAnCfm2RMepAdminStatus  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The administrative status of the remote MEP."
+       DEFVAL { disabled }
+       ::= { zxAnCfm2RemoteMepEntry 2 }
+
+    zxAnCfm2RMepRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnCfm2RemoteMepEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnCfm2RemoteMepEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.3.4 CFM2 MIP Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.3.4.2 CFM2 MIP Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MipTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MipEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table includes MIP configuration. An MIP can be used
+             in all the CFM tests. MIP is a CFM entry, associated with a single
+             Maintenance Domain, and thus with single MD level, it can generate
+             CFM PDUs, but only in response to received CFM PDUs."
+        ::= { zxAnCfm2MipObjects 2 }
+
+    zxAnCfm2MipEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MipEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The MIP table entry.
+
+             When a manager wants to create a remote MEP, it must comply
+             with the multi-variables usage rule that all the mib variables
+             related to same fuction must be in one snmp set operation, the
+             variables have two type: mandatory and optional.
+
+             Mandatory variables must be in the one snmp set operation.
+             Optional variables may be in the one snmp set operation with the
+             mandatory variables, but must not be used alone.
+
+             To create an MIP, there are two cases base on the MIP is assigned
+             to a physical port or a logical port, and the mandatory and
+             optional variables for each case are different.
+
+             To create an MIP assign to physical port:
+             - mandatoty:
+             zxAnCfm2MipRowStatus
+             zxAnCfm2MipIfIndex
+             - optional :
+             zxAnCfm2MipSubIfIndex
+
+             zxAnCfm2MipIfIndex, zxAnCfm2MipSubIfIndex can not be modified."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier }
+        ::= { zxAnCfm2MipTable 1 }
+
+    ZxAnCfm2MipEntry ::=SEQUENCE {
+        zxAnCfm2MipIfIndex       InterfaceIndex,
+        zxAnCfm2MipSubIfIndex    ZxAnSubIfIndex,
+        zxAnCfm2MipRowStatus     RowStatus
+    }
+
+    zxAnCfm2MipIfIndex  OBJECT-TYPE
+        SYNTAX      InterfaceIndex
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The index of the NNI/UNI ports on the device."
+        ::= { zxAnCfm2MipEntry 1 }
+
+    zxAnCfm2MipSubIfIndex  OBJECT-TYPE
+        SYNTAX      ZxAnSubIfIndex
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The sub-interface of the NNI/UNI ports on the device."
+        DEFVAL { 0 }
+        ::= { zxAnCfm2MipEntry 2 }
+
+    zxAnCfm2MipRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+
+             The supported actions of this conceptual row only include:
+             'createAndGo' and 'destroy'.
+
+             To create a row in this table, a manager must set this object to
+             createAndGo(4), and must comply with the multi-variables binding
+             rule described in zxAnCfm2MipEntry.
+
+             To delete a row in this table, a manager must set this object to
+             destroy(6).
+
+             To get this object, the agent always returns active(1)."
+        ::= { zxAnCfm2MipEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 2.3.5 CFM2 MEP Connectivity Measurement Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.3.5.2 CFM2 MEP Loopback Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepLoopBackOperTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepLoopBackOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Association End Point (MEP) connectivity operation
+             table stores all the managed objects for sending LBM.
+
+             LBM Managed objects in the MEP table
+             enables the management entity to initiate
+             transmission of Loopback messages. It will signal the MEP
+             that it SHOULD transmit some number of Loopback messages
+             and detect the detection (or lack thereof) of the
+             corresponding Loopback messages.
+
+             Steps to use entries in this table:
+
+             1) Wait for zxAnCfm2MepTransLbmEnable value to be
+                disabled. To do this do this sequence:
+                a. an SNMP GET for both snmpSetSerialNo and
+                   zxAnCfm2MepTransLbmEnable objects (in same SNMP PDU).
+                b. Check if value for zxAnCfm2MepTransLbmEnable is disabled.
+                   - if not, wait x seconds, go to step a above.
+                   - if enabled, save the value of snmpSetSerialNo and go
+                   to step 2) below
+             2) Change zxAnCfm2MepTransLbmEnable value from disabled to
+                enabled to ensure no other management entity will use
+                the service. In order to not disturb a possible other NMS
+                do this by sending an SNMP SET for both snmpSetSerialNo
+                and zxAnCfm2MepTransLbmEnable objects (in same SNMP
+                PDU, and make sure snmpSetSerialNo is the first varBind).
+                For the snmpSetSerialNo varBind, use the value that you
+                obtained in step 1)a.. This ensures that two cooperating
+                NMSes will not step on each others toes.
+                Setting this MIB object does not set the corresponding
+                LBIactive state machine variable.
+             3) Setup the different data to be sent (number of messages,
+                optional TLVs,...).
+             4) Record the current values of zxAnCfm2MepLbrInInOrder,
+                zxAnCfm2MepLbrInOutOfOrder, and zxAnCfm2MepLbrBadMsdu.
+             5) Check the value of zxAnCfm2MepTransLbmResultOk to
+                find out if the operation was successfully initiated or not.
+             6) Monitor the value of zxAnCfm2MepTransLbmEnable.
+                When it is reset to false, the last LBM has been transmitted.
+                Wait an additional 5 seconds to ensure that all LBRs have
+                been returned.
+             7) Compare zxAnCfm2MepLbrInInOrder, zxAnCfm2MepLbrInOutOfOrder,
+                and zxAnCfm2MepLbrBadMsdu to their old values from step
+                4, above, to get the results of the test."
+        ::= { zxAnCfm2ConnectMeasureObjects 2 }
+
+    zxAnCfm2MepLoopBackOperEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepLoopBackOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Loopback table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier }
+         ::= { zxAnCfm2MepLoopBackOperTable 1 }
+
+    ZxAnCfm2MepLoopBackOperEntry ::=SEQUENCE{
+        zxAnCfm2MepTransLbmEnable          INTEGER,
+        zxAnCfm2MepTransLbmMessages        Integer32,
+        zxAnCfm2MepLbmDestMacType          INTEGER,
+        zxAnCfm2MepLbAppType               INTEGER,
+        zxAnCfm2MepTransLbmDestMacAddr     MacAddress,
+        zxAnCfm2MepTransLbmDestMepId       Dot1agCfmMepIdOrZero,
+        zxAnCfm2MepTransLbmDestMepType     INTEGER,
+        zxAnCfm2MepTransLbmDataTlvLength   Integer32,
+        zxAnCfm2MepTransLbmVlanPriority    Integer32,
+        zxAnCfm2MepTransLbmTimeout         Integer32,
+        zxAnCfm2MepTransLbmResultOk        INTEGER,
+        zxAnCfm2MepTransLbmSeqNumber       Unsigned32,
+        zxAnCfm2MepNextLbmTransId          Unsigned32,
+        zxAnCfm2MepLbrInInOrder            Counter32,
+        zxAnCfm2MepLbrInOutOfOrder         Counter32,
+        zxAnCfm2MepLbrBadMsdu              Counter32,
+        zxAnCfm2MepLbrOut                  Counter32,
+        zxAnCfm2MepLbMaxLatency            Integer32,
+        zxAnCfm2MepLbMinLatency            Integer32,
+        zxAnCfm2MepLbAvgLatency            Integer32
+    }
+
+    zxAnCfm2MepTransLbmEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+           "Enable/disable the LBM function."
+       DEFVAL { disabled }
+       ::= { zxAnCfm2MepLoopBackOperEntry 1 }
+
+    zxAnCfm2MepTransLbmMessages  OBJECT-TYPE
+        SYNTAX      Integer32(1..200)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The total number of Loopback messages to be transmitted."
+        DEFVAL { 5 }
+        ::= {zxAnCfm2MepLoopBackOperEntry 2 }
+
+    zxAnCfm2MepLbmDestMacType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            unicast(1),
+            multicast(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The destination MAC address type of LBM packet."
+        DEFVAL { unicast }
+        ::= { zxAnCfm2MepLoopBackOperEntry 3 }
+
+    zxAnCfm2MepLbAppType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            connectivity(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The application type of LBM. It means to verify bidirectional
+             connectivity of an MEP with an MIP or a peer MEP."
+        DEFVAL { connectivity }
+        ::= { zxAnCfm2MepLoopBackOperEntry 4 }
+
+    zxAnCfm2MepTransLbmDestMacAddr  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The Target MAC Address Field to be transmitted: A unicast
+             destination MAC address.
+             This address will be used if the value of the column
+             zxAnCfm2MepTransLbmDestMepType is 'macAddr'."
+        ::= { zxAnCfm2MepLoopBackOperEntry 5 }
+
+    zxAnCfm2MepTransLbmDestMepId  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepIdOrZero
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance association End Point Identifier of another
+             MEP in the same Maintenance Association to which the LBM is
+             to be sent.
+             This address will be used if the value of the column
+             zxAnCfm2MepTransLbmDestMepType is 'mepId'."
+        ::= { zxAnCfm2MepLoopBackOperEntry 6 }
+
+   zxAnCfm2MepTransLbmDestMepType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            macAddr(1),
+            mepId(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The MEP type.
+             macAddr(1): The unicast destination MAC address of the target MEP
+                         is used for Loopback transmission.
+             mepId(2): The MEP ID of the target MEP is used for Loopback
+                       transmission."
+        ::= {zxAnCfm2MepLoopBackOperEntry 7 }
+
+    zxAnCfm2MepTransLbmDataTlvLength  OBJECT-TYPE
+        SYNTAX      Integer32(0..1450)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "An arbitrary amount of data to be included in the Data TLV, if the
+             Data TLV is selected to be sent.
+             The value 0 means not configured and no data tlv is included in the
+             frame."
+        DEFVAL { 0 }
+        ::= { zxAnCfm2MepLoopBackOperEntry 8 }
+
+    zxAnCfm2MepTransLbmVlanPriority  OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+           "The priority. 3 bit value to be used in the VLAN tag,
+            if present in the transmitted frame.
+            The default value is CCM priority."
+        ::= { zxAnCfm2MepLoopBackOperEntry 9 }
+
+    zxAnCfm2MepTransLbmTimeout  OBJECT-TYPE
+        SYNTAX      Integer32(1..10)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "LMB timeout.
+             If the MEP does not receive LBR in time, the LBR packets may be
+             discarded."
+        DEFVAL { 3 }
+        ::= { zxAnCfm2MepLoopBackOperEntry 10 }
+
+    zxAnCfm2MepTransLbmResultOk  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            yes(1),
+            no(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The result of the operation:
+             yes(1): The Loopback Message(s) will be (or has been) sent.
+             no(2): The Loopback Message(s) will not be sent."
+        DEFVAL { yes }
+        ::= { zxAnCfm2MepLoopBackOperEntry 30 }
+
+    zxAnCfm2MepTransLbmSeqNumber  OBJECT-TYPE
+        SYNTAX      Unsigned32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The Loopback Transaction Identifier (zxAnCfm2MepNextLbmTransId) of
+             the first LBM (to be) sent.
+             The value returned is undefined if zxAnCfm2MepTransLbmResultOk is
+             false."
+        ::= { zxAnCfm2MepLoopBackOperEntry 31 }
+
+    zxAnCfm2MepNextLbmTransId  OBJECT-TYPE
+        SYNTAX      Unsigned32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Next sequence number/transaction identifier to be sent in a
+             Loopback message. This sequence number can be zero because
+             it wraps around."
+        ::= { zxAnCfm2MepLoopBackOperEntry 32 }
+
+     zxAnCfm2MepLbrInInOrder  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+           "The total number of valid, in-order Loopback Replies received."
+        ::= { zxAnCfm2MepLoopBackOperEntry 33 }
+
+    zxAnCfm2MepLbrInOutOfOrder  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of valid, out-of-order Loopback Replies received."
+        ::= { zxAnCfm2MepLoopBackOperEntry 34 }
+
+    zxAnCfm2MepLbrBadMsdu  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of LBRs received whose
+             mac_service_data_unit did not match (except for the OpCode)
+             that of the corresponding LBM (20.2.3)."
+        ::= { zxAnCfm2MepLoopBackOperEntry 35 }
+
+    zxAnCfm2MepLbrOut  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of Loopback Replies transmitted."
+        ::= { zxAnCfm2MepLoopBackOperEntry 36 }
+
+    zxAnCfm2MepLbMaxLatency  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum latency."
+        ::= { zxAnCfm2MepLoopBackOperEntry 37 }
+
+    zxAnCfm2MepLbMinLatency  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum latency."
+        ::= { zxAnCfm2MepLoopBackOperEntry 38 }
+
+    zxAnCfm2MepLbAvgLatency  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average latency."
+        ::= { zxAnCfm2MepLoopBackOperEntry 39 }
+
+--------------------------------------------------------------------------------
+-- 2.3.5.3 CFM2 MEP Multicast Loopback Reply Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepMultiLbrTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepMultiLbrEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table includes multicast Loopback result. Before start a
+             mulitcast LBM user must first get all the entry of this table, and
+             after the LBM is over, user must get all the entry of this table
+             again, and compare all the entry to get the result of multicast
+             LBM."
+        ::= { zxAnCfm2ConnectMeasureObjects 3 }
+
+    zxAnCfm2MepMultiLbrEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepMultiLbrEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The multicast Lookback Reply table entry.
+             All the varibles in this entry is read only."
+        INDEX   {
+            zxAnCfm2MdIndex,
+            zxAnCfm2MaIndex,
+            zxAnCfm2MpIdentifier,
+            zxAnCfm2MepMultiLbrDestMepMac
+        }
+        ::= { zxAnCfm2MepMultiLbrTable 1 }
+
+    ZxAnCfm2MepMultiLbrEntry ::=SEQUENCE {
+         zxAnCfm2MepMultiLbrDestMepMac       MacAddress,
+         zxAnCfm2MepMultiLbrMepLbrIn         Counter32,
+         zxAnCfm2MepMultiLbMaxLatency        Integer32,
+         zxAnCfm2MepMultiLbMinLatency        Integer32,
+         zxAnCfm2MepMultiLbAvgLatency        Integer32
+     }
+
+    zxAnCfm2MepMultiLbrDestMepMac  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The mac address of the destination MEP."
+        ::= { zxAnCfm2MepMultiLbrEntry 1 }
+
+    zxAnCfm2MepMultiLbrMepLbrIn  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total LBR packets received by the MEP from the same
+             remote MEP that responsed the LBR PDUs when received LBM
+             from the local MEP."
+        ::= { zxAnCfm2MepMultiLbrEntry 2 }
+
+    zxAnCfm2MepMultiLbMaxLatency  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum latency."
+        ::= { zxAnCfm2MepMultiLbrEntry 3 }
+
+    zxAnCfm2MepMultiLbMinLatency  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum latency."
+        ::= { zxAnCfm2MepMultiLbrEntry 4 }
+
+    zxAnCfm2MepMultiLbAvgLatency  OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average latency."
+        ::= { zxAnCfm2MepMultiLbrEntry 5 }
+
+--------------------------------------------------------------------------------
+-- 2.3.5.4 CFM2 MEP Link Trace Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepLinkTraceOperTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepLinkTraceOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Association End Point (MEP) LinkTrace operation
+             table stores all the managed objects for sending LTM.
+
+             LTM Managed objects in the MEP table
+             enables the management entity to initiate
+             transmission of LinkTrace messages. It will signal the MEP
+             that it SHOULD transmit some number of LinkTrace messages
+             and detect the detection (or lack thereof) of the
+             corresponding LinkTrace messages.
+
+             Steps to use entries in this table:
+
+             1) Wait for zxAnCfm2MepTransLtmEnable value to be
+                disabled. To do this do this sequence:
+                a. an SNMP GET for both snmpSetSerialNo and
+                   zxAnCfm2MepTransLtmEnable objects (in same SNMP PDU).
+                b. Check if value for zxAnCfm2MepTransLtmEnable is disabled.
+                   - if not, wait x seconds, go to step a above.
+                   - if enabled, save the value of snmpSetSerialNo and go
+                   to step 2) below
+             2) Change zxAnCfm2MepTransLtmEnable value from disabled to
+                enabled to ensure no other management entity will use
+                the service. In order to not disturb a possible other NMS
+                do this by sending an SNMP SET for both snmpSetSerialNo
+                and zxAnCfm2MepTransLtmEnable objects (in same SNMP
+                PDU, and make sure snmpSetSerialNo is the first varBind).
+                For the snmpSetSerialNo varBind, use the value that you
+                obtained in step 1)a.. This ensures that two cooperating
+                NMSes will not step on each others toes.
+                Setting this MIB object does not set the corresponding
+                LBIactive state machine variable.
+             3) Setup the different data to be sent (number of messages,
+                ,...).
+             4) Check the value of zxAnCfm2MepTransLtmResultOk to
+                find out if the operation was successfully initiated or not.
+             5) Monitor the value of zxAnCfm2MepTransLtmEnable.
+                When it is reset to false, the last LTM has been transmitted.
+                Wait an additional 5 seconds to ensure that all LTRs have
+                been returned.
+             6) Read the zxAnCfm2MepLinkTraceReplyTable to get the results of
+                the test."
+        ::= { zxAnCfm2ConnectMeasureObjects 4 }
+
+    zxAnCfm2MepLinkTraceOperEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepLinkTraceOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The LinkTrace table entry.
+             All the varibles writable in the entry can be modified
+             after the MEP entry created, and the variables are reset
+             when the entry is destroyed."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier }
+         ::= { zxAnCfm2MepLinkTraceOperTable 1 }
+
+    ZxAnCfm2MepLinkTraceOperEntry ::= SEQUENCE {
+        zxAnCfm2MepTransLtmEnable           INTEGER,
+        zxAnCfm2MepTransLtmFlags            BITS,
+        zxAnCfm2MepTransLtmDestMacAddr      MacAddress,
+        zxAnCfm2MepTransLtmTargetMepId      Dot1agCfmMepIdOrZero,
+        zxAnCfm2MepTransLtmTargetMepType    INTEGER,
+        zxAnCfm2MepTransLtmTtl              Integer32,
+        zxAnCfm2MepTransLtmTimeout          Integer32,
+        zxAnCfm2MepTransLtmResultOk         INTEGER,
+        zxAnCfm2MepTransLtmSeqNumber        Unsigned32,
+        zxAnCfm2MepLtmNextSeqNumber         Unsigned32,
+        zxAnCfm2MepUnexpLtrIn               Counter32
+    }
+
+    zxAnCfm2MepTransLtmEnable  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the LTM function."
+        DEFVAL { disabled }
+        ::= { zxAnCfm2MepLinkTraceOperEntry 1 }
+
+    zxAnCfm2MepTransLtmFlags  OBJECT-TYPE
+        SYNTAX      BITS {
+            useFDBonly(0)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The flags field for LTMs transmitted by the MEP."
+        DEFVAL { {  } }
+        ::= { zxAnCfm2MepLinkTraceOperEntry 2 }
+
+    zxAnCfm2MepTransLtmDestMacAddr  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The Target MAC Address Field to be transmitted: A unicast
+             destination MAC address.
+             This address will be used if the value of the column
+             zxAnCfm2MepTransLtmTargetMepType is 'macAddr'."
+        ::= { zxAnCfm2MepLinkTraceOperEntry 3 }
+
+    zxAnCfm2MepTransLtmTargetMepId  OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepIdOrZero
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "An indication of the Target MAC Address Field to be
+             transmitted:
+             The Maintenance association End Point Identifier of
+             another MEP in the same Maintenance Association
+             This address will be used if the value of the column
+             zxAnCfm2MepTransLtmTargetMepType is 'mepId'."
+    ::= { zxAnCfm2MepLinkTraceOperEntry 4 }
+
+    zxAnCfm2MepTransLtmTargetMepType  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            macAddr(1),
+            mepId(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The MEP type.
+             macAddr(1): The unicast destination MAC address of the target MEP
+                         is used for LinkTrace transmission.
+             mepId(2): The MEPID of the target MEP is used for LinkTrace
+                       transmission."
+        ::= { zxAnCfm2MepLinkTraceOperEntry 5 }
+
+    zxAnCfm2MepTransLtmTtl  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The LTM TTL field.
+             The TTL field indicates the number of hops remaining to the
+             LTM. Decremented by 1 by each LTR (Link Trace Responder) that
+             handles the LTM. The value returned in the LTR is one less
+             than that received in the LTM.
+             If the LTM TTL is 0 or 1, the LTM is not forwarded to the next hop,
+             and if 0, no LTR is generated."
+        DEFVAL  { 64 }
+        ::= { zxAnCfm2MepLinkTraceOperEntry 6 }
+
+    zxAnCfm2MepTransLtmTimeout  OBJECT-TYPE
+        SYNTAX      Integer32(5..10)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The LTM timeout.
+             If the MEP does not receive LTR in time, the LTR packets may be
+             discarded."
+        DEFVAL  { 5 }
+        ::= { zxAnCfm2MepLinkTraceOperEntry 7 }
+
+    zxAnCfm2MepTransLtmResultOk  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            yes(1),
+            no(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The result of the operation:
+             yes(1): The LinkTrace Message(s) will be (or has been) sent.
+             no(2): The LinkTrace Message(s) will not be sent."
+        DEFVAL { yes }
+        ::= { zxAnCfm2MepLinkTraceOperEntry 30 }
+
+    zxAnCfm2MepTransLtmSeqNumber  OBJECT-TYPE
+        SYNTAX      Unsigned32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The LTM Transaction Identifier (zxAnCfm2MepLtmNextSeqNumber)
+             of the LTM sent.
+             The value returned is undefined if zxAnCfm2MepTransLtmResultOk
+             is false."
+        ::= { zxAnCfm2MepLinkTraceOperEntry 31 }
+
+    zxAnCfm2MepLtmNextSeqNumber  OBJECT-TYPE
+        SYNTAX      Unsigned32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Next transaction identifier/sequence number to be sent in a
+             LinkTrace message. This sequence number can be zero because
+             it wraps around."
+        ::= { zxAnCfm2MepLinkTraceOperEntry 32 }
+
+    zxAnCfm2MepUnexpLtrIn  OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of unexpected LTRs received (20.39.1)."
+        ::= { zxAnCfm2MepLinkTraceOperEntry 33 }
+
+--------------------------------------------------------------------------------
+-- 2.3.5.5 CFM2 MEP Link Trace Reply Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepLinkTraceReplyTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepLinkTraceReplyEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table extends the MEP table and contains a list of
+             LinkTrace replies received by a specific MEP in response to
+             a LinkTrace message.
+             SNMP SMI does not allow to state in a MIB that an object in
+             a table is an array. The solution is to take the index (or
+             indices) of the first table and add one or more indices."
+        REFERENCE
+            "802.1ag clause 12.14.7.5"
+        ::= { zxAnCfm2ConnectMeasureObjects 5 }
+
+    zxAnCfm2MepLinkTraceReplyEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepLinkTraceReplyEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The LinkTrace Reply table entry."
+        INDEX   {
+            zxAnCfm2MdIndex,
+            zxAnCfm2MaIndex,
+            zxAnCfm2MpIdentifier,
+            zxAnCfm2MepLtrSeqNumber,
+            zxAnCfm2MepLtrReceiveOrder
+        }
+        ::= { zxAnCfm2MepLinkTraceReplyTable 1 }
+
+    ZxAnCfm2MepLinkTraceReplyEntry ::= SEQUENCE {
+        zxAnCfm2MepLtrSeqNumber       Unsigned32,
+        zxAnCfm2MepLtrReceiveOrder    Unsigned32,
+        zxAnCfm2MepLtrTtl             Integer32,
+        zxAnCfm2MepLtrForwarded       INTEGER,
+        zxAnCfm2MepLtrTerminalMep     INTEGER,
+        zxAnCfm2MepLtrLastEgressId    OCTET STRING,
+        zxAnCfm2MepLtrNextEgressId    OCTET STRING,
+        zxAnCfm2MepLtrRelay           Dot1agCfmRelayActionFieldValue,
+        zxAnCfm2MepLtrIngress         Dot1agCfmIngressActionFieldValue,
+        zxAnCfm2MepLtrIngressMac      MacAddress,
+        zxAnCfm2MepLtrEgress          Dot1agCfmEgressActionFieldValue,
+        zxAnCfm2MepLtrEgressMac       MacAddress
+        }
+
+    zxAnCfm2MepLtrSeqNumber  OBJECT-TYPE
+        SYNTAX      Unsigned32(0..4294967295)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Transaction identifier/Sequence number returned by a previous
+             transmit LinkTrace message command, indicating which LTM's
+             response is going to be returned."
+        REFERENCE
+            "802.1ag clause 12.14.7.5.2:b"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 1}
+
+    zxAnCfm2MepLtrReceiveOrder  OBJECT-TYPE
+        SYNTAX      Unsigned32(1..4294967295)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An index to distinguish among multiple LTRs with the same LTR
+             Transaction Identifier field value. zxAnCfm2MepLtrReceiveOrder
+             are assigned sequentially from 1, in the order that the
+             LinkTrace Initiator received the LTRs."
+        REFERENCE
+            "802.1ag clause 12.14.7.5.2:c"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 2 }
+
+    zxAnCfm2MepLtrTtl  OBJECT-TYPE
+        SYNTAX      Integer32(0..255)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "TTL field value for a returned LTR."
+        REFERENCE
+            "802.1ag clause 12.14.7.5 and 20.36.2.2"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 3 }
+
+    zxAnCfm2MepLtrForwarded  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            forwarded(1),
+            notForwarded(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Whether a LTM was forwarded by the responding MP."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:c and 20.36.2.1"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 4 }
+
+    zxAnCfm2MepLtrTerminalMep  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            yes(1),
+            no(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Whether the forwarded LTM reached a MEP enclosing its MA."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:d and 20.36.2.1"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 5 }
+
+    zxAnCfm2MepLtrLastEgressId  OBJECT-TYPE
+        SYNTAX      OCTET STRING (SIZE(8))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "An octet field holding the Last Egress Identifier returned
+             in the LTR Egress Identifier TLV of the LTR.
+             The Last Egress Identifier identifies the MEP LinkTrace
+             Initiator that originated, or the LinkTrace Responder that
+             forwarded, the LTM to which this LTR is the response. This
+             is the same value as the Egress Identifier TLV of that LTM."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:e and 20.36.2.3"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 6 }
+
+    zxAnCfm2MepLtrNextEgressId  OBJECT-TYPE
+        SYNTAX      OCTET STRING (SIZE(8))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "An octet field holding the Next Egress Identifier returned
+             in the LTR Egress Identifier TLV of the LTR. The Next Egress
+             Identifier Identifies the LinkTrace Responder that
+             transmitted this LTR, and can forward the LTM to the next
+             hop. This is the same value as the Egress Identifier TLV of
+             the forwarded LTM, if any. If the FwdYes bit of the Flags
+             field is false, the contents of this field are undefined,
+             i.e. any value can be transmitted, and the field is ignored
+             by the receiver."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:f and 20.36.2.4"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 7 }
+
+    zxAnCfm2MepLtrRelay  OBJECT-TYPE
+        SYNTAX      Dot1agCfmRelayActionFieldValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Value returned in the Relay Action field."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:g and 20.36.2.5"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 8 }
+
+    zxAnCfm2MepLtrIngress  OBJECT-TYPE
+        SYNTAX      Dot1agCfmIngressActionFieldValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The value returned in the Ingress Action Field of the LTM."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:k and 20.36.2.6"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 9 }
+
+    zxAnCfm2MepLtrIngressMac  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "MAC address returned in the ingress MAC address field."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:l and 20.36.2.7"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 10 }
+
+    zxAnCfm2MepLtrEgress  OBJECT-TYPE
+        SYNTAX      Dot1agCfmEgressActionFieldValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The value returned in the Egress Action Field of the LTM."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:o and 20.36.2.10"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 11 }
+
+    zxAnCfm2MepLtrEgressMac  OBJECT-TYPE
+        SYNTAX      MacAddress
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "MAC address returned in the egress MAC address field."
+        REFERENCE
+            "802.1ag clauses 12.14.7.5.3:p and 20.36.2.11"
+        ::= { zxAnCfm2MepLinkTraceReplyEntry 12 }
+
+--------------------------------------------------------------------------------
+-- 2.3.6 CFM2 MEP Performance Measurement Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 2.3.6.2 CFM2 MEP DM Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepDmOperTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepDmOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Association End Point (MEP) performance
+             measurement operation table stores all the managed objects
+             for sending DMM.
+
+             Steps to use entries in this table:
+
+             1) Wait for zxAnCfm2MepDmEnable value to be
+                disabled. To do this do this sequence:
+                a. an SNMP GET for both snmpSetSerialNo and
+                   zxAnCfm2MepDmEnable objects (in same SNMP PDU).
+                b. Check if value for zxAnCfm2MepDmEnable is disabled.
+                   - if not, wait x seconds, go to step a above.
+                   - if enabled, save the value of snmpSetSerialNo and go
+                   to step 2) below
+             2) Change zxAnCfm2MepDmEnable value from disabled to
+                enabled to ensure no other management entity will use
+                the service. In order to not disturb a possible other NMS
+                do this by sending an SNMP SET for both snmpSetSerialNo
+                and zxAnCfm2MepDmEnable and other delay measurement
+                objects (such as zxAnCfm2MepDmPriority,...) (in same SNMP
+                PDU, and make sure snmpSetSerialNo is the first varbind).
+                For the snmpSetSerialNo varbind, use the value that you
+                obtained in step 1) a. This ensures that two cooperating
+                NMSes will not step on each others toes.
+             3) Check the value of zxAnCfm2MepDmResultOk to
+                find out if the operation was successfully initiated or not.
+             4) Monitor the value of zxAnCfm2MepDmEnable.
+                When it is reset to false, the last DMM has been transmitted.
+             5) Get the results of the test from zxAnCfm2MepDmRltTable."
+        ::= { zxAnCfm2PerfMeasureObjects 2 }
+
+    zxAnCfm2MepDmOperEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepDmOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Delay Measurement table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier,
+                  zxAnCfmMepDmTestId }
+        ::= { zxAnCfm2MepDmOperTable 1 }
+
+    ZxAnCfm2MepDmOperEntry ::= SEQUENCE {
+        zxAnCfmMepDmTestId                Integer32,
+        zxAnCfm2MepDmEnable               INTEGER,
+        zxAnCfm2MepDmTargetMepId          Dot1agCfmMepIdOrZero,
+        zxAnCfm2MepDmFrameSize            INTEGER,
+        zxAnCfm2MepDmAppType              INTEGER,
+        zxAnCfm2MepDmInterval             INTEGER,
+        zxAnCfm2MepDmDuration             Integer32,
+        zxAnCfm2MepDmPriority             Integer32,
+        zxAnCfm2MepDmOperType             INTEGER,
+        zxAnCfm2MepDmResultOk             INTEGER
+        }
+
+    zxAnCfmMepDmTestId                  OBJECT-TYPE
+        SYNTAX      Integer32(1..8)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The frame delay measurement identifier of the specified MEP.
+             8 measurements can be simultaneously activated on the MEP."
+        ::= { zxAnCfm2MepDmOperEntry 1 }
+
+    zxAnCfm2MepDmEnable                 OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the DM function.
+             If the value is disable, the DM test can not be started."
+        DEFVAL { disabled }
+        ::= { zxAnCfm2MepDmOperEntry 2 }
+
+    zxAnCfm2MepDmTargetMepId            OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepIdOrZero
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance association End Point Identifier of another MEP in
+             the same Maintenance Association to which the DM is to be sent.
+             It will be used if DMM destination MAC address type is unicast."
+        DEFVAL { 0 }
+        ::= { zxAnCfm2MepDmOperEntry 3 }
+
+    zxAnCfm2MepDmFrameSize              OBJECT-TYPE
+        SYNTAX      INTEGER {
+            size66(1),
+            size128(2),
+            size256(3),
+            size512(4),
+            size1024(5),
+            size1280(6),
+            size1518(7)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The DM frame size."
+        DEFVAL { size66 }
+        ::= { zxAnCfm2MepDmOperEntry 4 }
+
+    zxAnCfm2MepDmAppType                OBJECT-TYPE
+        SYNTAX      INTEGER {
+            singleEnded(1),
+            dualEnded(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The application type of the DM."
+        DEFVAL { singleEnded }
+        ::= { zxAnCfm2MepDmOperEntry 5 }
+
+    zxAnCfm2MepDmInterval               OBJECT-TYPE
+        SYNTAX      INTEGER {
+            interval1s(1),
+            interval10s(2),
+            interval60s(3),
+            interval100s(4)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interval at which DMMs are sent by an MEP."
+        DEFVAL { interval1s }
+        ::= { zxAnCfm2MepDmOperEntry 6 }
+
+    zxAnCfm2MepDmDuration               OBJECT-TYPE
+        SYNTAX      Integer32(10..86400)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The duration of DM test.
+             It can be configured when zxAnCfm2MepDmOperType is onDemand."
+        DEFVAL { 60 }
+        ::= { zxAnCfm2MepDmOperEntry 7 }
+
+    zxAnCfm2MepDmPriority               OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The priority. 3 bit value to be used in the VLAN tag,
+             if present in the transmitted frame."
+        DEFVAL { 7 }
+        ::= { zxAnCfm2MepDmOperEntry 8 }
+
+    zxAnCfm2MepDmOperType   OBJECT-TYPE
+        SYNTAX      INTEGER {
+            onDemand(1),
+            proactive(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The operation type of the DM."
+        DEFVAL { onDemand }
+        ::= { zxAnCfm2MepDmOperEntry 9 }
+
+    zxAnCfm2MepDmResultOk               OBJECT-TYPE
+        SYNTAX      INTEGER {
+            yes(1),
+            no(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The result of the operation:
+             yes(1): The Delay Measurement Message(s) will be (or has been)
+                     sent.
+             no(2): The Delay Measurement Message(s) will not be sent."
+        DEFVAL { yes }
+        ::= { zxAnCfm2MepDmOperEntry 30 }
+
+--------------------------------------------------------------------------------
+-- 2.3.6.3 CFM2 MEP DM result Table
+--------------------------------------------------------------------------------
+     zxAnCfm2MepDmRltTable              OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepDmRltEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table includes multicast or unicast frame delay measurement
+             result."
+        ::= { zxAnCfm2PerfMeasureObjects 3 }
+
+    zxAnCfm2MepDmRltEntry               OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepDmRltEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The delay measurement result table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier,
+                  zxAnCfmMepDmTestId, zxAnCfm2DmRemoteMepId }
+        ::= { zxAnCfm2MepDmRltTable 1 }
+
+    ZxAnCfm2MepDmRltEntry ::= SEQUENCE {
+        zxAnCfm2DmRemoteMepId             Dot1agCfmMepId,
+        zxAnCfm2MepDmStartTime            DateAndTime,
+        zxAnCfm2MepDmEndTime              DateAndTime,
+        zxAnCfm2MepDmElapsedTime          Integer32,
+        zxAnCfm2MepDmSentPkts             Counter32,
+        zxAnCfm2MepDmReceivedPkts         Counter32,
+        zxAnCfm2MepDmTwoWayFdMsr          Counter32,
+        zxAnCfm2MepDmTwoWayFdMsrAvg       Integer32,
+        zxAnCfm2MepDmTwoWayFdMsrMin       Integer32,
+        zxAnCfm2MepDmTwoWayFdMsrMax       Integer32,
+        zxAnCfm2MepDmOneWayFwdIfdvMsr     Counter32,
+        zxAnCfm2MepDmOneWayFwdIfdvMsrAvg  Integer32,
+        zxAnCfm2MepDmOneWayFwdIfdvMsrMax  Integer32,
+        zxAnCfm2MepDmOneWayFwdIfdvMsrMin  Integer32,
+        zxAnCfm2MepDmOneWayBwdIfdvMsr     Counter32,
+        zxAnCfm2MepDmOneWayBwdIfdvMsrAvg  Integer32,
+        zxAnCfm2MepDmOneWayBwdIfdvMsrMax  Integer32,
+        zxAnCfm2MepDmOneWayBwdIfdvMsrMin  Integer32,
+        zxAnCfm2MepDmTwoWayFdMsrR1C       Integer32,
+        zxAnCfm2MepDmTwoWayFdMsrR2C       Integer32,
+        zxAnCfm2MepDmTwoWayFdMsrR3C       Integer32,
+        zxAnCfm2MepDmTwoWayFdMsrR4C       Integer32,
+        zxAnCfm2MepDmOneWayFwdIfdvMsrR1C  Integer32,
+        zxAnCfm2MepDmOneWayFwdIfdvMsrR2C  Integer32,
+        zxAnCfm2MepDmOneWayFwdIfdvMsrR3C  Integer32,
+        zxAnCfm2MepDmOneWayFwdIfdvMsrR4C  Integer32,
+        zxAnCfm2MepDmOneWayBwdIfdvMsrR1C  Integer32,
+        zxAnCfm2MepDmOneWayBwdIfdvMsrR2C  Integer32,
+        zxAnCfm2MepDmOneWayBwdIfdvMsrR3C  Integer32,
+        zxAnCfm2MepDmOneWayBwdIfdvMsrR4C  Integer32
+        }
+
+    zxAnCfm2DmRemoteMepId               OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Remote MEP identifier, which receives frame delay measurement 
+             packets and responses delay measurement reply packets."
+        ::= { zxAnCfm2MepDmRltEntry 1 }
+
+    zxAnCfm2MepDmStartTime              OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The timestamp of the time-of-day in UTC
+             at the scheduled starting time of the measurement interval."
+        ::= { zxAnCfm2MepDmRltEntry 2 }
+
+    zxAnCfm2MepDmEndTime                OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The timestamp of the time-of-day in UTC
+             at the scheduled ending time of the measurement interval."
+        ::= { zxAnCfm2MepDmRltEntry 3 }
+
+    zxAnCfm2MepDmElapsedTime            OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The elapsed time of the delay measurement interval."
+        ::= { zxAnCfm2MepDmRltEntry 4 }
+
+    zxAnCfm2MepDmSentPkts               OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The packets of delay measurement sent."
+        ::= { zxAnCfm2MepDmRltEntry 5 }
+
+    zxAnCfm2MepDmReceivedPkts           OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The packets of delay measurement received."
+        ::= { zxAnCfm2MepDmRltEntry 6 }
+
+    zxAnCfm2MepDmTwoWayFdMsr            OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count of two-way frame delay measurements."
+        ::= { zxAnCfm2MepDmRltEntry 7 }
+
+    zxAnCfm2MepDmTwoWayFdMsrAvg         OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average two-way frame delay measurements."
+        ::= { zxAnCfm2MepDmRltEntry 8 }
+
+    zxAnCfm2MepDmTwoWayFdMsrMin         OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum two-way frame delay measurements."
+        ::= { zxAnCfm2MepDmRltEntry 9 }
+
+    zxAnCfm2MepDmTwoWayFdMsrMax         OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum two-way frame delay measurements."
+        ::= { zxAnCfm2MepDmRltEntry 10 }
+
+    zxAnCfm2MepDmOneWayFwdIfdvMsr       OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count of inter-frame delay variation measurements
+             in the forward direction."
+        ::= { zxAnCfm2MepDmRltEntry 11 }
+
+    zxAnCfm2MepDmOneWayFwdIfdvMsrAvg    OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average one-way inter-frame delay
+             variation measurements in forward direction."
+        ::= { zxAnCfm2MepDmRltEntry 12 }
+
+    zxAnCfm2MepDmOneWayFwdIfdvMsrMax       OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum one-way inter-frame delay
+             variation measurements in forward direction."
+        ::= { zxAnCfm2MepDmRltEntry 13 }
+
+    zxAnCfm2MepDmOneWayFwdIfdvMsrMin    OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum one-way inter-frame delay
+             variation measurements in forward direction."
+        ::= { zxAnCfm2MepDmRltEntry 14 }
+
+    zxAnCfm2MepDmOneWayBwdIfdvMsr       OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count of inter-frame delay variation measurements in the 
+             backward direction."
+        ::= { zxAnCfm2MepDmRltEntry 15 }
+
+    zxAnCfm2MepDmOneWayBwdIfdvMsrAvg    OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The average one-way inter-frame delay 
+             variation measurements in backward direction."
+        ::= { zxAnCfm2MepDmRltEntry 16 }
+
+    zxAnCfm2MepDmOneWayBwdIfdvMsrMax    OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The maximum one-way inter-frame delay
+             variation measurements in backward direction."
+        ::= { zxAnCfm2MepDmRltEntry 17 }
+
+    zxAnCfm2MepDmOneWayBwdIfdvMsrMin    OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Microseconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The minimum one-way inter-frame delay
+             variation measurements in backward direction."
+        ::= { zxAnCfm2MepDmRltEntry 18 }
+
+    zxAnCfm2MepDmTwoWayFdMsrR1C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the first two-way frame delay measurements range
+             which is [0, zxAnCfm2LMepDmTwoWayFdMsrR1Max)."
+        ::= { zxAnCfm2MepDmRltEntry 19 }
+
+    zxAnCfm2MepDmTwoWayFdMsrR2C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the second two-way frame delay measurements range
+             which is [zxAnCfm2LMepDmTwoWayFdMsrR1Max,
+             zxAnCfm2LMepDmTwoWayFdMsrR2Max)."
+        ::= { zxAnCfm2MepDmRltEntry 20 }
+
+    zxAnCfm2MepDmTwoWayFdMsrR3C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the third two-way frame delay measurements range
+             which is [zxAnCfm2LMepDmTwoWayFdMsrR2Max,
+             zxAnCfm2LMepDmTwoWayFdMsrR3Max)."
+        ::= { zxAnCfm2MepDmRltEntry 21 }
+
+    zxAnCfm2MepDmTwoWayFdMsrR4C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the fourth two-way frame delay measurements range
+             which is [zxAnCfm2LMepDmTwoWayFdMsrR3Max, plus infinity)."
+        ::= { zxAnCfm2MepDmRltEntry 22 }
+
+    zxAnCfm2MepDmOneWayFwdIfdvMsrR1C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the first one-way inter-frame delay variation
+             measurements range which is [0, zxAnCfm2LMepDmOneWayIfdvMsrR1Max)
+             in the forward direction."
+        ::= { zxAnCfm2MepDmRltEntry 23 }
+
+    zxAnCfm2MepDmOneWayFwdIfdvMsrR2C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the second one-way inter-frame delay variation
+             measurements range which is [zxAnCfm2LMepDmOneWayIfdvMsrR1Max,
+             zxAnCfm2LMepDmOneWayIfdvMsrR2Max) in the forward direction."
+        ::= { zxAnCfm2MepDmRltEntry 24 }
+
+    zxAnCfm2MepDmOneWayFwdIfdvMsrR3C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the third one-way inter-frame delay variation
+             measurements range which is [zxAnCfm2LMepDmOneWayIfdvMsrR2Max,
+             zxAnCfm2LMepDmOneWayIfdvMsrR3Max) in the forward direction."
+        ::= { zxAnCfm2MepDmRltEntry 25 }
+
+    zxAnCfm2MepDmOneWayFwdIfdvMsrR4C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the fourth one-way inter-frame delay variation
+             measurements range which is [zxAnCfm2LMepDmOneWayIfdvMsrR3Max,
+             plus infinity) in the forward direction."
+        ::= { zxAnCfm2MepDmRltEntry 26 }
+
+    zxAnCfm2MepDmOneWayBwdIfdvMsrR1C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the first one-way inter-frame delay variation
+             measurements range which is [0, zxAnCfm2LMepDmOneWayIfdvMsrR1Max)
+             in the backward direction."
+        ::= { zxAnCfm2MepDmRltEntry 27 }
+
+    zxAnCfm2MepDmOneWayBwdIfdvMsrR2C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the second one-way inter-frame delay variation
+             measurements range which is [zxAnCfm2LMepDmOneWayIfdvMsrR1Max,
+             zxAnCfm2LMepDmOneWayIfdvMsrR2Max) in the backward direction."
+        ::= { zxAnCfm2MepDmRltEntry 28 }
+
+    zxAnCfm2MepDmOneWayBwdIfdvMsrR3C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the third one-way inter-frame delay variation
+             measurements range which is [zxAnCfm2LMepDmOneWayIfdvMsrR2Max,
+             zxAnCfm2LMepDmOneWayIfdvMsrR3Max) in the backward direction."
+        ::= { zxAnCfm2MepDmRltEntry 29 }
+
+    zxAnCfm2MepDmOneWayBwdIfdvMsrR4C    OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The count in the fourth one-way inter-frame delay variation
+             measurements range which is [zxAnCfm2LMepDmOneWayIfdvMsrR3Max, 
+             plus infinity) in the backward direction."
+        ::= { zxAnCfm2MepDmRltEntry 30 }
+
+--------------------------------------------------------------------------------
+-- 2.3.6.5 CFM2 MEP Loss Measurement Operation Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepLmOperTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepLmOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Association End Point (MEP) performance
+             measurement operation table stores all the managed objects
+             for sending LMM.
+
+             Steps to use entries in this table:
+
+             1) Wait for zxAnCfm2MepLmEnable value to be
+                disabled. To do this do this sequence:
+                a. an SNMP GET for both snmpSetSerialNo and
+                   zxAnCfm2MepLmEnable objects (in same SNMP PDU).
+                b. Check if value for zxAnCfm2MepLmEnable is disabled.
+                   - if not, wait x seconds, go to step a above.
+                   - if enabled, save the value of snmpSetSerialNo and go
+                   to step 2) below
+             2) Change zxAnCfm2MepLmEnable value from disabled to
+                enabled to ensure no other management entity will use
+                the service. In order to not disturb a possible other NMS
+                do this by sending an SNMP SET for both snmpSetSerialNo
+                and zxAnCfm2MepLmEnable and other frame loss measurement
+                objects (such as zxAnCfm2MepLmPriority,...) (in same SNMP
+                PDU, and make sure snmpSetSerialNo is the first varBind).
+                For the snmpSetSerialNo varbind, use the value that you
+                obtained in step 1) a. This ensures that two cooperating
+                NMSes will not step on each others toes.
+             3) Check the value of zxAnCfm2MepLmResultOk to find out if 
+                the operation was successfully initiated or not.
+             4) Monitor the value of zxAnCfm2MepLmEnable.
+                When it is reset to false, the last LMM has been transmitted.
+             5) Get the results of the test from zxAnCfm2MepLmRltTable."
+     ::= { zxAnCfm2PerfMeasureObjects 4 }
+
+    zxAnCfm2MepLmOperEntry              OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepLmOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Loss Measurement table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier,
+                  zxAnCfm2MepLmTestId }
+        ::= { zxAnCfm2MepLmOperTable 1 }
+
+    ZxAnCfm2MepLmOperEntry ::= SEQUENCE {
+        zxAnCfm2MepLmTestId                 Integer32,
+        zxAnCfm2MepLmEnable                 INTEGER,
+        zxAnCfm2MepLmTargetMepId            Dot1agCfmMepIdOrZero,
+        zxAnCfm2MepLmAppType                INTEGER,
+        zxAnCfm2MepLmInterval               INTEGER,
+        zxAnCfm2MepLmDuration               Integer32,
+        zxAnCfm2MepLmPriority               Integer32,
+        zxAnCfm2MepLmOperType               INTEGER,
+        zxAnCfm2MepLmResultOk               INTEGER
+    }
+
+    zxAnCfm2MepLmTestId                 OBJECT-TYPE
+        SYNTAX      Integer32(1..2)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The packet loss measurement identifier of the specified MEP,
+             only one on-demand or one proactive LM can be activated 
+             simultaneously on the specified MEP."
+        ::= { zxAnCfm2MepLmOperEntry 1 }
+
+    zxAnCfm2MepLmEnable                 OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the LM function.
+             If the value is disable the LM test can not be started."
+        DEFVAL { disabled }
+        ::= { zxAnCfm2MepLmOperEntry 2 }
+
+    zxAnCfm2MepLmTargetMepId            OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepIdOrZero
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance association End Point Identifier of another MEP in
+             the same Maintenance Association to which the LM is to be sent.
+             This variable will be used if the LMM destination MAC address type
+             is unicast, if not configured the multicast LM will be sent."
+        DEFVAL { 0 }
+        ::= { zxAnCfm2MepLmOperEntry 3 }
+
+    zxAnCfm2MepLmAppType                OBJECT-TYPE
+        SYNTAX      INTEGER {
+            singleEnded(1),
+            dualEnded(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The application type of the LM."
+        DEFVAL { singleEnded }
+        ::= { zxAnCfm2MepLmOperEntry 4 }
+
+    zxAnCfm2MepLmInterval               OBJECT-TYPE
+        SYNTAX      INTEGER {
+            interval1s(1),
+            interval10s(2),
+            interval60s(3),
+            interval100s(4)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interval at which LMMs are sent by an MEP."
+        DEFVAL { interval1s }
+        ::= { zxAnCfm2MepLmOperEntry 5 }
+
+    zxAnCfm2MepLmDuration               OBJECT-TYPE
+        SYNTAX      Integer32(10..86400)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The duration of LM.
+             It can be configured when zxAnCfm2MepLmOperType is onDemand."
+        DEFVAL { 60 }
+        ::= { zxAnCfm2MepLmOperEntry 6 }
+
+    zxAnCfm2MepLmPriority               OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The priority. 3 bit value to be used in the VLAN tag,
+             if present in the LM frame."
+        DEFVAL { 7 }
+        ::= { zxAnCfm2MepLmOperEntry 7 }
+
+    zxAnCfm2MepLmOperType               OBJECT-TYPE
+         SYNTAX      INTEGER {
+            onDemand(1),
+            proactive(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The operation type of the LM."
+        DEFVAL { onDemand }
+        ::= { zxAnCfm2MepLmOperEntry 8 }
+
+    zxAnCfm2MepLmResultOk               OBJECT-TYPE
+        SYNTAX      INTEGER {
+            yes(1),
+            no(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The result of the operation:
+             yes(1): The Loss Measurement Message(s) will be (or has been) sent.
+             no(2): The Loss Measurement Message(s) will not be sent."
+        DEFVAL { yes }
+        ::= { zxAnCfm2MepLmOperEntry 30 }
+
+--------------------------------------------------------------------------------
+-- 2.3.6.5 CFM2 MEP Loss Measurement Result Table
+--------------------------------------------------------------------------------
+    zxAnCfm2MepLmRltTable               OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepLmRltEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This table includes multicast or unicast frame loss measurement
+             result."
+        ::= { zxAnCfm2PerfMeasureObjects 5 }
+
+    zxAnCfm2MepLmRltEntry               OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepLmRltEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The loss measurement result table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier,
+                  zxAnCfm2MepLmTestId, zxAnCfm2LmRemoteMepId }
+        ::= { zxAnCfm2MepLmRltTable 1 }
+
+    ZxAnCfm2MepLmRltEntry ::= SEQUENCE {
+        zxAnCfm2LmRemoteMepId               Dot1agCfmMepId,
+        zxAnCfm2MepLmStartTime              DateAndTime,
+        zxAnCfm2MepLmEndTime                DateAndTime,
+        zxAnCfm2MepLmElapsedTime            Integer32,
+        zxAnCfm2MepLmSentPkts               Counter32,
+        zxAnCfm2MepLmReceivedPkts           Counter32,
+        zxAnCfm2MepLmFwdSentPkts            Counter64,
+        zxAnCfm2MepLmFwdReceivedPkts        Counter64,
+        zxAnCfm2MepLmFwdLossRatio           Integer32,
+        zxAnCfm2MepLmBwdSentPkts            Counter64,
+        zxAnCfm2MepLmBwdReceivedPkts        Counter64,
+        zxAnCfm2MepLmBwdLossRatio           Integer32
+    }
+
+    zxAnCfm2LmRemoteMepId               OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Remote MEP identifier, which receives frame loss measurement 
+             packets and responses loss measurement reply packets."
+        ::= { zxAnCfm2MepLmRltEntry 1 }
+
+    zxAnCfm2MepLmStartTime              OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The timestamp of the time-of-day in UTC
+             at the scheduled starting time of the measurement interval."
+        ::= { zxAnCfm2MepLmRltEntry 2 }
+
+    zxAnCfm2MepLmEndTime                OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The timestamp of the time-of-day in UTC
+             at the scheduled ending time of the measurement interval."
+        ::= { zxAnCfm2MepLmRltEntry 3 }
+
+    zxAnCfm2MepLmElapsedTime            OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The elapsed time of the measurement interval."
+        ::= { zxAnCfm2MepLmRltEntry 4 }
+
+    zxAnCfm2MepLmSentPkts               OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of frame loss measurement packets sent."
+        ::= { zxAnCfm2MepLmRltEntry 5 }
+
+    zxAnCfm2MepLmReceivedPkts           OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of frame loss measurement packets received."
+        ::= { zxAnCfm2MepLmRltEntry 6 }
+
+    zxAnCfm2MepLmFwdSentPkts            OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of frame loss measurement packets sent
+             in forward direction."
+        ::= { zxAnCfm2MepLmRltEntry 7 }
+
+    zxAnCfm2MepLmFwdReceivedPkts        OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of frame loss measurement packets received
+             in forward direction."
+        ::= { zxAnCfm2MepLmRltEntry 8 }
+
+    zxAnCfm2MepLmFwdLossRatio           OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "0.0001percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The frame loss ratio in forward direction of the LM."
+        ::= { zxAnCfm2MepLmRltEntry 9 }
+
+    zxAnCfm2MepLmBwdSentPkts            OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of frame loss measurement packets sent
+             in backward direction."
+        ::= { zxAnCfm2MepLmRltEntry 10 }
+
+    zxAnCfm2MepLmBwdReceivedPkts        OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of frame loss measurement packets received
+             in backward direction."
+        ::= { zxAnCfm2MepLmRltEntry 11 }
+
+    zxAnCfm2MepLmBwdLossRatio           OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "0.0001percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The frame loss ratio in backward direction of the LM."
+        ::= { zxAnCfm2MepLmRltEntry 12 }
+
+--------------------------------------------------------------------------------
+-- 2.3.6.6 CFM2 MEP SLM Operation Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepSlmOperTable   OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepSlmOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Association End Point (MEP) performance
+             measurement operation table stores all the managed objects
+             for sending SLM .
+
+             Steps to use entries in this table:
+
+             1) Wait for zxAnCfm2MepSlmEnable value to be
+                disabled. To do this do this sequence:
+                a. an SNMP GET for both snmpSetSerialNo and
+                   zxAnCfm2MepSlmEnable objects (in same SNMP PDU).
+                b. Check if value for zxAnCfm2MepSlmEnable is disabled.
+                   - if not, wait x seconds, go to step a above.
+                   - if enabled, save the value of snmpSetSerialNo and go
+                   to step 2) below
+             2) Change zxAnCfm2MepSlmEnable value from disabled to
+                enabled to ensure no other management entity will use
+                the service. In order to not disturb a possible other NMS
+                do this by sending an SNMP SET for both snmpSetSerialNo
+                and zxAnCfm2MepSlmEnable and other synthetic loss measurement
+                objects (such as zxAnCfm2MepSlmPriority, ...) (in same SNMP
+                PDU, and make sure snmpSetSerialNo is the first varbind).
+                For the snmpSetSerialNo varBind, use the value that you
+                obtained in step 1) a. This ensures that two cooperating
+                NMSes will not step on each others toes.
+             3) Check the value of zxAnCfm2MepSlmResultOk to
+                find out if the operation was successfully initiated or not.
+             4) Monitor the value of zxAnCfm2MepSlmEnable.
+                When it is reset to false, the last SLM has been transmitted.
+             5) Get the results of the test from the zxAnCfm2MepSlmRltTable."
+        ::= { zxAnCfm2PerfMeasureObjects 6 }
+
+    zxAnCfm2MepSlmOperEntry             OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepSlmOperEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The synthetic loss measurement table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier,
+                  zxAnCfm2MepSlmTestId }
+         ::= { zxAnCfm2MepSlmOperTable 1 }
+
+    ZxAnCfm2MepSlmOperEntry ::= SEQUENCE {
+        zxAnCfm2MepSlmTestId                 Integer32,
+        zxAnCfm2MepSlmEnable                 INTEGER,
+        zxAnCfm2MepSlmTargetMepId            Dot1agCfmMepIdOrZero,
+        zxAnCfm2MepSlmAppType                INTEGER,
+        zxAnCfm2MepSlmInterval               INTEGER,
+        zxAnCfm2MepSlmDuration               Integer32,
+        zxAnCfm2MepSlmPriority               Integer32,
+        zxAnCfm2MepSlmFrameSize              INTEGER,
+        zxAnCfm2MepSlmOperType               INTEGER,
+        zxAnCfm2MepSlmResultOk               INTEGER
+    }
+
+    zxAnCfm2MepSlmTestId                OBJECT-TYPE
+        SYNTAX      Integer32(1..8)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The synthetic frame loss measurement identifier of the specified 
+             MEP. 8 measurements can be activated simultaneously on the MEP."
+        ::= { zxAnCfm2MepSlmOperEntry 1 }
+
+    zxAnCfm2MepSlmEnable                OBJECT-TYPE
+        SYNTAX      INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Enable/disable the SLM function.
+             If the value is disable the SLM test can not be started."
+        DEFVAL { disabled }
+        ::= { zxAnCfm2MepSlmOperEntry 2 }
+
+    zxAnCfm2MepSlmTargetMepId           OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepIdOrZero
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The Maintenance Association End Point Identifier of another MEP in
+             the same Maintenance Association to which the SLM is to be sent.
+             This variable will be used if the SLM destination MAC address type
+             is unicast, if 0, the SLM destination MAC address type is 
+             multicast."
+        DEFVAL { 0 }
+        ::= { zxAnCfm2MepSlmOperEntry 3 }
+
+    zxAnCfm2MepSlmAppType               OBJECT-TYPE
+        SYNTAX      INTEGER {
+            singleEnded(1),
+            dualEnded(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The application type of the SLM."
+        DEFVAL { singleEnded }
+        ::= { zxAnCfm2MepSlmOperEntry 4 }
+
+    zxAnCfm2MepSlmInterval              OBJECT-TYPE
+        SYNTAX      INTEGER {
+            interval10ms(1),
+            interval100ms(2),
+            interval1s(3),
+            unlimited(255)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The interval at which SLM is send by an MEP. Unlimited
+             means the test can't stop until the user stops it."
+        DEFVAL { interval10ms }
+        ::= { zxAnCfm2MepSlmOperEntry 5 }
+
+    zxAnCfm2MepSlmDuration              OBJECT-TYPE
+        SYNTAX      Integer32(10..600)
+        UNITS       "Seconds"
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The duration of SLM test."
+        DEFVAL { 60 }
+        ::= { zxAnCfm2MepSlmOperEntry 6 }
+
+    zxAnCfm2MepSlmPriority              OBJECT-TYPE
+        SYNTAX      Integer32(0..7)
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The priority. 3 bit value to be used in the VLAN tag,
+             if present in the SLM frame."
+        DEFVAL { 7 }
+        ::= { zxAnCfm2MepSlmOperEntry 7 }
+
+    zxAnCfm2MepSlmFrameSize             OBJECT-TYPE
+        SYNTAX      INTEGER {
+            size64(1),
+            size128(2),
+            size256(3),
+            size512(4),
+            size1024(5),
+            size1280(6),
+            size1518(7)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The packet length of the SLM frame."
+        DEFVAL { size64 }
+        ::= { zxAnCfm2MepSlmOperEntry 8 }
+
+    zxAnCfm2MepSlmOperType              OBJECT-TYPE
+         SYNTAX      INTEGER {
+            onDemand(1),
+            proactive(2)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The operation type of the SLM."
+        DEFVAL { onDemand }
+        ::= { zxAnCfm2MepSlmOperEntry 9 }
+
+    zxAnCfm2MepSlmResultOk              OBJECT-TYPE
+        SYNTAX      INTEGER {
+            yes(1),
+            no(2)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The result of the operation:
+             yes(1): The Synthetic Loss Measurement Message(s) will 
+                     be (or has been) sent.
+             no(2): The Synthetic Loss Measurement Message(s) will not be sent."
+        DEFVAL { yes }
+        ::= { zxAnCfm2MepSlmOperEntry 30 }
+
+--------------------------------------------------------------------------------
+-- 2.3.6.7 CFM2 MEP SLM Result Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepSlmRltTable              OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepSlmRltEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The synthetic frame loss measurement result table."
+     ::= { zxAnCfm2PerfMeasureObjects 7 }
+
+    zxAnCfm2MepSlmRltEntry              OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepSlmRltEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The result information of Synthetic Loss Measurement."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier,
+                  zxAnCfm2MepSlmTestId, zxAnCfm2SlmRemoteMepId }
+        ::= { zxAnCfm2MepSlmRltTable 1 }
+
+    ZxAnCfm2MepSlmRltEntry ::= SEQUENCE {
+        zxAnCfm2SlmRemoteMepId               Dot1agCfmMepId,
+        zxAnCfm2MepSlmStartTime              DateAndTime,
+        zxAnCfm2MepSlmEndTime                DateAndTime,
+        zxAnCfm2MepSlmElapsedTime            Integer32,
+        zxAnCfm2MepSlmSentPkts               Counter32,
+        zxAnCfm2MepSlmReceivedPkts           Counter32,
+        zxAnCfm2MepSlmFwdSentPkts            Counter32,
+        zxAnCfm2MepSlmFwdReceivedPkts        Counter32,
+        zxAnCfm2MepSlmFwdLossPkts            Integer32,
+        zxAnCfm2MepSlmFwdLossRatio           Integer32,
+        zxAnCfm2MepSlmBwdSentPkts            Counter32,
+        zxAnCfm2MepSlmBwdReceivedPkts        Counter32,
+        zxAnCfm2MepSlmBwdLossPkts            Integer32,
+        zxAnCfm2MepSlmBwdLossRatio           Integer32
+    }
+
+    zxAnCfm2SlmRemoteMepId              OBJECT-TYPE
+        SYNTAX      Dot1agCfmMepId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "Remote MEP identifier, which receives synthetic frame loss 
+             measurement packets and responses synthetic frame loss 
+             reply packets."
+        ::= { zxAnCfm2MepSlmRltEntry 1 }
+
+    zxAnCfm2MepSlmStartTime             OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The timestamp of the time-of-day in UTC
+             at the scheduled starting time of the measurement interval."
+        ::= { zxAnCfm2MepSlmRltEntry 2 }
+
+    zxAnCfm2MepSlmEndTime               OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The timestamp of the time-of-day in UTC
+             at the scheduled ending time of the measurement interval."
+        ::= { zxAnCfm2MepSlmRltEntry 3 }
+
+    zxAnCfm2MepSlmElapsedTime           OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "Seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The elapsed time of the measurement interval."
+        ::= { zxAnCfm2MepSlmRltEntry 4 }
+
+    zxAnCfm2MepSlmSentPkts               OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of synthetic loss measurement packets sent."
+        ::= { zxAnCfm2MepSlmRltEntry 5 }
+
+    zxAnCfm2MepSlmReceivedPkts          OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of synthetic loss measurement packets received."
+        ::= { zxAnCfm2MepSlmRltEntry 6 }
+
+    zxAnCfm2MepSlmFwdSentPkts           OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of synthetic loss measurement packets sent
+             in forward direction."
+        ::= { zxAnCfm2MepSlmRltEntry 7 }
+
+    zxAnCfm2MepSlmFwdReceivedPkts       OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of synthetic loss measurement packets received
+             in forward direction."
+        ::= { zxAnCfm2MepSlmRltEntry 8 }
+
+    zxAnCfm2MepSlmFwdLossPkts           OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The packets loss in the latest SLM in forward direction."
+        ::= { zxAnCfm2MepSlmRltEntry 9 }
+
+    zxAnCfm2MepSlmFwdLossRatio          OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "0.0001percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The packet loss ratio of the latest SLM
+             in forward direction."
+        ::= { zxAnCfm2MepSlmRltEntry 10 }
+
+    zxAnCfm2MepSlmBwdSentPkts           OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of synthetic loss measurement packets sent
+             in backward direction."
+        ::= { zxAnCfm2MepSlmRltEntry 11 }
+
+    zxAnCfm2MepSlmBwdReceivedPkts       OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of synthetic loss measurement packets received
+             in backward direction."
+        ::= { zxAnCfm2MepSlmRltEntry 12 }
+
+    zxAnCfm2MepSlmBwdLossPkts           OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The packets loss of the latest SLM in backward direction."
+         ::= { zxAnCfm2MepSlmRltEntry 13}
+
+    zxAnCfm2MepSlmBwdLossRatio          OBJECT-TYPE
+        SYNTAX      Integer32
+        UNITS       "0.0001percent"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The packet loss ratio of the latest SLM
+             in backward direction."
+        ::= { zxAnCfm2MepSlmRltEntry 14 }
+
+--------------------------------------------------------------------------------
+-- 2.3.7.2 CFM2 MEP Statistics Table
+--------------------------------------------------------------------------------
+
+    zxAnCfm2MepStatsTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnCfm2MepStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The MEP (Maintenance Association End Point) statistics table."
+        ::= { zxAnCfm2StatisticsObjects 2 }
+
+    zxAnCfm2MepStatsEntry  OBJECT-TYPE
+        SYNTAX      ZxAnCfm2MepStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The MEP statistics table entry."
+        INDEX   { zxAnCfm2MdIndex, zxAnCfm2MaIndex, zxAnCfm2MpIdentifier }
+        ::= { zxAnCfm2MepStatsTable 1 }
+
+    ZxAnCfm2MepStatsEntry ::= SEQUENCE {
+        zxAnCfm2MepStatsRxPkts            Counter64,
+        zxAnCfm2MepStatsTxPkts            Counter64,
+        zxAnCfm2MepStatsRxSequenceErrors  Counter64,
+        zxAnCfm2MepStatsRxSrcMacErrors    Counter64,
+        zxAnCfm2MepStatsRxCorrectPkts     Counter64,
+        zxAnCfm2MepStatsRxIllegalPkts     Counter64,
+        zxAnCfm2MepStatsReset             INTEGER
+    }
+
+    zxAnCfm2MepStatsRxPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of received CFM packets."
+        ::= { zxAnCfm2MepStatsEntry 1 }
+
+    zxAnCfm2MepStatsTxPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of transmitted CFM packets."
+        ::= { zxAnCfm2MepStatsEntry 2 }
+
+    zxAnCfm2MepStatsRxSequenceErrors  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of received out-of-sequence CFM packets."
+        ::= { zxAnCfm2MepStatsEntry 3 }
+
+    zxAnCfm2MepStatsRxSrcMacErrors  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of received CFM packets that source MAC address
+             is invalid."
+        ::= { zxAnCfm2MepStatsEntry 4 }
+
+    zxAnCfm2MepStatsRxCorrectPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of received correct CFM packets."
+        ::= { zxAnCfm2MepStatsEntry 5 }
+
+    zxAnCfm2MepStatsRxIllegalPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of received illegal CFM packets."
+        ::= { zxAnCfm2MepStatsEntry 6 }
+
+    zxAnCfm2MepStatsReset  OBJECT-TYPE
+        SYNTAX      INTEGER {
+            reset(1)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Clear all the MEP statistics variables.
+             When get this variable, always return 1."
+        ::= { zxAnCfm2MepStatsEntry 100 }
+END

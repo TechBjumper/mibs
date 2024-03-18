@@ -1,0 +1,498 @@
+ZTE-AN-VLAN-STATS-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        MODULE-IDENTITY, OBJECT-TYPE, Counter64, Gauge32, Integer32
+                                                             FROM SNMPv2-SMI
+        RowStatus                                            FROM SNMPv2-TC
+        VlanId                                               FROM ZTE-AN-TC-MIB
+        zxAnBridge                                           FROM ZTE-AN-SMI;
+
+    zxAnVlanStatsMib MODULE-IDENTITY
+        LAST-UPDATED    "201306031030Z"
+        ORGANIZATION    "ZTE Corporation"
+        CONTACT-INFO    "ZTE shanghai software development dept.III 
+                         Zhang Weiping  021-68896470"
+        DESCRIPTION     "This MIB defines managed objects of ZTE VLAN statistic  
+                         management."
+        REVISION        "201306031030Z"
+        DESCRIPTION     "Initial version of this MIB module."
+        ::= { zxAnBridge 55 }
+        
+    zxAnVlanPerfObjects             OBJECT IDENTIFIER ::= { zxAnVlanStatsMib 2 }
+
+--------------------------------------------------------------------------------
+-- Following objects are defined.
+-- 1.  VLAN Performance Objects 
+-- 1.1 VLAN Current Statistic Table
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1.  VLAN Performance Objects 
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1.1 VLAN Current Statistic Table
+--------------------------------------------------------------------------------
+
+    zxAnVlanCurrStatsTable OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnVlanCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The statistic table based on S-VID and C-VID."
+        ::= { zxAnVlanPerfObjects 2 }
+
+    zxAnVlanCurrStatsEntry OBJECT-TYPE
+        SYNTAX      ZxAnVlanCurrStatsEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "An entry of zxAnVlanCurrStatsTable."
+        INDEX
+        {
+            zxAnVlanStatsSVid,
+            zxAnVlanStatsCVid
+        }
+        ::= { zxAnVlanCurrStatsTable 1 }
+
+    ZxAnVlanCurrStatsEntry  ::= SEQUENCE {
+        zxAnVlanStatsSVid              VlanId,
+        zxAnVlanStatsCVid              Integer32,
+        zxAnVlanRxOctets               Counter64,
+        zxAnVlanTxOctets               Counter64,
+        zxAnVlanRxOctetRate            Gauge32,
+        zxAnVlanTxOctetRate            Gauge32,
+        zxAnVlanRxOctetPeakRate        Gauge32,
+        zxAnVlanTxOctetPeakRate        Gauge32,
+        zxAnVlanRxPkts                 Counter64,
+        zxAnVlanTxPkts                 Counter64,
+        zxAnVlanRxPktRate              Gauge32,
+        zxAnVlanTxPktRate              Gauge32,
+        zxAnVlanRxDiscards             Counter64,
+        zxAnVlanTxDiscards             Counter64,
+        zxAnVlanLackOfBufferDiscards   Counter64,
+        zxAnVlanDelayExceededDiscards  Counter64,
+        zxAnVlanErroredDiscards        Counter64,
+        zxAnVlanIngressFilterDiscards  Counter64,      
+        zxAnVlanRxUcastOctets          Counter64,
+        zxAnVlanTxUcastOctets          Counter64,
+        zxAnVlanRxUcastOctetRate       Gauge32,
+        zxAnVlanTxUcastOctetRate       Gauge32,
+        zxAnVlanRxUcastOctetPeakRate   Gauge32,
+        zxAnVlanTxUcastOctetPeakRate   Gauge32,
+        zxAnVlanRxUcastPkts            Counter64,
+        zxAnVlanTxUcastPkts            Counter64,
+        zxAnVlanRxMcastOctets          Counter64,
+        zxAnVlanTxMcastOctets          Counter64,
+        zxAnVlanRxMcastOctetRate       Gauge32,
+        zxAnVlanTxMcastOctetRate       Gauge32,
+        zxAnVlanRxMcastOctetPeakRate   Gauge32,
+        zxAnVlanTxMcastOctetPeakRate   Gauge32,
+        zxAnVlanRxMcastPkts            Counter64,
+        zxAnVlanTxMcastPkts            Counter64,
+        zxAnVlanRxBcastOctets          Counter64,
+        zxAnVlanTxBcastOctets          Counter64,
+        zxAnVlanRxBcastPkts            Counter64,
+        zxAnVlanTxBcastPkts            Counter64,
+        zxAnVlanRxFloodOctets          Counter64,
+        zxAnVlanTxFloodOctets          Counter64,
+        zxAnVlanRxFloodPkts            Counter64,
+        zxAnVlanTxFloodPkts            Counter64,
+        zxAnVlanStatsReset             INTEGER,
+        zxAnVlanStatsRowStatus         RowStatus
+        }
+
+    zxAnVlanStatsSVid  OBJECT-TYPE
+        SYNTAX      VlanId
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "SVLAN ID."
+        ::= { zxAnVlanCurrStatsEntry 1 }
+
+    zxAnVlanStatsCVid  OBJECT-TYPE
+        SYNTAX      Integer32(0..4094)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "CVLAN ID. 0 indicated statistics only based on SVLAN."
+        ::= { zxAnVlanCurrStatsEntry 2 }
+
+    zxAnVlanRxOctets  OBJECT-TYPE 
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of received octets."
+        ::= { zxAnVlanCurrStatsEntry 3 }
+
+    zxAnVlanTxOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of transmitted octets."
+        ::= { zxAnVlanCurrStatsEntry 4 }
+    
+    zxAnVlanRxOctetRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received octet rate."
+        ::= { zxAnVlanCurrStatsEntry 5 }
+
+    zxAnVlanTxOctetRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted octet rate."
+        ::= { zxAnVlanCurrStatsEntry 6 }
+        
+    zxAnVlanRxOctetPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received octet peak rate."
+        ::= { zxAnVlanCurrStatsEntry 7 }
+
+    zxAnVlanTxOctetPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted octet peak rate."
+        ::= { zxAnVlanCurrStatsEntry 8 }
+        
+    zxAnVlanRxPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of received packets."
+        ::= { zxAnVlanCurrStatsEntry 9 }
+
+    zxAnVlanTxPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The total number of transmitted packets."
+        ::= { zxAnVlanCurrStatsEntry 10 }
+
+    zxAnVlanRxPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received packet rate."
+        ::= { zxAnVlanCurrStatsEntry 11 }
+
+    zxAnVlanTxPktRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "pps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted packet rate."
+        ::= { zxAnVlanCurrStatsEntry 12 }
+
+    zxAnVlanRxDiscards  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of received discarded packets."
+        ::= { zxAnVlanCurrStatsEntry 15 }
+
+    zxAnVlanTxDiscards  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of transmitted discarded packets."
+        ::= { zxAnVlanCurrStatsEntry 16 }
+
+    zxAnVlanLackOfBufferDiscards  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets discarded due to the lack of the buffer 
+             space."
+        ::= { zxAnVlanCurrStatsEntry 17 }
+
+    zxAnVlanDelayExceededDiscards  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets discarded due to excessive transit delay."
+        ::= { zxAnVlanCurrStatsEntry 18 }
+
+    zxAnVlanErroredDiscards  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of errored packets discarded."
+        ::= { zxAnVlanCurrStatsEntry 19 }
+
+    zxAnVlanIngressFilterDiscards  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets discarded due to the ingress filtering."
+        ::= { zxAnVlanCurrStatsEntry 20 }
+
+    zxAnVlanRxUcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received unicast octets."
+        ::= { zxAnVlanCurrStatsEntry 21 }
+
+    zxAnVlanTxUcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast octets."
+        ::= { zxAnVlanCurrStatsEntry 22 }
+
+    zxAnVlanRxUcastOctetRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received unicast octet rate."
+        ::= { zxAnVlanCurrStatsEntry 23 }
+
+    zxAnVlanTxUcastOctetRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast octet rate."
+        ::= { zxAnVlanCurrStatsEntry 24 }
+
+    zxAnVlanRxUcastOctetPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received unicast octet peak rate."
+        ::= { zxAnVlanCurrStatsEntry 25 }
+
+    zxAnVlanTxUcastOctetPeakRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast octet peak rate."
+        ::= { zxAnVlanCurrStatsEntry 26 }
+
+    zxAnVlanRxUcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received unicast packets."
+        ::= { zxAnVlanCurrStatsEntry 27 }
+
+    zxAnVlanTxUcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted unicast packets."
+        ::= { zxAnVlanCurrStatsEntry 28 }
+
+    zxAnVlanRxMcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received multicast octets."
+        ::= { zxAnVlanCurrStatsEntry 33 }
+
+    zxAnVlanTxMcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted multicast octets."
+        ::= { zxAnVlanCurrStatsEntry 34 }
+
+    zxAnVlanRxMcastOctetRate  OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received multicast octet rate."
+        ::= { zxAnVlanCurrStatsEntry 35 }
+
+    zxAnVlanTxMcastOctetRate   OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted multicast octet rate."
+        ::= { zxAnVlanCurrStatsEntry 36 }
+
+    zxAnVlanRxMcastOctetPeakRate   OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received multicast octet peak rate."
+        ::= { zxAnVlanCurrStatsEntry 37 }
+
+    zxAnVlanTxMcastOctetPeakRate   OBJECT-TYPE
+        SYNTAX      Gauge32
+        UNITS       "kbps"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted multicast octet peak rate."
+        ::= { zxAnVlanCurrStatsEntry 38 }
+
+    zxAnVlanRxMcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received multicast packets."
+        ::= { zxAnVlanCurrStatsEntry 39 }
+
+    zxAnVlanTxMcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted multicast packets."
+        ::= { zxAnVlanCurrStatsEntry 40 }
+
+    zxAnVlanRxBcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received broadcast octets."
+        ::= { zxAnVlanCurrStatsEntry 45 }
+
+    zxAnVlanTxBcastOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted broadcast octets."
+        ::= { zxAnVlanCurrStatsEntry 46 }
+
+    zxAnVlanRxBcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received broadcast packets."
+        ::= { zxAnVlanCurrStatsEntry 51 }
+
+    zxAnVlanTxBcastPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted broadcast packets."
+        ::= { zxAnVlanCurrStatsEntry 52 }
+
+    zxAnVlanRxFloodOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received flood octets."
+        ::= { zxAnVlanCurrStatsEntry 57 }
+
+    zxAnVlanTxFloodOctets  OBJECT-TYPE
+        SYNTAX      Counter64
+        UNITS       "bytes"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted flood octets."
+        ::= { zxAnVlanCurrStatsEntry 58 }
+
+    zxAnVlanRxFloodPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Received flood packets."
+        ::= { zxAnVlanCurrStatsEntry 63 }
+
+    zxAnVlanTxFloodPkts  OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Transmitted flood packets."
+        ::= { zxAnVlanCurrStatsEntry 64 }
+
+    zxAnVlanStatsReset  OBJECT-TYPE
+        SYNTAX      INTEGER
+        {
+            perfReset(1)
+        }
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION 
+            "Reset VLAN statistics counter manually when it is set to '1'."
+        ::= { zxAnVlanCurrStatsEntry 99 }
+
+    zxAnVlanStatsRowStatus  OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The status of this conceptual row.
+            
+            The supported actions of this conceptual row only include:
+            'createAndGo' and 'destroy'.
+
+            To create a row in this table, a manager must set this object to 
+            createAndGo(4), and must comply with the multi-variables binding 
+            rule described in zxAnVlanCurrStatsEntry.
+    
+            To delete a row in this table, a manager must set this object to 
+            destroy(6). 
+             
+            To get this object, the agent always returns active(1)."
+        ::= { zxAnVlanCurrStatsEntry 100 }
+                                       
+END
+    

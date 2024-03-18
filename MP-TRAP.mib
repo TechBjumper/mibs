@@ -1,0 +1,60 @@
+-- ************************************************************************************************
+-- FileName    :mpAlmTRAP.my
+-- Description :MultiMedia Platform private MIB()
+-- Revision History     :
+--   Ver.     mark   date      
+--   01.01    @001   12/21/1998
+--
+-- ************************************************************************************************
+--
+-- 
+--
+
+
+MP-TRAP DEFINITIONS ::= BEGIN
+
+-- specific-trap
+-- 
+
+-- 
+
+IMPORTS 
+           TRAP-TYPE
+                         FROM RFC-1215 
+           mpEventTimeStamp, mpEventSeverity, mpEventDescription
+                         FROM MMPF-MIB
+			nec FROM NEC-MIB;
+
+-- 98/12/15 YI mmpf => mmpf-mib CHG start @001
+-- sysObjectID 
+   necProduct        OBJECT IDENTIFIER ::= { nec 1 }
+   datax             OBJECT IDENTIFIER ::= { necProduct 3 }
+   mmpf              OBJECT IDENTIFIER ::= { datax 13 }
+   mmn9110           OBJECT IDENTIFIER ::= { mmpf 1 }
+   mmn9120           OBJECT IDENTIFIER ::= { mmpf 2 }
+-- [sysObjectID]  MM-Node9110/MM-Node9120
+--  mmn9110           OBJECT IDENTIFIER ::= { nec necProduct(1) datax(3) mmpf(13) mmn9110(1) }
+--  mmn9120           OBJECT IDENTIFIER ::= { nec necProduct(1) datax(3) mmpf(13) mmn9110(2) }
+
+
+--  mmn9110   OBJECT IDENTIFIER ::= { nec necProduct(1) datax(3) mmpf(13) mmn9110(1) }
+--  mmn9120   OBJECT IDENTIFIER ::= { nec necProduct(1) datax(3) mmpf(13) mmn9110(2) }
+-- 98/12/15 YI mmpf => mmpf-mib CHG end
+
+
+--
+-- TRAP
+--
+
+-- 
+alarmReCollect  TRAP-TYPE
+     ENTERPRISE           { mmn9110 }
+     VARIABLES            { mpEventTimeStamp,
+                            mpEventSeverity,
+                            mpEventDescription }
+     DESCRIPTION
+           ""
+     ::= 1380001
+
+
+END

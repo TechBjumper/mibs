@@ -1,0 +1,474 @@
+ZTE-AN-QOSACL-PERF-MIB DEFINITIONS ::= BEGIN
+
+    IMPORTS
+        OBJECT-GROUP, MODULE-COMPLIANCE
+            FROM SNMPv2-CONF
+        Integer32, Counter64, OBJECT-TYPE, MODULE-IDENTITY
+            FROM SNMPv2-SMI
+        TruthValue, RowStatus, DateAndTime
+            FROM SNMPv2-TC
+        HCPerfTimeElapsed
+            FROM HC-PerfHist-TC-MIB
+        zxAnAclNumber
+            FROM ZTE-AN-ACL-MIB
+        zxAnQos
+            FROM ZTE-AN-SMI;
+
+    zxAnQosAclPerfMib MODULE-IDENTITY
+        LAST-UPDATED  "201812181000Z"
+        ORGANIZATION  "ZTE Corporation"
+        CONTACT-INFO  "Lu Hanxiong ZTE Corporation
+                       Mail: lu.hanxiong@zte.com.cn
+                       Tel: +86-021-68895679"
+        DESCRIPTION   "The MIB module for the management of the ACL
+                       performance."
+
+        REVISION      "201812181000Z"
+        DESCRIPTION
+            "Initial version of this MIB module."
+        ::= { zxAnQos 6 }
+
+--------------------------------------------------------------------------------
+-- Following management objects are defined.
+-- 1. ACL Module Performance Objects
+-- 1.2 ACL Module Current Minutes Performance Table
+-- 1.3 ACL Module Current 1 Day Performance Table
+-- 1.4 ACL Module History Minutes Performance Table
+-- 1.5 ACL Module History 1 Day Performance Table
+
+-- Following conformance information is defined.
+-- 2. zxAnQosAclPerfConformances
+--------------------------------------------------------------------------------
+
+    zxAnQosAclPerfObjects       OBJECT IDENTIFIER
+                                  ::= { zxAnQosAclPerfMib 2 }
+    zxAnQosAclPerfConformances  OBJECT IDENTIFIER
+                                  ::= { zxAnQosAclPerfMib 4 }
+
+--------------------------------------------------------------------------------
+-- 1. ACL Module Performance Objects
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- 1.2 ACL Module Current Minutes Performance Table
+--------------------------------------------------------------------------------
+    zxAnQosAclCurrMinPerfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosAclCurrMinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The minutes interval performance data table of the ACL rule."
+        ::= { zxAnQosAclPerfObjects 2 }
+
+    zxAnQosAclCurrMinPerfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosAclCurrMinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The minutes interval performance data entry of the ACL rule."
+        INDEX  { zxAnQosAclCMinPerfAclNumber, zxAnQosAclCMinPerfRuleId }
+        ::= { zxAnQosAclCurrMinPerfTable 1 }
+
+    ZxAnQosAclCurrMinPerfEntry ::= SEQUENCE {
+        zxAnQosAclCMinPerfAclNumber Integer32,
+        zxAnQosAclCMinPerfRuleId    Integer32,
+        zxAnQosAclCMinTimeElapsed   HCPerfTimeElapsed,
+        zxAnQosAclCMinPkts          Counter64,
+        zxAnQosAclCMinOcts          Counter64,
+        zxAnQosAclCMinReset         INTEGER
+        }
+
+    zxAnQosAclCMinPerfAclNumber OBJECT-TYPE
+        SYNTAX Integer32 (1..699)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The number of an ACL."
+        ::= { zxAnQosAclCurrMinPerfEntry 1 }
+
+    zxAnQosAclCMinPerfRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The ID of a rule."
+        ::= { zxAnQosAclCurrMinPerfEntry 2 }
+
+    zxAnQosAclCMinTimeElapsed  OBJECT-TYPE
+        SYNTAX      HCPerfTimeElapsed
+        UNITS       "Seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of seconds that have elapsed since the beginning of the
+             current minutes interval."
+        ::= { zxAnQosAclCurrMinPerfEntry 3 }
+
+    zxAnQosAclCMinPkts OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets in current minutes interval."
+        ::= { zxAnQosAclCurrMinPerfEntry 4 }
+
+    zxAnQosAclCMinOcts OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of octets in current minutes interval."
+        ::= { zxAnQosAclCurrMinPerfEntry 5 }
+
+    zxAnQosAclCMinReset OBJECT-TYPE
+        SYNTAX  INTEGER
+            {
+                perfReset(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Clear all the current minutes performance variables.
+             When get this variable, always return 1."
+        ::= { zxAnQosAclCurrMinPerfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 1.3 ACL Module Current 1 Day Performance Table
+--------------------------------------------------------------------------------
+    zxAnQosAclCurr1DayPerfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosAclCurr1DayPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The 1-day interval performance data table of the ACL rule."
+        ::= { zxAnQosAclPerfObjects 3 }
+
+    zxAnQosAclCurr1DayPerfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosAclCurr1DayPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The 1-day interval performance data entry of the ACL rule."
+        INDEX  { zxAnQosAclC1DPerfAclNumber, zxAnQosAclC1DPerfRuleId }
+        ::= { zxAnQosAclCurr1DayPerfTable 1 }
+
+    ZxAnQosAclCurr1DayPerfEntry ::= SEQUENCE {
+        zxAnQosAclC1DPerfAclNumber Integer32,
+        zxAnQosAclC1DPerfRuleId    Integer32,
+        zxAnQosAclC1DTimeElapsed   HCPerfTimeElapsed,
+        zxAnQosAclC1DPkts          Counter64,
+        zxAnQosAclC1DOcts          Counter64,
+        zxAnQosAclC1DReset         INTEGER
+        }
+
+    zxAnQosAclC1DPerfAclNumber OBJECT-TYPE
+        SYNTAX Integer32 (1..699)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The number of an ACL."
+        ::= { zxAnQosAclCurr1DayPerfEntry 1 }
+
+    zxAnQosAclC1DPerfRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The ID of a rule."
+        ::= { zxAnQosAclCurr1DayPerfEntry 2 }
+
+    zxAnQosAclC1DTimeElapsed  OBJECT-TYPE
+        SYNTAX      HCPerfTimeElapsed
+        UNITS       "Seconds"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of seconds that have elapsed since the beginning of the
+             current 1-day interval."
+        ::= { zxAnQosAclCurr1DayPerfEntry 3 }
+
+    zxAnQosAclC1DPkts OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets in current 1-day interval."
+        ::= { zxAnQosAclCurr1DayPerfEntry 4 }
+
+    zxAnQosAclC1DOcts OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of octets in current 1-day interval."
+        ::= { zxAnQosAclCurr1DayPerfEntry 5 }
+
+    zxAnQosAclC1DReset OBJECT-TYPE
+        SYNTAX  INTEGER
+            {
+                perfReset(1)
+            }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Clear all the current 1-day performance variables.
+             When get this variable, always return 1."
+        ::= { zxAnQosAclCurr1DayPerfEntry 50 }
+
+--------------------------------------------------------------------------------
+-- 1.4 ACL Module History Minutes Performance Table
+--------------------------------------------------------------------------------
+    zxAnQosAclHisMinPerfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosAclHisMinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The minutes interval historical performance data table of the ACL
+             rule."
+        ::= { zxAnQosAclPerfObjects 4 }
+
+    zxAnQosAclHisMinPerfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosAclHisMinPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The minutes interval historical performance data entry of the ACL
+             rule."
+        INDEX   { zxAnQosAclHMinPerfAclNumber, zxAnQosAclHMinPerfRuleId,
+                  zxAnQosAclHMinIntervalNo }
+        ::= { zxAnQosAclHisMinPerfTable 1 }
+
+    ZxAnQosAclHisMinPerfEntry ::= SEQUENCE {
+        zxAnQosAclHMinPerfAclNumber     Integer32,
+        zxAnQosAclHMinPerfRuleId        Integer32,
+        zxAnQosAclHMinIntervalNo        Integer32,
+        zxAnQosAclHMinIntervalValidData TruthValue,
+        zxAnQosAclHMinDateTime          DateAndTime,
+        zxAnQosAclHMinPkts              Counter64,
+        zxAnQosAclHMinOcts              Counter64
+        }
+
+    zxAnQosAclHMinPerfAclNumber OBJECT-TYPE
+        SYNTAX Integer32 (1..699)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The number of an ACL."
+        ::= { zxAnQosAclHisMinPerfEntry 1 }
+
+    zxAnQosAclHMinPerfRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The ID of a rule."
+        ::= { zxAnQosAclHisMinPerfEntry 2 }
+
+   zxAnQosAclHMinIntervalNo  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+             "The performance data interval number."
+        ::= { zxAnQosAclHisMinPerfEntry 3 }
+
+    zxAnQosAclHMinIntervalValidData  OBJECT-TYPE
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+             "Performance data valid flag.
+              true(1) means valid.
+              false(2) means invalid and the performace data is useless."
+        ::= { zxAnQosAclHisMinPerfEntry 4 }
+
+    zxAnQosAclHMinDateTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+             "The minutes interval performance data generation time."
+        ::= { zxAnQosAclHisMinPerfEntry 5 }
+
+    zxAnQosAclHMinPkts OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets in historical minutes interval."
+        ::= { zxAnQosAclHisMinPerfEntry 6 }
+
+    zxAnQosAclHMinOcts OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of octets in historical minutes interval."
+        ::= { zxAnQosAclHisMinPerfEntry 7 }
+
+--------------------------------------------------------------------------------
+-- 1.5 ACL Module History 1 Day Performance Table
+--------------------------------------------------------------------------------
+    zxAnQosAclHis1DayPerfTable  OBJECT-TYPE
+        SYNTAX      SEQUENCE OF ZxAnQosAclHis1DayPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The 1-day interval historical performance data table of the ACL
+             rule."
+        ::= { zxAnQosAclPerfObjects 5 }
+
+    zxAnQosAclHis1DayPerfEntry  OBJECT-TYPE
+        SYNTAX      ZxAnQosAclHis1DayPerfEntry
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The 1-day interval historical performance data entry of the ACL
+             rule."
+        INDEX   { zxAnQosAclH1DPerfAclNumber, zxAnQosAclH1DPerfRuleId,
+                  zxAnQosAclH1DIntervalNo }
+        ::= { zxAnQosAclHis1DayPerfTable 1 }
+
+    ZxAnQosAclHis1DayPerfEntry ::= SEQUENCE {
+        zxAnQosAclH1DPerfAclNumber     Integer32,
+        zxAnQosAclH1DPerfRuleId        Integer32,
+        zxAnQosAclH1DIntervalNo        Integer32,
+        zxAnQosAclH1DIntervalValidData TruthValue,
+        zxAnQosAclH1DDateTime          DateAndTime,
+        zxAnQosAclH1DPkts              Counter64,
+        zxAnQosAclH1DOcts              Counter64
+        }
+
+    zxAnQosAclH1DPerfAclNumber OBJECT-TYPE
+        SYNTAX Integer32 (1..699)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The number of an ACL."
+        ::= { zxAnQosAclHis1DayPerfEntry 1 }
+
+    zxAnQosAclH1DPerfRuleId OBJECT-TYPE
+        SYNTAX Integer32 (1..2147483644)
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+            "The ID of a rule."
+        ::= { zxAnQosAclHis1DayPerfEntry 2 }
+
+   zxAnQosAclH1DIntervalNo  OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+             "The performance data interval number."
+        ::= { zxAnQosAclHis1DayPerfEntry 3 }
+
+    zxAnQosAclH1DIntervalValidData  OBJECT-TYPE
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+             "Performance data valid flag.
+              true(1) means valid.
+              false(2) means invalid and the performace data is useless."
+        ::= { zxAnQosAclHis1DayPerfEntry 4 }
+
+    zxAnQosAclH1DDateTime  OBJECT-TYPE
+        SYNTAX      DateAndTime
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+             "The 1-day interval performance data generation time."
+        ::= { zxAnQosAclHis1DayPerfEntry 5 }
+
+    zxAnQosAclH1DPkts OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of packets in historical 1-day interval."
+        ::= { zxAnQosAclHis1DayPerfEntry 6 }
+
+    zxAnQosAclH1DOcts OBJECT-TYPE
+        SYNTAX      Counter64
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The number of octets in historical 1-day interval."
+        ::= { zxAnQosAclHis1DayPerfEntry 7 }
+
+--------------------------------------------------------------------------------
+-- 2. zxAnQosAclPerfConformances
+--------------------------------------------------------------------------------
+    zxAnQosAclPerfCompliances  OBJECT IDENTIFIER
+                                        ::= { zxAnQosAclPerfConformances 1 }
+    zxAnQosAclPerfGroups       OBJECT IDENTIFIER
+                                        ::= { zxAnQosAclPerfConformances 2 }
+
+    zxAnQosAclPerfCompliance  MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+            "The compliance statement for support of the ACL performance MIB
+             module."
+        MODULE -- this module
+        MANDATORY-GROUPS {
+            zxAnQosAclPerfCurrMinGroup,
+            zxAnQosAclPerfCurr1DayGroup,
+            zxAnQosAclPerfHisMinGroup,
+            zxAnQosAclPerfHis1DayGroup
+        }
+        ::= { zxAnQosAclPerfCompliances 1 }
+
+    zxAnQosAclPerfCurrMinGroup  OBJECT-GROUP
+        OBJECTS {
+            zxAnQosAclCMinTimeElapsed,
+            zxAnQosAclCMinPkts,
+            zxAnQosAclCMinOcts,
+            zxAnQosAclCMinReset
+        }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects providing for current minute interval
+             performance data of the ACL."
+        ::= { zxAnQosAclPerfGroups 1 }
+
+    zxAnQosAclPerfCurr1DayGroup  OBJECT-GROUP
+        OBJECTS {
+            zxAnQosAclC1DTimeElapsed,
+            zxAnQosAclC1DPkts,
+            zxAnQosAclC1DOcts,
+            zxAnQosAclC1DReset
+        }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects providing for current 1-Day interval
+             performance data of the ACL."
+        ::= { zxAnQosAclPerfGroups 2 }
+
+    zxAnQosAclPerfHisMinGroup  OBJECT-GROUP
+        OBJECTS {
+            zxAnQosAclHMinIntervalValidData,
+            zxAnQosAclHMinDateTime,
+            zxAnQosAclHMinPkts,
+            zxAnQosAclHMinOcts
+        }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects providing for history minutes interval
+             performance data of the ACL."
+        ::= { zxAnQosAclPerfGroups 3 }
+
+    zxAnQosAclPerfHis1DayGroup  OBJECT-GROUP
+        OBJECTS {
+            zxAnQosAclH1DIntervalValidData,
+            zxAnQosAclH1DDateTime,
+            zxAnQosAclH1DPkts,
+            zxAnQosAclH1DOcts
+        }
+        STATUS  current
+        DESCRIPTION
+            "A collection of objects providing for history 1-day interval
+             performance data of the ACL."
+        ::= { zxAnQosAclPerfGroups 4 }
+
+END
